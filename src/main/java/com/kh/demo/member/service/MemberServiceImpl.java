@@ -69,4 +69,10 @@ public class MemberServiceImpl implements MemberService{
 
         return member;
     }
+
+    @Override
+    public void withdraw(String memberId) {
+        memberMapper.deleteMember(memberId);
+        //이미지 지우려면 fileuploadutil.delete를 사용하면됨.
+    }
 }

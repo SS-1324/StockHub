@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kh.demo.brokerage.mapper.AccountMapper">
+
+    <insert id="insertAccount" parameterType="com.kh.demo.brokerage.dto.AccountDto"
+            useGeneratedKeys="true" keyProperty="accountId">
+        INSERT INTO account(account_no, owner_name, member_id, brokerage_id, linked_at)
+        VALUES(#{accountNo}, #{ownerName}, #{memberId}, #{brokerageId}, now())
+    </insert>
+
+    <select id="selectAccountsByMember" parameterType="string" resultType="com.kh.demo.brokerage.dto.AccountDto">
+        SELECT a.account_id, a.account_no, a.owner_name,
+               a.member_id,
+               a.brokerage_id,
+               b.brokerage_name,
+               a.balance,
+               a.create_at,
+               a.linked_at
+        FROM account a
+        JOIN brokerage b ON a.brokerage_id = b.brokerage_id
+        WHERE a.member_id = #{memberId}
+        ORDER BY a.account_id
+    </select>
+
+    <select id="selectAccountById" parameterType="long" resultType="com.kh.demo.brokerage.dto.AccountDto">
+        SELECT a.account_id, a.account_no, a.owner_name,
+               a.member_id,
+               a.brokerage_id,
+               b.brokerage_name,
+               a.balance,
+               a.create_at,
+               a.linked_at
+        FROM account a
+        JOIN brokerage b ON a.brokerage_id = b.brokerage_id
+        WHERE a.account_id = #{accountId}
+    </select>
+
+    <select id="selectUnlinkedAccountsByBrokerage" parameterType="long" resultType="com.kh.demo.brokerage.dto.AccountDto">
+        SELECT a.account_id, a.account_no, a.owner_name,
+               a.member_id,
+               a.brokerage_id,
+               b.brokerage_name,
+               a.balance,
+               a.create_at,
+               a.linked_at
+        FROM account a
+        JOIN brokerage b ON a.brokerage_id = b.brokerage_id
+        WHERE a.brokerage_id = #{brokerageId} AND a.member_id IS NULL
+        ORDER BY a.account_id
+    </select>
+
+    <select id="selectUnlinkedAccount" resultType="com.kh.demo.brokerage.dto.AccountDto">
+        SELECT a.account_id, a.account_no, a.owner_name,
+               a.member_id,
+               a.brokerage_id,
+               b.brokerage_name,
+               a.balance,
+               a.create_at,
+               a.linked_at
+        FROM account a
+        JOIN brokerage b ON a.brokerage_id = b.brokerage_id
+        WHERE a.brokerage_id = #{brokerageId}
+          AND a.account_no = #{accountNo}
+          AND a.owner_name = #{ownerName}
+          AND a.member_id IS NULL
+    </select>
+
+    <update id="linkAccount">
+        UPDATE account
+        SET member_id = #{memberId},
+            linked_at = now()
+        WHERE account_id = #{accountId}
+          AND member_id IS NULL
+    </update>
+
+    <update id="updateBalance">
+        UPDATE account
+        SET balance = #{balance}
+        WHERE account_id = #{accountId}
+    </update>
+
+</mapper>

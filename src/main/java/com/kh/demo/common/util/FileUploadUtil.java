@@ -53,4 +53,21 @@ public class FileUploadUtil {
         String path = webPrefix + "/" + saveName;
         return new SavedFile(originalName, saveName, path);
     }
+
+    /*
+        webPath : 저장 당시 만들었던 웹의 경로 (/uploads/profile/xxx.png)
+        uploadDir : 경로에 실제 디스크 폴더 (uploads/profle)
+     */
+    public boolean delete(String webPath, String uploadDir){
+        if(webPath == null || webPath.isBlank()){
+            return false;
+        }
+        String fileName = webPath.substring(webPath.lastIndexOf("/") + 1);
+        File target = new File(new File(uploadDir).getAbsoluteFile(), fileName);
+        if(target.exists()){
+            target.delete();
+        }
+
+        return true;
+    }
 }

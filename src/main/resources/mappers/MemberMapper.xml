@@ -28,6 +28,8 @@
         WHERE member_id = #{memberId}
     </select>
 
-
+    <delete id="deleteMember" parameterType="string">
+        DELETE FROM member WHERE member_id = #{memberId}
+    </delete>
 
 </mapper>

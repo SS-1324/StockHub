@@ -68,6 +68,7 @@ public class MemberController {
     @PostMapping("/login")
     public String login(@RequestParam String memberId,
                         @RequestParam String memberPwd,
+                        @RequestParam(required = false) String redirectURL,
                         RedirectAttributes redirectAttributes,
                         HttpSession session){
         try {
@@ -78,6 +79,10 @@ public class MemberController {
         } catch(IllegalStateException e){
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/member/login";
+        }
+
+        if(redirectURL != null && !redirectURL.isBlank()){
+            return "redirect:" + redirectURL;
         }
 
         return "redirect:/";
@@ -93,10 +98,25 @@ public class MemberController {
         return "redirect:/";
     }
 
+    @PostMapping("/withdraw")
+    public String withdraw(HttpSession session){
+        MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        memberService.withdraw(loginMember.getMemberId());
+
+        session.invalidate();
+        return "redirect:/";
+    }
+
+
     // ------------------- 화면 이동 요청
     @GetMapping("/join")
     public String joinForm(){return "member/join";}
 
     @GetMapping("/login")
     public String loginForm(){return "member/login";}
+
+    @GetMapping("/mypage")
+    public String mypage(){
+        return "member/mypage";
+    }
 }

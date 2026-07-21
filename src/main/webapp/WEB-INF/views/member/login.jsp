@@ -13,6 +13,8 @@
     </c:if>
 
     <form class="form form-flex" action="/member/login" method="post">
+        <input type="hidden" name="redirectURL" value="${param.redirectURL}">
+
         <div class="form-row">
             <label for="member-id">아이디</label>
             <input type="text" id="member-id" name="memberId" required autofocus>

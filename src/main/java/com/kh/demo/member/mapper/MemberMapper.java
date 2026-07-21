@@ -27,4 +27,7 @@ public interface MemberMapper {
 
     //아이디를 통한 회원 조회
     MemberDto selectByMemberId(String memberId);
+
+    //회원탈퇴
+    int deleteMember(String memberId);
 }

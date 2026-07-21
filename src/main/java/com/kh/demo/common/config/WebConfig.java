@@ -1,7 +1,9 @@
 package com.kh.demo.common.config;
 
+import com.kh.demo.common.interceptor.LoginInterceptor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -27,5 +29,15 @@ public class WebConfig implements WebMvcConfigurer {
 
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:" + absoultePath + File.separator);
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new LoginInterceptor())
+                //로그인 해야만 접근 가능한 페이지 경로
+                .addPathPatterns(
+                        "/member/mypage",
+                        "/member/withdraw"
+                );
     }
 }
