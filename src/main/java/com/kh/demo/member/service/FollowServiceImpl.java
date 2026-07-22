@@ -1,4 +1,4 @@
 package com.kh.demo.member.service;
 
-public class MemberServiceImpl {
+public class FollowServiceImpl {
 }
