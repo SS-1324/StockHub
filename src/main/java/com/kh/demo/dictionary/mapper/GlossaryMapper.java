@@ -15,11 +15,15 @@ public interface GlossaryMapper{
     List<GlossaryDto> selectGlossaryList();
 
     // 용어 번호 기준으로 조회하는 메서드(selectGlossaryById)
-    // Dto에 들어있는 termId(용어 번호)를 기준 삼아 Mapper.xml에서 사용
     GlossaryDto selectGlossaryById( @Param("termId") Long termId );
 
-    
-    List<GlossaryDto> searchGlossary(
-            @Param("keyword") String keyword
+    // 키워드 기준으로 조회하는 메서드(searchGlossary)
+    List<GlossaryDto> searchGlossary(@Param("keyword") String keyword);
+
+    // 카테고리별 조회를 위한 메서드
+    List<GlossaryDto> selectGlossaryByCategory(@Param("category") String category
     );
+
+    // 카테고리 목록 조회를 위한 메서드
+    List<String> selectCategoryList();
     }
