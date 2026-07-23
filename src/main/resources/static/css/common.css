@@ -43,7 +43,7 @@ a:hover{
     color: rgb(4, 99, 4);
 }
 
-/* 헤더 / 네비 */
+/* 헤더 */
 .site-header{
     border-bottom: 1px solid #eee;
 }
@@ -66,6 +66,45 @@ a:hover{
     display: flex;
     align-items: center;
     gap: 16px;
+}
+
+.header-profile-image{
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border: 1px solid #e2e2e2;
+    border-radius: 50%;
+    background: #f1f3f5;
+    object-fit: cover;
+}
+
+.header-profile-placeholder{
+    position: relative;
+    overflow: hidden;
+}
+
+.header-profile-placeholder::before{
+    content: "";
+    position: absolute;
+    top: 7px;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #adb5bd;
+    transform: translateX(-50%);
+}
+
+.header-profile-placeholder::after{
+    content: "";
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    width: 22px;
+    height: 12px;
+    border-radius: 12px 12px 4px 4px;
+    background: #adb5bd;
+    transform: translateX(-50%);
 }
 
 /* 메인화면 */
@@ -264,33 +303,4 @@ input[type="password"]
 
 .form-tip-error{
     color: red;
-}
-
-/* 마이페이지 */
-.mypage-card{
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    margin-bottom: 24px;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.mypage-info{
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    gap: 8px 24px;
-    justify-content: center;
-}
-
-.mypage-info dt{
-    font-weight: 700;
-    color: #888;
-    font-size: 13px;
-    text-align: center;
-}
-
-.mypage-info dd{
-    text-align: center;
 }

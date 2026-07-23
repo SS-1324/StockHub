@@ -19,7 +19,6 @@ import org.springframework.security.web.SecurityFilterChain;
  * 우리는 security로그인대신 HttpSession을 직접 활용해서 수동으로 로그인 방식을 구축할 것이다.
  * -> spring security의 기본설정을 비활성
  *
- * 로그인 여부는 interceptor를 통해 추후 확인
  * */
 
 

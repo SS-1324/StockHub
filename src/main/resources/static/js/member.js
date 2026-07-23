@@ -1,113 +1,101 @@
-/* 회원가입 화면 스크립트 */
-const profileImageInput = document.querySelector("#profile-image"); //프로필 이미지 파일 태그
-const checkIdReult = document.querySelector("#check-id-btn"); //아이디 중복체크 버튼
-const memberIdInput = document.querySelector("#member-id"); //아이디 입력창
-const checkIdResult = document.querySelector("#check-id-result"); //아이디 상태
+const profileInput = document.querySelector("#profile-image");
+const idButton = document.querySelector("#check-id-btn");
+const idInput = document.querySelector("#member-id");
+const idResult = document.querySelector("#check-id-result");
+const pwInput = document.querySelector("#member-pwd");
+const pwConfirm = document.querySelector("#member-pwd-confirm");
+const pwResult = document.querySelector("#check-pwd-result");
+const joinForm = document.querySelector("#join-form");
 
-//서버에 마지막으로 중복이 아님을 확인받은 아이디값
-let checkedMemberId = null;
+let checkedId = null;
 let checkedPwd = false;
 
-/* 프로필 이미지 미리보기 */
-profileImageInput.addEventListener("change", function(ev){
-    //업로드한 파일중 첫번째 요소를 가져옴
-    const file = ev.target.files[0];
-    if(!file){
+profileInput.addEventListener("change", function (e) {
+    const file = e.target.files[0];
+
+    if (!file) {
         return;
     }
 
-    // FileReader - 아직 서버에 업로드하지 않은, 사용자 PC에 있는 파일을
-    // 브라우저 메모리에 올리기위해 base64라는 문자열로 만들어주는 js객체
-    // base64로 변경해야 img태그의 src속성에 넣어 사용이 가능
     const reader = new FileReader();
-    reader.onload = function(ev){
-        const profilePreview = document.querySelector("#profile-preview");
-        profilePreview.src = ev.target.result;
-        profilePreview.style.display = "block";
 
-        const profilePlaceholder = document.querySelector("#profile-preview-placeholder");
-        profilePlaceholder.style.display = "none";
-    }
+    reader.onload = function (e) {
+        const preview = document.querySelector("#profile-preview");
+        const placeholder = document.querySelector("#profile-preview-placeholder");
 
-    // 업로드한 파일을 base64방식의 데이터URL로 변경.
+        preview.src = e.target.result;
+        preview.style.display = "block";
+        placeholder.style.display = "none";
+    };
+
     reader.readAsDataURL(file);
+});
 
-})
+idButton.addEventListener("click", async function () {
+    const memberId = idInput.value.trim();
 
-/* 아이디 중복확인 */
-checkIdReult.addEventListener("click",async function(){
-    const memberId = memberIdInput.value.trim();
-    if(memberId.length === 0) {
-        checkIdResult.textContent = "아이디를 입력해주세요";
-        checkIdResult.className = "form-tip form-tip-error";
-        checkedMemberId = null;
+    if (!memberId) {
+        showId("아이디를 입력해주세요.", false);
+        checkedId = null;
         return;
     }
-    
+
     try {
-        // encodeURIComponent감싸주는 이유: 아이디에 &, =와같은 요청 url에 영향을 주는 것들을 제거해주는 용도
-        const response = await fetch(`/member/checkId?memberId=${encodeURIComponent(memberId)}`,{
-                                    method: "GET",
-                                    headers: {"X-Request-With": "XMLHtttpRequest"}
-                                });
-
-        // response.json() : json응답을 자바스크립트 객체로 변경
+        const response = await fetch(
+            `/member/checkId?memberId=${encodeURIComponent(memberId)}`,
+            {headers: {"X-Requested-With": "XMLHttpRequest"}}
+        );
         const result = await response.json();
-        const isDuplicate = result.data;
-        
-        checkIdResult.textContent = result.message;
-        checkIdResult.className = isDuplicate ? "form-tip form-tip-error" : "form-tip form-tip-ok";
+        const duplicate = result.data;
 
-        checkedMemberId = isDuplicate ? null : memberId;
-    } catch(err){
-        checkIdResult.textContent = "중복확인 중 오류가 발생했습니다.";
-        checkIdResult.className = "form-tip form-tip-error";
+        showId(result.message, !duplicate);
+        checkedId = duplicate ? null : memberId;
+    } catch (e) {
+        showId("중복확인 중 오류가 발생했습니다.", false);
+        checkedId = null;
     }
-})
+});
 
-memberIdInput.addEventListener("input", function(){
-    checkedMemberId = null;
-    checkIdResult.textContent = "";
-})
+idInput.addEventListener("input", function () {
+    checkedId = null;
+    idResult.textContent = "";
+});
 
-/* 비밀번호 확인 */
-const pwInput = document.querySelector("#member-pwd"); //비밀번호 입력창
-const pwConfirmInput = document.querySelector("#member-pwd-confirm"); //비밀번호 입력창
+pwInput.addEventListener("input", checkPwd);
+pwConfirm.addEventListener("input", checkPwd);
 
-function validatePwdConfirm(){
-    const pwConfirmResult = document.querySelector("#check-pwd-result");
-
-    //비밀번호 확인창이 비어있다면 검사x
-    if(!pwConfirmInput.value.trim()){
-        pwConfirmResult.textContent = "";
-        checkedPwd = false;
+joinForm.addEventListener("submit", function (e) {
+    if (checkedId !== idInput.value.trim()) {
+        e.preventDefault();
+        alert("아이디 중복확인을 진행해주세요.");
         return;
     }
 
-    checkedPwd = pwInput.value === pwConfirmInput.value;
+    if (!checkedPwd) {
+        e.preventDefault();
+        alert("비밀번호가 일치하지 않습니다.");
+    }
+});
 
-    pwConfirmResult.textContent = checkedPwd ? "비밀번호가 일치합니다" : "비밀번호가 일치하지 않습니다";
-    pwConfirmResult.className = checkedPwd ? "form-tip form-tip-ok" : "form-tip form-tip-error";
+function checkPwd() {
+    if (!pwConfirm.value) {
+        checkedPwd = false;
+        pwResult.textContent = "";
+        return;
+    }
+
+    checkedPwd = pwInput.value === pwConfirm.value;
+    pwResult.textContent = checkedPwd
+        ? "비밀번호가 일치합니다."
+        : "비밀번호가 일치하지 않습니다.";
+    pwResult.className = checkedPwd
+        ? "form-tip form-tip-ok"
+        : "form-tip form-tip-error";
 }
 
-pwInput.addEventListener("input", validatePwdConfirm);
-pwConfirmInput.addEventListener("input", validatePwdConfirm);
-
-/* 회원가입 폼 제출 */
-const joinForm = document.querySelector("#join-form");
-joinForm.addEventListener("submit", function (ev){
-    if(!checkedMemberId){
-        ev.preventDefault();
-        alert("아이디 중복확인을 진행해주세요");
-        return;
-    }
-
-    if(!checkedPwd){
-        ev.preventDefault();
-        alert("비밀번호가 일치하지 않습니다.");
-        return;
-    }
-    // js에서의 검증은 UX관점일 뿐.
-    // 우회가 얼마든지 가능하기 때문에 서버에서 재 검증이 필요하다.
-    // (아이디 중복o, 비밀번호확인x)
-})
+function showId(message, ok) {
+    idResult.textContent = message;
+    idResult.className = ok
+        ? "form-tip form-tip-ok"
+        : "form-tip form-tip-error";
+}

@@ -2,34 +2,44 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<!--
-    namespace : 해당 XML파일을 어떤 Mapper 인터페이스와 연결할지를 정해주는 속성.
--->
+
 <mapper namespace="com.kh.demo.member.mapper.MemberMapper">
 
     <insert id="insertMember" parameterType="MemberDto">
-        INSERT INTO member(member_id, member_pwd, member_name, nickname, email, profile)
-        VALUES(#{memberId}, #{memberPwd}, #{memberName}, #{nickname}, #{email}, #{profile})
+        INSERT INTO members (
+            member_id,
+            member_pwd,
+            member_name,
+            nickname,
+            email,
+            profile
+        ) VALUES (
+            #{memberId},
+            #{memberPwd},
+            #{memberName},
+            #{nickname},
+            #{email},
+            #{profile}
+        )
     </insert>
 
-    <select id="countByMemberId" parameterType="string" resultType="int">
-        SELECT COUNT(*) FROM member WHERE member_id = #{memberId}
-    </select>
-
-    <select id="selectByMemberId" parameterType="string" resultType="MemberDto">
-        SELECT member_id,
-                member_pwd,
-                member_name,
-                nickname,
-                email,
-                profile,
-                DATE_FORMAT(create_at, '%Y-%M-%d %H:%i') as create_at_str
-        FROM member
+    <select id="countByMemberId" resultType="int">
+        SELECT COUNT(*)
+        FROM members
         WHERE member_id = #{memberId}
     </select>
 
-    <delete id="deleteMember" parameterType="string">
-        DELETE FROM member WHERE member_id = #{memberId}
-    </delete>
+    <select id="selectByMemberId" resultType="MemberDto">
+        SELECT member_id,
+               member_pwd,
+               member_name,
+               nickname,
+               email,
+               profile,
+               create_at,
+               DATE_FORMAT(create_at, '%Y-%m-%d %H:%i') AS create_at_str
+        FROM members
+        WHERE member_id = #{memberId}
+    </select>
 
 </mapper>

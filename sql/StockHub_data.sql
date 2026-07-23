@@ -387,7 +387,6 @@ CREATE TABLE IF NOT EXISTS follow (
     follow_at    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '팔로우한 일시',
 
     CONSTRAINT PK_FOLLOW PRIMARY KEY (follower_id, followee_id),
-    CONSTRAINT CK_FOLLOW_NOT_SELF CHECK (follower_id <> followee_id),
     CONSTRAINT FK_MEMBER_TO_FOLLOWER
         FOREIGN KEY (follower_id) REFERENCES members (member_id)
         ON UPDATE CASCADE ON DELETE CASCADE,
@@ -410,3 +409,13 @@ CREATE TABLE IF NOT EXISTS glossary (
     CONSTRAINT UQ_GLOSSARY_TERM UNIQUE (term),
     INDEX IDX_GLOSSARY_CATEGORY (category)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='주식 용어 사전';
+
+-- 관리자계정 생성
+INSERT INTO members (member_id, member_pwd, member_name, nickname, email)
+VALUES ('admin', 'sh9000', '관리자', '스톡허브', 'admin@kh.co.kr');
+
+SHOW TABLES;
+
+SELECT *
+FROM members
+WHERE member_id = 'admin';

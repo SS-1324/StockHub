@@ -3,7 +3,7 @@
 
 </main>
     <footer class="site-footer">
-        <p>Copyright 2026 커뮤니티 실습 프로젝트 - All Right Reserved.</p>
+        <p>StockHub 회원가입 테스트입니다~</p>
     </footer>
 </body>
 </html>

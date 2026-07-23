@@ -43,7 +43,7 @@ public class FileUploadUtil {
         //저장경로가 없다면 생성
         File dir = new File(uploadDir).getAbsoluteFile();
         System.out.println(dir);
-        if(dir.exists()){
+        if(!dir.exists()){
             dir.mkdirs();
         }
 
