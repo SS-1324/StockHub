@@ -2,6 +2,23 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.kh.demo.brokerage.mapper.BoardImageMapper">
+<mapper namespace="com.kh.demo.community.mapper.BoardImageMapper">
+
+    <insert id="insertBoardImage" parameterType="com.kh.demo.community.dto.BoardImageDto"
+            useGeneratedKeys="true" keyProperty="imgId" keyColumn="img_id">
+        INSERT INTO board_image(board_id, original_name, save_name, img_path, img_order)
+        VALUES(#{boardId}, #{originalName}, #{saveName}, #{imgPath}, #{imgOrder})
+    </insert>
+
+    <select id="selectByBoardId" resultType="com.kh.demo.community.dto.BoardImageDto">
+        SELECT img_id, board_id, original_name, save_name, img_path, img_order, create_at
+        FROM board_image
+        WHERE board_id = #{boardId}
+        ORDER BY img_order ASC
+    </select>
+
+    <delete id="deleteByBoardId">
+        DELETE FROM board_image WHERE board_id = #{boardId}
+    </delete>
 
 </mapper>

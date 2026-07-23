@@ -16,7 +16,7 @@
 <body>
     <header class="site-header">
         <div class="site-header-inner">
-            <a class="logo">커뮤니티</a>
+            <a class="logo" href="/">커뮤니티</a>
 
             <!--
                 로그인시 session에 loginMember값이 들어있음.
@@ -26,7 +26,7 @@
                 <c:choose>
                     <c:when test="${not empty sessionScope.loginMember}">
                         <span>${sessionScope.loginMember.nickname}님</span>
-                        <a>글쓰기</a>
+                        <a href="/community/board/write">글쓰기</a>
                         <a href="/member/mypage">마이페이지</a>
                         <a href="/member/logout">로그아웃</a>
                     </c:when>

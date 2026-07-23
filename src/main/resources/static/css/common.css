@@ -294,3 +294,8 @@ input[type="password"]
 .mypage-info dd{
     text-align: center;
 }
+
+/* 공용 유틸 */
+.hidden{
+    display: none;
+}
