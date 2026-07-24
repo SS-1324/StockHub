@@ -99,6 +99,12 @@ CREATE TABLE IF NOT EXISTS brokerage (
     CONSTRAINT CK_BROKERAGE_FEE_RATE CHECK (fee_rate >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='가상 증권사';
 
+-- 마이페이지 증권사 기본 선택지
+INSERT IGNORE INTO brokerage (brokerage_name, fee_rate)
+VALUES ('스톡증권', 0.0001500),
+       ('허브증권', 0.0001200),
+       ('KH투자증권', 0.0001000);
+
 -- 가상 계좌
 CREATE TABLE IF NOT EXISTS account (
     account_id    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '가상 계좌 번호(PK)',
@@ -411,11 +417,8 @@ CREATE TABLE IF NOT EXISTS glossary (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='주식 용어 사전';
 
 -- 관리자계정 생성
-INSERT INTO members (member_id, member_pwd, member_name, nickname, email)
-VALUES ('admin', 'sh9000', '관리자', '스톡허브', 'admin@kh.co.kr');
+-- 아직 관리자에 대한 특별한 권한이 없음
+-- INSERT INTO members (member_id, member_pwd, member_name, nickname, email)
+-- VALUES ('admin01', 'StockHub1!', '관리자', '스톡허브', 'admin01@kh.co.kr');
 
 SHOW TABLES;
-
-SELECT *
-FROM members
-WHERE member_id = 'admin';
