@@ -1,0 +1,19 @@
+package com.kh.demo.member.dto;
+
+import lombok.Getter;
+import lombok.Setter;
+
+// 프로필 수정 입력값을 전달
+@Getter
+@Setter
+public class ProfileUpdateDto {
+
+    private String memberId; // 로그인 회원 아이디
+    private String nickname; // 변경할 닉네임
+    private String newPassword; // 변경할 비밀번호
+    private String newPasswordConfirm; // 변경 비밀번호 확인
+    private Boolean profilePublic; // 프로필 공개 여부
+    private Boolean wordTooltip; // 주식 용어 툴팁 사용 여부
+    private Long brokerageId; // 선택한 증권사 번호
+    private String accountNo; // 숫자로만 된 계좌번호
+}
