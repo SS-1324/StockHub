@@ -31,6 +31,7 @@
                         <a href="/member/logout">로그아웃</a>
                     </c:when>
                     <c:otherwise>
+                        <a href="/hub/chart">hub</a>
                         <a href="/member/login">로그인</a>
                         <a href="/member/join">회원가입</a>
                     </c:otherwise>
