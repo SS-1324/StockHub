@@ -1,8 +1,5 @@
 package com.kh.demo.member.service;
 
-<<<<<<< HEAD
-public class MemberServiceImpl {
-=======
 import com.kh.demo.common.util.FileUploadUtil;
 import com.kh.demo.common.util.SavedFile;
 import com.kh.demo.member.dto.BrokerageDto;
@@ -368,8 +365,7 @@ public class MemberServiceImpl implements MemberService {
         String lowerName = originalName.toLowerCase(Locale.ROOT);
         boolean allowed = IMAGE_EXTENSIONS.stream().anyMatch(lowerName::endsWith);
         if (!allowed) {
-            throw new IllegalStateException("JPG, PNG, GIF, WEBP 이미지만 업로드할 수 있습니다.");
+            throw new IllegalStateException("JPG, PNG, GIF, WEBP 만 업로드할 수 있습니다.");
         }
     }
->>>>>>> origin/BerenYu
 }

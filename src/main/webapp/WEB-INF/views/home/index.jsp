@@ -3,17 +3,6 @@
 
 <%-- 공통 헤더를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
-<<<<<<< HEAD
-  <section class="hero">
-    <h1 class="hero-title">커뮤니티에 오신것을 환영합니다</h1>
-    <p class="hero-desc">자유롭게 글을 쓰고 이야기를 나눠보세요.</p>
-    <div class="hero-actions">
-        <a class="btn" href="/community/board">게시글 둘러보기</a>
-        <a class="btn">로그인</a>
-    </div>
-  </section>
-<jsp:include page="/WEB-INF/views/common/footer.jsp" />
-=======
 
 <%-- 회원 탈퇴 완료 메시지를 표시 --%>
 <c:if test="${not empty withdrawSuccess}">
@@ -27,7 +16,7 @@
     <c:choose>
         <c:when test="${not empty sessionScope.loginMember}">
             <p class="hero-desc">
-                ${sessionScope.loginMember.nickname}님, 로그인되었습니다.
+                    ${sessionScope.loginMember.nickname}님, 로그인되었습니다.
             </p>
             <a class="btn btn-outline"
                href="${pageContext.request.contextPath}/member/logout">로그아웃</a>
@@ -46,4 +35,3 @@
 
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />
->>>>>>> origin/BerenYu
