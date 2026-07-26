@@ -31,6 +31,7 @@
                         <a href="/member/logout">로그아웃</a>
                     </c:when>
                     <c:otherwise>
+                        <%-- 페이지를 chart.jsp로 이동하기위해 작성함--%>
                         <a href="/hub/chart">hub</a>
                         <a href="/member/login">로그인</a>
                         <a href="/member/join">회원가입</a>
