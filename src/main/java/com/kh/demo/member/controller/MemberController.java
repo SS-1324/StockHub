@@ -3,120 +3,237 @@ package com.kh.demo.member.controller;
 import com.kh.demo.common.SessionConst;
 import com.kh.demo.common.dto.ApiResponse;
 import com.kh.demo.member.dto.MemberDto;
+import com.kh.demo.member.dto.ProfileUpdateDto;
 import com.kh.demo.member.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import jakarta.websocket.Session;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 
-/*
-*   @Controller - 이 클래스는 요청을 받아서 화면(view)를 반환하는 mvc의 컨트롤다. + @Component
-*   내부의 메서드가 String을 반환하면 spring.mvc.view.prefix=/WEB-INF/views/ + 반환값 + spring.mvc.view.suffix=.jsp 으로 조합해서
-*   해당 jsp파일 찾아 랜더링한다. (return "member/login" -> /WEB-INF/views/member/login.jsp)
-*
-*   회원관련 화면이동, 폼처리를 전부 해당 컨트롤러가 담당.
-* */
-
+// 회원가입, 로그인, 프로필 요청을 처리
 @Controller
 @RequestMapping("/member")
 public class MemberController {
 
-    @Autowired
-    private MemberService memberService;
+    // 회원 기능을 처리할 Service
+    private final MemberService memberService;
 
+    // MemberService를 주입받는 생성자
+    public MemberController(MemberService memberService) {
+        this.memberService = memberService;
+    }
+
+    // 회원가입 화면을 반환
+    @GetMapping("/join")
+    public String joinForm() {
+        return "member/join";
+    }
+
+    // 회원가입 정보와 프로필 사진을 저장
     @PostMapping("/join")
     public String join(@ModelAttribute MemberDto memberDto,
                        @RequestParam(required = false) MultipartFile profileImage,
-                       RedirectAttributes redirectAttributes){
-        System.out.println(memberDto);
-        System.out.println(profileImage);
-
+                       RedirectAttributes ra) {
         try {
+            // 회원가입 처리를 Service에 요청
             memberService.join(memberDto, profileImage);
-        } catch (IOException e) {
-            // RedirectAttributes.addFlashAttribute
-            // 리다이렉트 후 딱 한번 다음 요청에서만 살아있는 데이터
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            // 이동 후 보여줄 가입 성공 값을 저장
+            ra.addFlashAttribute("joinSuccess", true);
+            return "redirect:/member/login";
+        } catch (IOException | IllegalStateException e) {
+            // 파일 또는 입력 오류 메시지를 전달
+            ra.addFlashAttribute("error", e.getMessage());
+            return "redirect:/member/join";
+        } catch (RuntimeException e) {
+            // 예상하지 못한 오류 메시지를 전달
+            ra.addFlashAttribute("error", "회원가입 처리 중 오류가 발생했습니다.");
             return "redirect:/member/join";
         }
-
-        redirectAttributes.addFlashAttribute("joinSuccess", true);
-        return "redirect:/member/login";
     }
 
-    /*
-    *   fetch를 이용한 비동기 요청(ajax)
-    *  회원가입 폼에서 아이디 입력 후 중복확인을 누르는 순간,
-    *  페이지 전체를 새로고침하지 않고 API를 호출해서 결과를 통해 부분적으로 DOM수정하여 보여준다
-    *
-    *  @ResponseBody -> 반환값을 View이름이 아니라 JSON 응답 "본문"으로 그대로 내려 보내겠다.
-    * */
+    // 아이디 중복 여부를 JSON으로 반환
     @GetMapping("/checkId")
     @ResponseBody
-    public ApiResponse<Boolean> checkId(@RequestParam String memberId){
+    public ApiResponse<Boolean> checkId(@RequestParam String memberId) {
+        // DB에서 같은 아이디가 있는지 확인
         boolean duplicate = memberService.isMemberIdCheck(memberId);
-        String message = duplicate ? "이미 사용중인 아이디 입니다." : "사용 가능한 아이디 입니다.";
+        String message = duplicate
+                ? "이미 사용 중인 아이디입니다."
+                : "사용 가능한 아이디입니다.";
+
         return ApiResponse.success(message, duplicate);
     }
 
+    // 닉네임 중복 여부를 JSON으로 반환
+    @GetMapping("/checkNickname")
+    @ResponseBody
+    public ApiResponse<Boolean> checkNickname(@RequestParam String nickname) {
+        // DB에서 같은 닉네임이 있는지 확인
+        boolean duplicate = memberService.isNicknameCheck(nickname);
+        String message = duplicate
+                ? "이미 사용 중인 닉네임입니다."
+                : "사용 가능한 닉네임입니다.";
+
+        return ApiResponse.success(message, duplicate);
+    }
+
+    // 로그인 화면을 반환
+    @GetMapping("/login")
+    public String loginForm() {
+        return "member/login";
+    }
+
+    // 아이디와 비밀번호로 로그인을 처리
     @PostMapping("/login")
     public String login(@RequestParam String memberId,
                         @RequestParam String memberPwd,
                         @RequestParam(required = false) String redirectURL,
-                        RedirectAttributes redirectAttributes,
-                        HttpSession session){
+                        HttpSession session,
+                        RedirectAttributes ra) {
         try {
+            // 입력 정보와 일치하는 회원을 조회
             MemberDto member = memberService.login(memberId, memberPwd);
-
-            //로그인 성공 -> 세션에 로그인 정보 저장
+            // 로그인 회원 정보를 세션에 저장
             session.setAttribute(SessionConst.LOGIN_MEMBER, member);
-        } catch(IllegalStateException e){
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        } catch (IllegalStateException e) {
+            // 로그인 실패 메시지를 전달
+            ra.addFlashAttribute("error", e.getMessage());
             return "redirect:/member/login";
         }
 
-        if(redirectURL != null && !redirectURL.isBlank()){
+        // 로그인 전 요청한 안전한 내부 주소로 이동
+        if (redirectURL != null
+                && redirectURL.startsWith("/")
+                && !redirectURL.startsWith("//")) {
             return "redirect:" + redirectURL;
         }
 
         return "redirect:/";
     }
 
+    // 세션을 삭제하고 로그아웃
     @GetMapping("/logout")
-    public String logout(HttpServletRequest request){
+    public String logout(HttpServletRequest request) {
+        // 기존 세션이 있을 때만 가져옴
         HttpSession session = request.getSession(false);
-        if(session != null){
-            session.invalidate(); //세션자체를 만료
+
+        // 세션의 모든 로그인 정보를 삭제
+        if (session != null) {
+            session.invalidate();
         }
 
         return "redirect:/";
     }
 
-    @PostMapping("/withdraw")
-    public String withdraw(HttpSession session){
-        MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        memberService.withdraw(loginMember.getMemberId());
-
-        session.invalidate();
-        return "redirect:/";
-    }
-
-
-    // ------------------- 화면 이동 요청
-    @GetMapping("/join")
-    public String joinForm(){return "member/join";}
-
-    @GetMapping("/login")
-    public String loginForm(){return "member/login";}
-
+    // 로그인 회원의 마이페이지 화면을 반환
     @GetMapping("/mypage")
-    public String mypage(){
-        return "member/mypage";
+    public String mypage(HttpSession session, Model model) {
+        // 세션에서 로그인 회원을 확인
+        MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if (loginMember == null) {
+            return "redirect:/member/login?redirectURL=/member/mypage";
+        }
+
+        try {
+            // DB의 최신 프로필과 증권사 목록을 전달
+            MemberDto member = memberService.getMemberProfile(loginMember.getMemberId());
+            model.addAttribute("member", member);
+            model.addAttribute("brokerages", memberService.getBrokerages());
+            return "member/mypage";
+        } catch (IllegalStateException e) {
+            // DB에서 회원을 찾지 못하면 세션을 종료
+            session.invalidate();
+            return "redirect:/member/login";
+        }
     }
+
+    // 마이페이지에서 입력한 프로필 정보를 수정
+    @PostMapping("/mypage")
+    public String updateProfile(@ModelAttribute ProfileUpdateDto profileUpdateDto,
+                                @RequestParam(required = false) MultipartFile profileImage,
+                                HttpSession session,
+                                RedirectAttributes ra) {
+        // 로그인하지 않은 요청은 로그인 화면으로 이동
+        MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if (loginMember == null) {
+            return "redirect:/member/login?redirectURL=/member/mypage";
+        }
+
+        // 화면에서 전달된 아이디 대신 세션 아이디를 사용
+        profileUpdateDto.setMemberId(loginMember.getMemberId());
+
+        try {
+            // 프로필을 수정하고 세션 정보도 최신 값으로 교체
+            MemberDto updatedMember = memberService.updateProfile(profileUpdateDto, profileImage);
+            session.setAttribute(SessionConst.LOGIN_MEMBER, updatedMember);
+            ra.addFlashAttribute("profileSuccess", true);
+        } catch (IOException | IllegalStateException e) {
+            // 입력 또는 이미지 저장 오류를 전달
+            ra.addFlashAttribute("error", e.getMessage());
+        } catch (RuntimeException e) {
+            // 예상하지 못한 DB 오류를 전달
+            ra.addFlashAttribute("error", "프로필 수정 중 오류가 발생했습니다.");
+        }
+
+        return "redirect:/member/mypage";
+    }
+
+    // 회원 탈퇴 확인 화면을 반환
+    @GetMapping("/withdraw")
+    public String withdrawForm(HttpSession session) {
+        // 로그인하지 않은 요청은 로그인 화면으로 이동
+        MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if (loginMember == null) {
+            return "redirect:/member/login?redirectURL=/member/withdraw";
+        }
+
+        return "member/withdraw";
+    }
+
+    // 비밀번호 확인 후 회원 정보를 삭제
+    @PostMapping("/withdraw")
+    public String withdraw(@RequestParam String memberPwd,
+                           @RequestParam(required = false) Boolean confirmWithdraw,
+                           HttpSession session,
+                           RedirectAttributes ra) {
+        // 로그인하지 않은 요청은 로그인 화면으로 이동
+        MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if (loginMember == null) {
+            return "redirect:/member/login?redirectURL=/member/withdraw";
+        }
+
+        // 탈퇴 동의를 선택하지 않으면 요청을 중단
+        if (!Boolean.TRUE.equals(confirmWithdraw)) {
+            ra.addFlashAttribute("error", "회원 탈퇴 동의 항목을 확인해주세요.");
+            return "redirect:/member/withdraw";
+        }
+
+        try {
+            // 비밀번호 확인과 회원 데이터 삭제를 요청
+            memberService.withdraw(loginMember.getMemberId(), memberPwd);
+            // 탈퇴한 회원의 로그인 세션을 종료
+            session.invalidate();
+            ra.addFlashAttribute("withdrawSuccess", true);
+            return "redirect:/";
+        } catch (IllegalStateException e) {
+            // 비밀번호 또는 회원 정보 오류를 전달
+            ra.addFlashAttribute("error", e.getMessage());
+            return "redirect:/member/withdraw";
+        } catch (RuntimeException e) {
+            // 예상하지 못한 DB 오류를 전달
+            ra.addFlashAttribute("error", "회원 탈퇴 처리 중 오류가 발생했습니다.");
+            return "redirect:/member/withdraw";
+        }
+    }
+
 }

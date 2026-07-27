@@ -1,35 +1,34 @@
 package com.kh.demo.member.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
-
-/*
- *   DTO : 계층간에 데이터를 주고받기위한 전달용 데이터
- *
- *   MemberDto : Member테이블과 1:1로 대응되는 클래스
- * */
-
-@ToString
-@AllArgsConstructor
-@NoArgsConstructor
+// 회원 정보를 계층 사이에서 전달
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString(exclude = {"memberPwd", "memberPwdConfirm"})
 public class MemberDto {
 
-    private String memberId;
-    private String memberPwd;
-    private String memberName;
-    private String nickname;
-    private String email;
-    private String profile;
-    private LocalDateTime createAt;
-
-    // jsp에서는 DATE만 포맷팅할 수 있고
-    // LocalDateTime를 지원하지 않는다.
-    // JSP에서 처리하려면 코드가 지저분 해지기때문에 sql에서 그대로 변환해서 받아줌.
-    private String createAtStr; //가입일시(화면표시용 문자열)
-
-
+    private String memberId; // 로그인 아이디
+    private String memberPwd; // 암호화된 비밀번호
+    private String memberPwdConfirm; // 회원가입 비밀번호 확인
+    private String memberName; // 회원 이름
+    private String nickname; // 화면에 표시할 닉네임
+    private String email; // 회원 이메일
+    private String profile; // 프로필 이미지 웹 경로
+    private Boolean profilePublic; // 프로필 공개 여부
+    private Boolean wordTooltip; // 주식 용어 툴팁 사용 여부
+    private Long accountId; // 연결된 계좌 번호
+    private String accountNo; // 화면에 표시할 계좌번호
+    private Long brokerageId; // 선택한 증권사 번호
+    private String brokerageName; // 선택한 증권사 이름
+    private LocalDateTime createAt; // 가입 일시
+    private String createAtStr; // 화면용 가입 일시
 }

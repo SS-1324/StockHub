@@ -28,6 +28,9 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -40,12 +43,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
 			<groupId>com.mysql</groupId>
 			<artifactId>mysql-connector-j</artifactId>
 			<scope>runtime</scope>
@@ -55,17 +52,6 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webmvc-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-
 		<!-- JSP를 사용하기위한 내장톰캣 jasper-->
 		<dependency>
 			<groupId>org.apache.tomcat.embed</groupId>
@@ -124,21 +110,6 @@
 						<phase>compile</phase>
 						<goals>
 							<goal>compile</goal>
-						</goals>
-						<configuration>
-							<annotationProcessorPaths>
-								<path>
-									<groupId>org.projectlombok</groupId>
-									<artifactId>lombok</artifactId>
-								</path>
-							</annotationProcessorPaths>
-						</configuration>
-					</execution>
-					<execution>
-						<id>default-testCompile</id>
-						<phase>test-compile</phase>
-						<goals>
-							<goal>testCompile</goal>
 						</goals>
 						<configuration>
 							<annotationProcessorPaths>

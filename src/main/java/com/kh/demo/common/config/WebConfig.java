@@ -1,43 +1,28 @@
 package com.kh.demo.common.config;
 
-import com.kh.demo.common.interceptor.LoginInterceptor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.io.File;
-/*
-*   WebMvcConfigurer : Spring MVC의 공통 설정 구현체
-*
-*   1) 업로드 이미지 맵핑 : 업로드된 이미지 파일은 src/main/resources/static가 아니라
-*      프로젝트 바깥의 uploads/ 폴더를 만들고 거기에 저장하겠다.
-*       -> /uploads/**로 들어오는 요청을 실제 디스크 경로로 연결해주는 맵핑이 필요.
-*   2) 인터셉터 등록
-* */
 
+// 웹에서 업로드 파일에 접근하도록 설정
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    // application.properties의 업로드 경로
     @Value("${file.upload-dir}")
     private String uploadDir;
 
+    // /uploads 주소를 실제 폴더와 연결
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        String absoultePath = new File(uploadDir).getAbsolutePath();
+        // 업로드 폴더를 절대 경로로 변환
+        String absolutePath = new File(uploadDir).getAbsolutePath();
 
+        // /uploads 요청에서 실제 파일을 제공
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:" + absoultePath + File.separator);
-    }
-
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new LoginInterceptor())
-                //로그인 해야만 접근 가능한 페이지 경로
-                .addPathPatterns(
-                        "/member/mypage",
-                        "/member/withdraw"
-                );
+                .addResourceLocations("file:" + absolutePath + File.separator);
     }
 }
