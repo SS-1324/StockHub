@@ -3,7 +3,7 @@
 
 <%-- 모든 페이지에서 공통으로 사용하는 주소 --%>
 <c:url var="homeUrl" value="/" />
-<c:url var="communityUrl" value="/community" />
+<c:url var="communityUrl" value="/community/board" />
 <c:url var="tradeHubUrl" value="/trade-hub" />
 <c:url var="rankingUrl" value="/ranking" />
 <c:url var="dictionaryUrl" value="/dictionary" />

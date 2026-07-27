@@ -23,7 +23,7 @@
                b.update_at,
                m.nickname
         FROM board b
-        LEFT JOIN members m ON b.member_id = m.member_id
+        LEFT JOIN member m ON b.member_id = m.member_id
         <where>
             <if test="category != null and category != ''">
                 AND b.category = #{category}
@@ -57,7 +57,7 @@
                DATE_FORMAT(b.update_at, '%Y-%m-%d %H:%i') AS update_at_str,
                m.nickname
         FROM board b
-        LEFT JOIN members m ON b.member_id = m.member_id
+        LEFT JOIN member m ON b.member_id = m.member_id
         WHERE b.board_id = #{boardId}
     </select>
 

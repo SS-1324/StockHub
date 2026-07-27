@@ -23,9 +23,9 @@
     </sql>
 
     <sql id="commentJoins">
-        LEFT JOIN members m ON c.member_id = m.member_id
+        LEFT JOIN member m ON c.member_id = m.member_id
         LEFT JOIN board_comment p ON c.parent_comment_id = p.comment_id
-        LEFT JOIN members pm ON p.member_id = pm.member_id
+        LEFT JOIN member pm ON p.member_id = pm.member_id
         LEFT JOIN (
             SELECT comment_id, COUNT(*) AS like_count FROM comment_like GROUP BY comment_id
         ) lc ON lc.comment_id = c.comment_id
