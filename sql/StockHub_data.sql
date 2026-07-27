@@ -1,4 +1,9 @@
--- stockhub SCHEMAS 생성
+-- stockhub DB 생성
+CREATE DATABASE IF NOT EXISTS stockhub
+    DEFAULT CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+-- stockhub DB 선택
 USE stockhub;
 
 -- MySQL과 데이터를 주고 받는 인코딩 설정
