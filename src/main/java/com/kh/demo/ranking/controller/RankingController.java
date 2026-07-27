@@ -1,6 +1,5 @@
 package com.kh.demo.ranking.controller;
 
-<<<<<<< HEAD
 import com.kh.demo.ranking.dto.RankingDto;
 import com.kh.demo.ranking.service.RankingService;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +20,3 @@ public class RankingController {
         return rankingService.getRankingBoard();
     }
 }
-=======
-public class RankingController {
-}
->>>>>>> origin

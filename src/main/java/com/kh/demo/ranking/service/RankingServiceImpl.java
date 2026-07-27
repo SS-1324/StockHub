@@ -1,6 +1,5 @@
 package com.kh.demo.ranking.service;
 
-<<<<<<< HEAD
 import com.kh.demo.ranking.mapper.RankingMapper;
 import com.kh.demo.ranking.dto.RankingDto;
 import org.springframework.stereotype.Service;
@@ -20,7 +19,3 @@ public class RankingServiceImpl implements RankingService {
         return rankingMapper.selectRankingBoard();
     }
 }
-=======
-public class RankingServiceImpl {
-}
->>>>>>> origin
