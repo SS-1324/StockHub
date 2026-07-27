@@ -14,11 +14,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    <!-- TradingView Widget 외부 라이브러리 -->
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <!-- lightweight-charts 라이브러리 (CDN) -->
+    <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="<c:url value='/css/style.css'/>">
+    <link rel="stylesheet" href="<c:url value='/css/stockhub.css'/>">
 </head>
 <body>
 
@@ -50,6 +50,10 @@
 </header>
 
 <!-- 2. 주식 종목 실시간 티커 띠 (Stock Ticker Bar) -->
+<!-- 4. lightweight-charts 차트 영역 -->
+<div class="chart-wrapper">
+    <div id="stockhub-chart"></div>
+</div>
 <section class="ticker-bar">
     <div class="ticker-wrapper">
         <div class="ticker-item">DOW <span>891.23</span> <span class="down">-0.24%</span></div>
@@ -84,13 +88,10 @@
         여러 증권사 시세들을 비교하고, 커뮤니티에서 팁을 나누고, 검증된 랭커의 거래 내역을 확인하세요.
     </p>
 
-    <!-- 4. 트레이딩뷰 차트 영역 (TradingView Widget Container) -->
-    <div class="chart-wrapper">
-        <div id="tradingview_chart" class="chart-container"></div>
-    </div>
+
 </main>
 
 <!-- Custom JS -->
-<script src="<c:url value='/js/script.js'/>"></script>
+<script src="<c:url value='/js/stockhub.js'/>"></script>
 </body>
 </html>
