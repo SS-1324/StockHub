@@ -15,14 +15,20 @@ const emailLocalInput = document.querySelector("#email-local");
 const emailDomainInput = document.querySelector("#email-domain");
 const emailDomainSelect = document.querySelector("#email-domain-select");
 const emailResult = document.querySelector("#email-result");
+const emailSendButton = document.querySelector("#send-email-code-btn");
+const emailCodeArea = document.querySelector("#email-code-area");
+const emailCodeInput = document.querySelector("#email-code");
+const emailVerifyButton = document.querySelector("#verify-email-code-btn");
+const emailCodeResult = document.querySelector("#email-code-result");
 const joinForm = document.querySelector("#join-form");
+const contextPath = joinForm.dataset.contextPath || "";
 
 // 아이디·닉네임·비밀번호·이메일 입력 규칙
 const idPattern = /^[A-Za-z0-9]{6,50}$/;
 const nicknamePattern = /^[가-힣A-Za-z0-9]{2,10}$/;
 const passwordPattern =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])[\x21-\x7E]{10,100}$/;
-const emailLocalPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]{6,50}$/;
+const emailLocalPattern = /^(?=.*[a-z])[a-z0-9]{1,50}$/;
 const emailDomainPattern = /^[A-Za-z]+(?:\.com|\.co\.kr|\.net)$/;
 
 // 중복확인과 비밀번호 검사 상태
@@ -30,6 +36,8 @@ let checkedId = null;
 let checkedNickname = null;
 let passwordRulePassed = false;
 let passwordMatched = false;
+let verificationRequestEmail = null;
+let verifiedEmail = null;
 
 // 선택한 프로필 이미지를 화면에 미리 표시
 profileInput.addEventListener("change", function (e) {
@@ -75,7 +83,7 @@ idButton.addEventListener("click", async function () {
     try {
         // 서버의 아이디 중복확인 주소를 호출
         const response = await fetch(
-            `/member/checkId?memberId=${encodeURIComponent(memberId)}`,
+            `${contextPath}/member/checkId?memberId=${encodeURIComponent(memberId)}`,
             {headers: {"X-Requested-With": "XMLHttpRequest"}}
         );
         const result = await response.json();
@@ -110,7 +118,7 @@ nicknameButton.addEventListener("click", async function () {
     try {
         // 서버의 닉네임 중복확인 주소를 호출
         const response = await fetch(
-            `/member/checkNickname?nickname=${encodeURIComponent(nickname)}`,
+            `${contextPath}/member/checkNickname?nickname=${encodeURIComponent(nickname)}`,
             {headers: {"X-Requested-With": "XMLHttpRequest"}}
         );
         const result = await response.json();
@@ -142,9 +150,9 @@ nicknameInput.addEventListener("input", function () {
 passwordInput.addEventListener("input", checkPassword);
 passwordConfirmInput.addEventListener("input", checkPassword);
 
-// 이메일 앞부분이나 직접 입력 도메인이 바뀔 때 형식을 바로 확인
-emailLocalInput.addEventListener("input", checkEmail);
-emailDomainInput.addEventListener("input", checkEmail);
+// 이메일 값이 바뀌면 이전 발송·인증 상태를 취소
+emailLocalInput.addEventListener("input", resetEmailVerification);
+emailDomainInput.addEventListener("input", resetEmailVerification);
 
 // 목록에서 도메인을 선택하면 직접 입력란에 반영하고 수정 여부를 전환
 emailDomainSelect.addEventListener("change", function () {
@@ -161,7 +169,112 @@ emailDomainSelect.addEventListener("change", function () {
         emailDomainInput.focus();
     }
 
-    checkEmail();
+    resetEmailVerification();
+});
+
+// 인증 버튼을 누르면 외부 메일 없이 개발용 코드를 생성
+emailSendButton.addEventListener("click", async function () {
+    if (!checkEmail()) {
+        return;
+    }
+
+    const fullEmail = getFullEmail();
+    const wasVerified = verifiedEmail === fullEmail;
+    emailSendButton.disabled = true;
+
+    try {
+        const response = await fetch(`${contextPath}/member/email/send`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: new URLSearchParams({email: fullEmail})
+        });
+        const result = await response.json();
+
+        if (!result.success) {
+            showResult(
+                emailResult,
+                result.message || "개발용 인증코드 생성에 실패했습니다.",
+                false
+            );
+            return;
+        }
+
+        // 새 코드를 받으면 이전 인증 완료 상태를 취소하고 다시 입력할 수 있게 초기화
+        verificationRequestEmail = fullEmail;
+        verifiedEmail = null;
+        emailInput.value = fullEmail;
+        emailResult.textContent = `개발모드 인증코드: ${result.data}`;
+        emailResult.className = "form-tip form-tip-info";
+        emailCodeArea.hidden = false;
+        emailCodeInput.value = "";
+        emailCodeInput.readOnly = false;
+        emailVerifyButton.disabled = false;
+
+        // 인증 완료 후 재발급한 경우 새 코드를 다시 확인해야 함을 표시
+        if (wasVerified) {
+            showResult(emailCodeResult, "코드를 다시 확인해주세요.", false);
+        } else {
+            emailCodeResult.textContent = "";
+            emailCodeResult.className = "form-tip";
+        }
+
+        emailCodeInput.focus();
+    } catch (e) {
+        showResult(emailResult, "개발용 인증코드 생성 중 오류가 발생했습니다.", false);
+    } finally {
+        emailSendButton.disabled = false;
+    }
+});
+
+// 인증 코드에는 숫자 6자리까지만 입력
+emailCodeInput.addEventListener("input", function () {
+    emailCodeInput.value =
+        emailCodeInput.value.replace(/[^0-9]/g, "").slice(0, 6);
+    emailCodeResult.textContent = "";
+    emailCodeResult.className = "form-tip";
+});
+
+// 확인 버튼을 누르면 서버에서 인증 코드 일치 여부를 검사
+emailVerifyButton.addEventListener("click", async function () {
+    const fullEmail = getFullEmail();
+    const code = emailCodeInput.value.trim();
+
+    if (verificationRequestEmail !== fullEmail || !/^[0-9]{6}$/.test(code)) {
+        showResult(emailCodeResult, "코드를 다시 확인해주세요.", false);
+        return;
+    }
+
+    emailVerifyButton.disabled = true;
+
+    try {
+        const response = await fetch(`${contextPath}/member/email/verify`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: new URLSearchParams({email: fullEmail, code: code})
+        });
+        const result = await response.json();
+
+        if (result.success && result.data === true) {
+            verifiedEmail = fullEmail;
+            emailInput.value = fullEmail;
+            emailCodeInput.readOnly = true;
+            showResult(emailCodeResult, "인증되었습니다.", true);
+        } else {
+            verifiedEmail = null;
+            showResult(emailCodeResult, "코드를 다시 확인해주세요.", false);
+        }
+    } catch (e) {
+        verifiedEmail = null;
+        showResult(emailCodeResult, "코드를 다시 확인해주세요.", false);
+    } finally {
+        emailVerifyButton.disabled = verifiedEmail === fullEmail;
+    }
 });
 
 // 가입 전 모든 입력 규칙과 중복확인 상태를 검사
@@ -210,8 +323,15 @@ joinForm.addEventListener("submit", function (e) {
     }
 
     // 나누어 입력한 이메일을 서버로 보낼 하나의 값으로 합침
-    emailInput.value =
-        `${emailLocalInput.value.trim()}@${emailDomainInput.value.trim().toLowerCase()}`;
+    emailInput.value = getFullEmail();
+
+    // 현재 입력한 이메일의 인증이 끝나지 않았으면 전송 중단
+    if (verifiedEmail !== emailInput.value) {
+        e.preventDefault();
+        alert("이메일 인증을 완료해주세요.");
+        emailSendButton.focus();
+        return;
+    }
 
     // 비밀번호가 필수 조합에 맞지 않으면 전송 중단
     if (!passwordRulePassed) {
@@ -246,7 +366,7 @@ function checkEmail() {
     if (!localPassed) {
         showResult(
             emailResult,
-            "이메일 앞부분은 영문과 숫자를 모두 포함하여 6자 이상 입력해주세요.",
+            "이메일 앞부분은 소문자 또는 소문자와 숫자로 입력해주세요.",
             false
         );
         return false;
@@ -266,8 +386,33 @@ function checkEmail() {
         return false;
     }
 
-    showResult(emailResult, "사용 가능한 이메일 형식입니다.", true);
+    if (verificationRequestEmail !== fullEmail) {
+        emailResult.textContent = "";
+        emailResult.className = "form-tip";
+    }
     return true;
+}
+
+// 화면에서 나누어 입력한 이메일을 하나의 문자열로 합침
+function getFullEmail() {
+    const local = emailLocalInput.value.trim();
+    const domain = emailDomainInput.value.trim().toLowerCase();
+    return `${local}@${domain}`;
+}
+
+// 이메일이 수정되면 이전 코드와 인증 결과를 모두 초기화
+function resetEmailVerification() {
+    verificationRequestEmail = null;
+    verifiedEmail = null;
+    emailInput.value = "";
+    emailResult.textContent = "";
+    emailResult.className = "form-tip";
+    emailCodeInput.value = "";
+    emailCodeInput.readOnly = false;
+    emailVerifyButton.disabled = false;
+    emailCodeResult.textContent = "";
+    emailCodeResult.className = "form-tip";
+    emailCodeArea.hidden = true;
 }
 
 // 비밀번호 규칙과 확인 값의 상태를 표시

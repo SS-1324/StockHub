@@ -4,6 +4,7 @@ import com.kh.demo.common.SessionConst;
 import com.kh.demo.common.dto.ApiResponse;
 import com.kh.demo.member.dto.MemberDto;
 import com.kh.demo.member.dto.ProfileUpdateDto;
+import com.kh.demo.member.service.EmailVerificationService;
 import com.kh.demo.member.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -25,12 +26,18 @@ import java.io.IOException;
 @RequestMapping("/member")
 public class MemberController {
 
+    // 세션에 저장할 이메일 인증 완료 값의 이름
+    private static final String VERIFIED_EMAIL = "verifiedEmail";
+
     // 회원 기능을 처리할 Service
     private final MemberService memberService;
+    private final EmailVerificationService emailVerificationService;
 
-    // MemberService를 주입받는 생성자
-    public MemberController(MemberService memberService) {
+    // 회원 기능과 이메일 인증 기능을 주입받는 생성자
+    public MemberController(MemberService memberService,
+                            EmailVerificationService emailVerificationService) {
         this.memberService = memberService;
+        this.emailVerificationService = emailVerificationService;
     }
 
     // 회원가입 화면을 반환
@@ -43,10 +50,21 @@ public class MemberController {
     @PostMapping("/join")
     public String join(@ModelAttribute MemberDto memberDto,
                        @RequestParam(required = false) MultipartFile profileImage,
+                       HttpSession session,
                        RedirectAttributes ra) {
         try {
+            // 현재 브라우저에서 인증한 이메일과 가입 이메일이 같은지 확인
+            String normalizedEmail =
+                    emailVerificationService.normalizeAndValidateEmail(memberDto.getEmail());
+            String verifiedEmail = (String) session.getAttribute(VERIFIED_EMAIL);
+            if (!normalizedEmail.equals(verifiedEmail)) {
+                throw new IllegalStateException("이메일 인증을 완료해주세요.");
+            }
+            memberDto.setEmail(normalizedEmail);
+
             // 회원가입 처리를 Service에 요청
             memberService.join(memberDto, profileImage);
+            session.removeAttribute(VERIFIED_EMAIL);
             // 이동 후 보여줄 가입 성공 값을 저장
             ra.addFlashAttribute("joinSuccess", true);
             return "redirect:/member/login";
@@ -85,6 +103,47 @@ public class MemberController {
                 : "사용 가능한 닉네임입니다.";
 
         return ApiResponse.success(message, duplicate);
+    }
+
+    // 외부 메일 없이 테스트할 수 있는 개발용 인증 코드를 생성
+    @PostMapping("/email/send")
+    @ResponseBody
+    public ApiResponse<String> createEmailVerificationCode(@RequestParam String email,
+                                                           HttpSession session) {
+        try {
+            String code = emailVerificationService.createDevelopmentCode(email);
+            // 새 코드가 생성되면 이전 세션의 인증 완료 상태를 제거
+            session.removeAttribute(VERIFIED_EMAIL);
+            return ApiResponse.success("개발용 인증코드가 생성되었습니다.", code);
+        } catch (IllegalStateException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
+    }
+
+    // 이메일로 받은 6자리 인증 코드가 맞는지 확인
+    @PostMapping("/email/verify")
+    @ResponseBody
+    public ApiResponse<Boolean> verifyEmailCode(@RequestParam String email,
+                                                @RequestParam String code,
+                                                HttpSession session) {
+        try {
+            String normalizedEmail =
+                    emailVerificationService.normalizeAndValidateEmail(email);
+            boolean verified =
+                    emailVerificationService.verifyCode(normalizedEmail, code);
+
+            if (verified) {
+                // 가입 요청에서도 같은 이메일인지 확인할 수 있도록 세션에 저장
+                session.setAttribute(VERIFIED_EMAIL, normalizedEmail);
+                return ApiResponse.success("인증되었습니다.", true);
+            }
+
+            session.removeAttribute(VERIFIED_EMAIL);
+            return ApiResponse.success("코드를 다시 확인해주세요.", false);
+        } catch (IllegalStateException e) {
+            session.removeAttribute(VERIFIED_EMAIL);
+            return ApiResponse.fail(e.getMessage());
+        }
     }
 
     // 로그인 화면을 반환
@@ -145,10 +204,9 @@ public class MemberController {
         }
 
         try {
-            // DB의 최신 프로필과 증권사 목록을 전달
+            // DB의 최신 프로필을 전달
             MemberDto member = memberService.getMemberProfile(loginMember.getMemberId());
             model.addAttribute("member", member);
-            model.addAttribute("brokerages", memberService.getBrokerages());
             return "member/mypage";
         } catch (IllegalStateException e) {
             // DB에서 회원을 찾지 못하면 세션을 종료

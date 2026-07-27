@@ -14,6 +14,6 @@ public class ProfileUpdateDto {
     private String newPasswordConfirm; // 변경 비밀번호 확인
     private Boolean profilePublic; // 프로필 공개 여부
     private Boolean wordTooltip; // 주식 용어 툴팁 사용 여부
-    private Long brokerageId; // 선택한 증권사 번호
+    private String brokerage; // 선택한 증권사 이름
     private String accountNo; // 숫자로만 된 계좌번호
 }

@@ -619,6 +619,19 @@ select
     gap: 8px;
 }
 
+/* 이메일 입력 영역과 인증 버튼을 한 줄로 배치 */
+.email-auth-row{
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 인증 코드 입력 영역의 위쪽 간격 */
+.email-code-area{
+    margin-top: 8px;
+}
+
 /* 이메일 입력창 사이의 @ 기호 */
 .email-at{
     color: #555;
@@ -639,6 +652,11 @@ select
 /* 확인 실패 문구 */
 .form-tip-error{
     color: red;
+}
+
+/* 인증 메일 발송 안내 문구 */
+.form-tip-info{
+    color: #222;
 }
 
 /* Y/N 선택 항목의 기본 테두리를 제거 */
@@ -775,6 +793,10 @@ html[data-theme="dark"] .form-tip,
 html[data-theme="dark"] .email-at,
 html[data-theme="dark"] .profile-preview-placeholder{
     color: #94a3b8;
+}
+
+html[data-theme="dark"] .form-tip-info{
+    color: #f8fafc;
 }
 
 html[data-theme="dark"] .site-footer{
@@ -918,6 +940,10 @@ html[data-theme="dark"] .login-form input[type="password"]:focus{
 
 /* 좁은 화면에서는 도메인 선택 목록을 다음 줄로 내림 */
 @media (max-width: 560px){
+    .email-auth-row{
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     .email-input-group{
         grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     }

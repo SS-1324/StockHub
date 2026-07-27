@@ -124,23 +124,18 @@
         </div>
     </fieldset>
 
-    <%-- DB에 등록된 증권사 중 하나를 선택 --%>
+    <%-- 회원 정보에 저장할 증권사를 선택 --%>
     <div class="form-row">
-        <label for="brokerage-id">증권사</label>
-        <select id="brokerage-id" name="brokerageId">
+        <label for="brokerage">증권사</label>
+        <select id="brokerage" name="brokerage">
             <option value="">증권사를 선택해주세요.</option>
-            <c:forEach var="brokerage" items="${brokerages}">
-                <option value="${brokerage.brokerageId}"
-                        <c:if test="${member.brokerageId eq brokerage.brokerageId}">selected</c:if>>
-                    <c:out value="${brokerage.brokerageName}"/>
-                </option>
-            </c:forEach>
+            <option value="스톡증권"
+                    <c:if test="${member.brokerage eq '스톡증권'}">selected</c:if>>스톡증권</option>
+            <option value="허브증권"
+                    <c:if test="${member.brokerage eq '허브증권'}">selected</c:if>>허브증권</option>
+            <option value="KH투자증권"
+                    <c:if test="${member.brokerage eq 'KH투자증권'}">selected</c:if>>KH투자증권</option>
         </select>
-        <c:if test="${empty brokerages}">
-            <p class="form-tip form-tip-error">
-                sql 파일의 증권사 기본 데이터를 먼저 실행해주세요.
-            </p>
-        </c:if>
         <p class="form-tip">계좌를 등록할 때만 증권사를 선택해주세요.</p>
     </div>
 
@@ -148,7 +143,7 @@
     <div class="form-row">
         <label for="account-no">계좌번호</label>
         <input id="account-no" name="accountNo" type="text"
-               inputmode="numeric" pattern="[0-9]+" maxlength="50"
+               inputmode="numeric" pattern="[0-9]{1,15}" maxlength="15"
                value="<c:out value="${member.accountNo}"/>"
                placeholder="- 없이 숫자만 입력">
         <p id="account-result" class="form-tip"></p>

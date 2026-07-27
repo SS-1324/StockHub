@@ -4,7 +4,6 @@
 <%-- 모든 페이지에서 공통으로 사용하는 주소 --%>
 <c:url var="homeUrl" value="/" />
 <c:url var="communityUrl" value="/community" />
-<c:url var="tradeHubUrl" value="/trade-hub" />
 <c:url var="rankingUrl" value="/ranking" />
 <c:url var="dictionaryUrl" value="/dictionary" />
 <c:url var="loginUrl" value="/member/login" />
@@ -59,8 +58,6 @@
                     </div>
                 </div>
 
-                <a class="main-nav-link ${requestUri eq tradeHubUrl ? 'is-active' : ''}"
-                   href="${tradeHubUrl}">거래 허브</a>
                 <a class="main-nav-link ${requestUri eq rankingUrl ? 'is-active' : ''}"
                    href="${rankingUrl}">랭킹</a>
                 <a class="main-nav-link ${requestUri eq dictionaryUrl ? 'is-active' : ''}"
@@ -109,7 +106,6 @@
                                  class="header-profile-dropdown"
                                  hidden>
                                 <a href="${mypageUrl}">프로필 수정</a>
-                                <a href="${tradeHubUrl}">내 주식</a>
                                 <a class="header-logout-link" href="${logoutUrl}">로그아웃</a>
                             </div>
                         </div>

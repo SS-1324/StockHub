@@ -7,7 +7,7 @@ const passwordInput = document.querySelector("#new-password");
 const passwordConfirmInput = document.querySelector("#new-password-confirm");
 const passwordRuleResult = document.querySelector("#password-rule-result");
 const passwordConfirmResult = document.querySelector("#password-confirm-result");
-const brokerageInput = document.querySelector("#brokerage-id");
+const brokerageInput = document.querySelector("#brokerage");
 const accountInput = document.querySelector("#account-no");
 const accountResult = document.querySelector("#account-result");
 
@@ -67,11 +67,12 @@ nicknameInput.addEventListener("input", function () {
 
 // 계좌 입력값에서 숫자가 아닌 문자를 바로 제거
 accountInput.addEventListener("input", function () {
-    const onlyNumber = accountInput.value.replace(/[^0-9]/g, "");
+    const originalValue = accountInput.value;
+    const onlyNumber = originalValue.replace(/[^0-9]/g, "").slice(0, 15);
 
-    // 문자가 제거되었으면 숫자 입력 안내를 표시
-    if (accountInput.value !== onlyNumber) {
-        accountResult.textContent = "계좌번호는 - 없이 숫자만 입력할 수 있습니다.";
+    // 문자 또는 15자 초과 값이 제거되었으면 입력 안내를 표시
+    if (originalValue !== onlyNumber) {
+        accountResult.textContent = "계좌번호는 숫자만 최대 15자리까지 입력할 수 있습니다.";
         accountResult.className = "form-tip form-tip-error";
     } else {
         accountResult.textContent = "";
@@ -116,9 +117,9 @@ profileForm.addEventListener("submit", function (e) {
     }
 
     // 입력한 계좌번호에 숫자 이외 문자가 있으면 전송 중단
-    if (hasAccount && !/^[0-9]+$/.test(accountInput.value)) {
+    if (hasAccount && !/^[0-9]{1,15}$/.test(accountInput.value)) {
         e.preventDefault();
-        alert("계좌번호는 - 없이 숫자만 입력해주세요.");
+        alert("계좌번호는 숫자만 최대 15자리까지 입력해주세요.");
         accountInput.focus();
     }
 });

@@ -2,7 +2,6 @@ package com.kh.demo.member.service;
 
 import com.kh.demo.common.util.FileUploadUtil;
 import com.kh.demo.common.util.SavedFile;
-import com.kh.demo.member.dto.BrokerageDto;
 import com.kh.demo.member.dto.MemberDto;
 import com.kh.demo.member.dto.ProfileUpdateDto;
 import com.kh.demo.member.mapper.MemberMapper;
@@ -13,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -38,16 +36,21 @@ public class MemberServiceImpl implements MemberService {
                     + "[\\x21-\\x7E]{10,100}$"
     );
 
-    // 이메일은 영문·숫자 조합의 앞부분과 허용된 도메인 형식을 사용
+    // 이메일 앞부분은 소문자 또는 소문자·숫자 조합을 사용
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
-            "^(?=.{1,100}$)(?=[A-Za-z0-9]{6,50}@)"
-                    + "(?=[^@]*[A-Za-z])(?=[^@]*\\d)"
-                    + "[A-Za-z0-9]{6,50}@[A-Za-z]+(?:\\.com|\\.co\\.kr|\\.net)$"
+            "^(?=.{3,100}$)(?=[a-z0-9]{1,50}@)"
+                    + "(?=[^@]*[a-z])"
+                    + "[a-z0-9]{1,50}@[a-z]+(?:\\.com|\\.co\\.kr|\\.net)$"
     );
 
     // 업로드할 수 있는 이미지 확장자
     private static final Set<String> IMAGE_EXTENSIONS = Set.of(
             ".jpg", ".jpeg", ".png", ".gif", ".webp"
+    );
+
+    // 프로필에서 선택할 수 있는 증권사 이름
+    private static final Set<String> BROKERAGES = Set.of(
+            "스톡증권", "허브증권", "KH투자증권"
     );
 
     private final PasswordEncoder passwordEncoder; // 비밀번호 암호화 도구
@@ -107,11 +110,14 @@ public class MemberServiceImpl implements MemberService {
                 : memberDto.getEmail().trim().toLowerCase(Locale.ROOT);
         if (!EMAIL_PATTERN.matcher(email).matches()) {
             throw new IllegalStateException(
-                    "이메일은 영문·숫자 6자 이상의 앞부분과 올바른 도메인 형식으로 입력해주세요."
+                    "이메일 형식을 다시 확인해주세요."
             );
         }
         if (memberMapper.countByEmail(email) > 0) {
             throw new IllegalStateException("이미 사용 중인 이메일입니다.");
+        }
+        if (!isEmailVerified(email)) {
+            throw new IllegalStateException("이메일 인증을 완료해주세요.");
         }
         memberDto.setEmail(email);
 
@@ -148,6 +154,11 @@ public class MemberServiceImpl implements MemberService {
             throw new IllegalStateException("회원가입에 실패했습니다.");
         }
 
+        // 사용한 이메일 인증 기록을 가입한 회원과 연결
+        if (memberMapper.linkVerifiedEmailToMember(email, memberId) != 1) {
+            throw new IllegalStateException("이메일 인증 정보를 확인할 수 없습니다.");
+        }
+
         // 프로필 설정의 기본값을 함께 저장
         memberMapper.insertDefaultSettings(memberDto.getMemberId());
     }
@@ -162,6 +173,18 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public boolean isNicknameCheck(String nickname) {
         return memberMapper.countByNickname(nickname) > 0;
+    }
+
+    // 가입 전 사용할 수 있는 이메일 인증 완료 기록이 있는지 확인
+    @Override
+    public boolean isEmailVerified(String email) {
+        if (email == null) {
+            return false;
+        }
+
+        String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
+        return EMAIL_PATTERN.matcher(normalizedEmail).matches()
+                && memberMapper.countVerifiedEmail(normalizedEmail) > 0;
     }
 
     // 회원 조회 후 비밀번호 일치 여부를 확인
@@ -180,7 +203,7 @@ public class MemberServiceImpl implements MemberService {
         return member;
     }
 
-    // 마이페이지에 필요한 회원·설정·계좌 정보를 조회
+    // 마이페이지에 필요한 회원과 설정 정보를 조회
     @Override
     public MemberDto getMemberProfile(String memberId) {
         MemberDto member = memberMapper.selectByMemberId(memberId);
@@ -195,13 +218,7 @@ public class MemberServiceImpl implements MemberService {
         return member;
     }
 
-    // 증권사 선택 목록을 반환
-    @Override
-    public List<BrokerageDto> getBrokerages() {
-        return memberMapper.selectBrokerages();
-    }
-
-    // 입력값 검사 후 회원·설정·계좌를 한 번에 수정
+    // 입력값 검사 후 회원 정보와 설정을 수정
     @Override
     @Transactional
     public MemberDto updateProfile(ProfileUpdateDto updateDto,
@@ -248,28 +265,27 @@ public class MemberServiceImpl implements MemberService {
         member.setProfilePublic(Boolean.TRUE.equals(updateDto.getProfilePublic()));
         member.setWordTooltip(Boolean.TRUE.equals(updateDto.getWordTooltip()));
 
-        // 증권사와 숫자 계좌번호를 검사
-        Long brokerageId = updateDto.getBrokerageId();
+        // 증권사 이름과 숫자 계좌번호를 검사
+        String brokerage = updateDto.getBrokerage() == null
+                ? ""
+                : updateDto.getBrokerage().trim();
         String accountNo = updateDto.getAccountNo() == null
                 ? ""
                 : updateDto.getAccountNo().trim();
-        boolean accountUpdateRequested = brokerageId != null || !accountNo.isEmpty();
-        if (accountUpdateRequested) {
-            if (brokerageId == null || accountNo.isEmpty()) {
-                throw new IllegalStateException("증권사와 계좌번호를 함께 입력해주세요.");
-            }
-            if (memberMapper.countByBrokerageId(brokerageId) == 0) {
+
+        if (brokerage.isEmpty() != accountNo.isEmpty()) {
+            throw new IllegalStateException("증권사와 계좌번호를 함께 입력해주세요.");
+        }
+        if (!brokerage.isEmpty()) {
+            if (!BROKERAGES.contains(brokerage)) {
                 throw new IllegalStateException("올바른 증권사를 선택해주세요.");
             }
-            if (!accountNo.matches("^[0-9]{1,50}$")) {
-                throw new IllegalStateException("계좌번호는 - 없이 숫자만 입력해주세요.");
+            if (!accountNo.matches("^[0-9]{1,15}$")) {
+                throw new IllegalStateException("계좌번호는 숫자만 최대 15자리까지 입력해주세요.");
             }
-            if (memberMapper.countByAccountNoExceptAccount(accountNo, member.getAccountId()) > 0) {
-                throw new IllegalStateException("이미 등록된 계좌번호입니다.");
-            }
-            member.setBrokerageId(brokerageId);
-            member.setAccountNo(accountNo);
         }
+        member.setBrokerage(brokerage.isEmpty() ? null : brokerage);
+        member.setAccountNo(accountNo.isEmpty() ? null : accountNo);
 
         // 새 이미지가 있으면 이미지 파일인지 검사 후 저장
         String oldProfile = member.getProfile();
@@ -285,24 +301,11 @@ public class MemberServiceImpl implements MemberService {
         }
 
         try {
-            // 회원 기본 정보와 개인 설정을 수정
+            // 회원 기본 정보·증권사·계좌번호와 개인 설정을 수정
             if (memberMapper.updateMemberProfile(member) != 1) {
                 throw new IllegalStateException("프로필 수정에 실패했습니다.");
             }
             memberMapper.upsertSettings(member);
-
-            // 기존 계좌가 있으면 수정하고 없으면 새로 연결
-            if (accountUpdateRequested) {
-                if (member.getAccountId() == null) {
-                    if (memberMapper.insertAccount(member) != 1) {
-                        throw new IllegalStateException("계좌 등록에 실패했습니다.");
-                    }
-                } else {
-                    if (memberMapper.updateAccount(member) != 1) {
-                        throw new IllegalStateException("계좌 수정에 실패했습니다.");
-                    }
-                }
-            }
         } catch (RuntimeException e) {
             // DB 저장 실패 시 새로 저장한 이미지를 삭제
             if (saved != null) {
@@ -319,7 +322,7 @@ public class MemberServiceImpl implements MemberService {
         return getMemberProfile(updateDto.getMemberId());
     }
 
-    // 비밀번호 확인 후 연결 데이터와 회원을 삭제
+    // 비밀번호 확인 후 회원을 삭제
     @Override
     @Transactional
     public void withdraw(String memberId, String memberPwd) {
@@ -336,13 +339,7 @@ public class MemberServiceImpl implements MemberService {
             throw new IllegalStateException("현재 비밀번호가 일치하지 않습니다.");
         }
 
-        // 거래 테이블이 있는 프로젝트에서는 거래 내역을 먼저 삭제
-        if (memberMapper.countTradeTable() > 0) {
-            memberMapper.deleteTradesByMemberId(memberId);
-        }
-
-        // 계좌를 정리한 뒤 회원 정보를 삭제
-        memberMapper.deleteAccountsByMemberId(memberId);
+        // 회원 기본 정보를 삭제
         if (memberMapper.deleteMemberById(memberId) != 1) {
             throw new IllegalStateException("회원 탈퇴에 실패했습니다.");
         }
