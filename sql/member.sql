@@ -4,7 +4,7 @@ CREATE DATABASE IF NOT EXISTS stockhub
 
 USE stockhub;
 
-CREATE TABLE IF NOT EXISTS members (
+CREATE TABLE IF NOT EXISTS member (
     member_id VARCHAR(50) NOT NULL COMMENT '로그인 아이디',
     member_pwd VARCHAR(255) NOT NULL COMMENT '암호화된 비밀번호',
     member_name VARCHAR(50) NOT NULL COMMENT '이름',
@@ -12,9 +12,9 @@ CREATE TABLE IF NOT EXISTS members (
     email VARCHAR(100) NOT NULL COMMENT '이메일',
     profile VARCHAR(300) NULL COMMENT '프로필 이미지 경로',
     create_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입일시',
-    CONSTRAINT pk_members PRIMARY KEY (member_id),
-    CONSTRAINT uq_members_nickname UNIQUE (nickname),
-    CONSTRAINT uq_members_email UNIQUE (email)
+    CONSTRAINT pk_member PRIMARY KEY (member_id),
+    CONSTRAINT uq_member_nickname UNIQUE (nickname),
+    CONSTRAINT uq_member_email UNIQUE (email)
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci
@@ -29,8 +29,8 @@ CREATE TABLE IF NOT EXISTS settings (
     update_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
                            ON UPDATE CURRENT_TIMESTAMP COMMENT '설정 수정일시',
     CONSTRAINT pk_settings PRIMARY KEY (member_id),
-    CONSTRAINT fk_members_to_settings
-        FOREIGN KEY (member_id) REFERENCES members (member_id)
+    CONSTRAINT fk_member_to_settings
+        FOREIGN KEY (member_id) REFERENCES member (member_id)
         ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
@@ -63,8 +63,8 @@ CREATE TABLE IF NOT EXISTS account (
     CONSTRAINT pk_account PRIMARY KEY (account_id),
     CONSTRAINT uq_account_no UNIQUE (account_no),
     CONSTRAINT uq_account_member_brokerage UNIQUE (member_id, brokerage_id),
-    CONSTRAINT fk_members_to_account
-        FOREIGN KEY (member_id) REFERENCES members (member_id)
+    CONSTRAINT fk_member_to_account
+        FOREIGN KEY (member_id) REFERENCES member (member_id)
         ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT fk_brokerage_to_account
         FOREIGN KEY (brokerage_id) REFERENCES brokerage (brokerage_id)

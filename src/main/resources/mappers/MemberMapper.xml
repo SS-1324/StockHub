@@ -6,9 +6,9 @@
 <!-- MemberMapper 인터페이스와 연결 -->
 <mapper namespace="com.kh.demo.member.mapper.MemberMapper">
 
-    <!-- 회원가입 정보를 members 테이블에 저장 -->
+    <!-- 회원가입 정보를 member 테이블에 저장 -->
     <insert id="insertMember" parameterType="MemberDto">
-        INSERT INTO members (
+        INSERT INTO member (
             member_id,
             member_pwd,
             member_name,
@@ -41,21 +41,21 @@
     <!-- 같은 아이디를 가진 회원 수를 조회 -->
     <select id="countByMemberId" resultType="int">
         SELECT COUNT(*)
-        FROM members
+        FROM member
         WHERE member_id = #{memberId}
     </select>
 
     <!-- 같은 닉네임을 가진 회원 수를 조회 -->
     <select id="countByNickname" resultType="int">
         SELECT COUNT(*)
-        FROM members
+        FROM member
         WHERE nickname = #{nickname}
     </select>
 
     <!-- 같은 이메일을 가진 회원 수를 조회 -->
     <select id="countByEmail" resultType="int">
         SELECT COUNT(*)
-        FROM members
+        FROM member
         WHERE email = #{email}
     </select>
 
@@ -75,7 +75,7 @@
                a.account_no,
                a.brokerage_id,
                b.brokerage_name
-        FROM members m
+        FROM member m
         LEFT JOIN settings s
                ON s.member_id = m.member_id
         LEFT JOIN account a
@@ -92,14 +92,14 @@
     <!-- 현재 회원을 제외하고 같은 닉네임 수를 조회 -->
     <select id="countByNicknameExceptMember" resultType="int">
         SELECT COUNT(*)
-        FROM members
+        FROM member
         WHERE nickname = #{nickname}
           AND member_id != #{memberId}
     </select>
 
     <!-- 닉네임·비밀번호·프로필 이미지를 수정 -->
     <update id="updateMemberProfile" parameterType="MemberDto">
-        UPDATE members
+        UPDATE member
         SET nickname = #{nickname},
             profile = #{profile}
             <if test="memberPwd != null and memberPwd != ''">
@@ -198,7 +198,7 @@
 
     <!-- 회원 기본 정보를 삭제 -->
     <delete id="deleteMemberById">
-        DELETE FROM members
+        DELETE FROM member
         WHERE member_id = #{memberId}
     </delete>
 

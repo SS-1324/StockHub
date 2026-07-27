@@ -7,7 +7,7 @@ SET NAMES utf8mb4;
 -- -------------------- 1. 회원 및 인증 --------------------
 
 -- 회원
-CREATE TABLE IF NOT EXISTS members (
+CREATE TABLE IF NOT EXISTS member (
     member_id     VARCHAR(50)  NOT NULL COMMENT '로그인 아이디(PK)',
     member_pwd    VARCHAR(255) NOT NULL COMMENT '암호화된 비밀번호',
     member_name   VARCHAR(50)  NOT NULL COMMENT '이름',
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS settings (
 
     CONSTRAINT PK_SETTINGS PRIMARY KEY (member_id),
     CONSTRAINT FK_MEMBER_TO_SETTINGS
-        FOREIGN KEY (member_id) REFERENCES members (member_id)
+        FOREIGN KEY (member_id) REFERENCES member (member_id)
         ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='회원별 환경설정';
 
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS email_verification (
 
     CONSTRAINT PK_EMAIL_VERIFICATION PRIMARY KEY (verification_id),
     CONSTRAINT FK_MEMBER_TO_EMAIL_VERIFICATION
-        FOREIGN KEY (member_id) REFERENCES members (member_id)
+        FOREIGN KEY (member_id) REFERENCES member (member_id)
         ON UPDATE CASCADE ON DELETE SET NULL,
     INDEX IDX_EMAIL_VERIFICATION_EMAIL_DATE (email, create_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='이메일 인증';
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS password_reset_token (
     CONSTRAINT PK_PASSWORD_RESET_TOKEN PRIMARY KEY (token_id),
     CONSTRAINT UQ_PASSWORD_RESET_TOKEN UNIQUE (token),
     CONSTRAINT FK_MEMBER_TO_PASSWORD_RESET_TOKEN
-        FOREIGN KEY (member_id) REFERENCES members (member_id)
+        FOREIGN KEY (member_id) REFERENCES member (member_id)
         ON UPDATE CASCADE ON DELETE CASCADE,
     INDEX IDX_PASSWORD_RESET_MEMBER_DATE (member_id, create_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='비밀번호 재설정 토큰';
@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS account (
     CONSTRAINT UQ_ACCOUNT_NO UNIQUE (account_no),
     CONSTRAINT UQ_ACCOUNT_MEMBER_BROKERAGE UNIQUE (member_id, brokerage_id),
     CONSTRAINT FK_MEMBER_TO_ACCOUNT
-        FOREIGN KEY (member_id) REFERENCES members (member_id)
+        FOREIGN KEY (member_id) REFERENCES member (member_id)
         ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT FK_BROKERAGE_TO_ACCOUNT
         FOREIGN KEY (brokerage_id) REFERENCES brokerage (brokerage_id)
@@ -179,7 +179,7 @@ CREATE TABLE IF NOT EXISTS watchlist (
 
     CONSTRAINT PK_WATCHLIST PRIMARY KEY (member_id, stock_code),
     CONSTRAINT FK_MEMBER_TO_WATCHLIST
-        FOREIGN KEY (member_id) REFERENCES members (member_id)
+        FOREIGN KEY (member_id) REFERENCES member (member_id)
         ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT FK_STOCK_TO_WATCHLIST
         FOREIGN KEY (stock_code) REFERENCES stock (stock_code)
@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS stock_chat (
         FOREIGN KEY (stock_code) REFERENCES stock (stock_code)
         ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT FK_MEMBER_TO_STOCK_CHAT
-        FOREIGN KEY (member_id) REFERENCES members (member_id)
+        FOREIGN KEY (member_id) REFERENCES member (member_id)
         ON UPDATE CASCADE ON DELETE SET NULL,
     INDEX IDX_STOCK_CHAT_STOCK_DATE (stock_code, create_at),
     INDEX IDX_STOCK_CHAT_MEMBER (member_id)
@@ -236,7 +236,7 @@ CREATE TABLE IF NOT EXISTS ranking_board (
     CONSTRAINT PK_RANKING_BOARD PRIMARY KEY (ranking_id),
     CONSTRAINT CK_RANKING_POSITION CHECK (rank_position > 0),
     CONSTRAINT FK_MEMBER_TO_RANKING_BOARD
-        FOREIGN KEY (member_id) REFERENCES members (member_id)
+        FOREIGN KEY (member_id) REFERENCES member (member_id)
         ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT FK_STOCK_TO_RANKING_BOARD
         FOREIGN KEY (stock_code) REFERENCES stock (stock_code)
@@ -282,7 +282,7 @@ CREATE TABLE IF NOT EXISTS board (
 
     CONSTRAINT PK_BOARD PRIMARY KEY (board_id),
     CONSTRAINT FK_MEMBER_TO_BOARD
-        FOREIGN KEY (member_id) REFERENCES members (member_id)
+        FOREIGN KEY (member_id) REFERENCES member (member_id)
         ON UPDATE CASCADE ON DELETE SET NULL,
     INDEX IDX_BOARD_CATEGORY_DATE (category, create_at),
     INDEX IDX_BOARD_MEMBER_DATE (member_id, create_at)
@@ -304,7 +304,7 @@ CREATE TABLE IF NOT EXISTS board_comment (
         FOREIGN KEY (board_id) REFERENCES board (board_id)
         ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT FK_MEMBER_TO_BOARD_COMMENT
-        FOREIGN KEY (member_id) REFERENCES members (member_id)
+        FOREIGN KEY (member_id) REFERENCES member (member_id)
         ON UPDATE CASCADE ON DELETE SET NULL,
     CONSTRAINT FK_PARENT_TO_BOARD_COMMENT
         FOREIGN KEY (parent_comment_id) REFERENCES board_comment (comment_id)
@@ -345,7 +345,7 @@ CREATE TABLE IF NOT EXISTS board_like (
         FOREIGN KEY (board_id) REFERENCES board (board_id)
         ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT FK_MEMBER_TO_BOARD_LIKE
-        FOREIGN KEY (member_id) REFERENCES members (member_id)
+        FOREIGN KEY (member_id) REFERENCES member (member_id)
         ON UPDATE CASCADE ON DELETE CASCADE,
     INDEX IDX_BOARD_LIKE_MEMBER (member_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='게시글 좋아요';
@@ -363,7 +363,7 @@ CREATE TABLE IF NOT EXISTS comment_like (
         FOREIGN KEY (comment_id) REFERENCES board_comment (comment_id)
         ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT FK_MEMBER_TO_COMMENT_LIKE
-        FOREIGN KEY (member_id) REFERENCES members (member_id)
+        FOREIGN KEY (member_id) REFERENCES member (member_id)
         ON UPDATE CASCADE ON DELETE CASCADE,
     INDEX IDX_COMMENT_LIKE_MEMBER (member_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='댓글 좋아요';
@@ -381,7 +381,7 @@ CREATE TABLE IF NOT EXISTS board_bookmark (
         FOREIGN KEY (board_id) REFERENCES board (board_id)
         ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT FK_MEMBER_TO_BOARD_BOOKMARK
-        FOREIGN KEY (member_id) REFERENCES members (member_id)
+        FOREIGN KEY (member_id) REFERENCES member (member_id)
         ON UPDATE CASCADE ON DELETE CASCADE,
     INDEX IDX_BOARD_BOOKMARK_MEMBER (member_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='게시글 북마크';
@@ -394,10 +394,10 @@ CREATE TABLE IF NOT EXISTS follow (
 
     CONSTRAINT PK_FOLLOW PRIMARY KEY (follower_id, followee_id),
     CONSTRAINT FK_MEMBER_TO_FOLLOWER
-        FOREIGN KEY (follower_id) REFERENCES members (member_id)
+        FOREIGN KEY (follower_id) REFERENCES member (member_id)
         ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT FK_MEMBER_TO_FOLLOWEE
-        FOREIGN KEY (followee_id) REFERENCES members (member_id)
+        FOREIGN KEY (followee_id) REFERENCES member (member_id)
         ON UPDATE CASCADE ON DELETE CASCADE,
     INDEX IDX_FOLLOW_FOLLOWEE (followee_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='회원 팔로우 관계';
@@ -418,7 +418,7 @@ CREATE TABLE IF NOT EXISTS glossary (
 
 -- 관리자계정 생성
 -- 아직 관리자에 대한 특별한 권한이 없음
--- INSERT INTO members (member_id, member_pwd, member_name, nickname, email)
+-- INSERT INTO member (member_id, member_pwd, member_name, nickname, email)
 -- VALUES ('admin01', 'StockHub1!', '관리자', '스톡허브', 'admin01@kh.co.kr');
 
 SHOW TABLES;
