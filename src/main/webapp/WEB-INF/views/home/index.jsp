@@ -16,7 +16,7 @@
     <c:choose>
         <c:when test="${not empty sessionScope.loginMember}">
             <p class="hero-desc">
-                ${sessionScope.loginMember.nickname}님, 로그인되었습니다.
+                    ${sessionScope.loginMember.nickname}님, 로그인되었습니다.
             </p>
             <a class="btn btn-outline"
                href="${pageContext.request.contextPath}/member/logout">로그아웃</a>

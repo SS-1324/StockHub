@@ -4,6 +4,10 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kh.demo.dictionary.mapper.GlossaryMapper">
 
+    <select id="selectAllTerms" resultType="com.kh.demo.dictionary.dto.GlossaryDto">
+        SELECT term_id, term, definition, category FROM glossary
+    </select>
+
     <!-- resultMap으로 DB에 쓰이는 스네이크 케이스와
          자바 필드명에 쓰이는 카멀 케이스를 일치시키는 과정   -->
     <resultMap id="glossaryResultMap" type="com.kh.demo.dictionary.dto.GlossaryDto">
