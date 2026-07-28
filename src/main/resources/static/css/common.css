@@ -6,8 +6,11 @@
 }
 
 /* 전체 화면의 배경색과 기본 글꼴 */
-body{
+body {
+    display: flex;
+    flex-direction: column;
     min-height: 100vh;
+    margin: 0; /* 기존 * { margin: 0 }이 적용되어 있지만 명시적으로 유지 */
     background: #f0f4ff;
     color: #222;
     font-family: "Noto Sans KR", sans-serif;
@@ -16,6 +19,20 @@ body{
     font-style: normal;
     line-height: 1.6;
     transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.hero {
+    flex: 1; /* 남은 빈 공간을 채워 footer를 바닥으로 밀어냄 */
+    padding: 48px 0;
+    text-align: center;
+}
+
+.container {
+    flex: 1;
+    max-width: 960px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 32px 24px;
 }
 
 /* 모든 링크의 밑줄과 기본 색상 */
@@ -107,6 +124,7 @@ html[data-theme="dark"] .site-header{
     transition: opacity 0.2s ease;
 }
 
+/*호버링 투명화*/
 .site-logo:hover{
     opacity: 0.82;
 }
@@ -136,7 +154,7 @@ html[data-theme="dark"] .site-header{
     font-size: 14px;
     font-weight: 700;
     white-space: nowrap;
-    transition: background-color 0.18s ease, color 0.18s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .main-nav-link:hover,
@@ -145,11 +163,13 @@ html[data-theme="dark"] .site-header{
     color: var(--header-blue-dark);
 }
 
-/* 커뮤니티 메뉴에 마우스를 올렸을 때 표시되는 하위 메뉴 */
-.main-nav-community{
+/* 커뮤니티 및 용어사전 메뉴 감싸는 영역 */
+.main-nav-community,
+.main-nav-dictionary{
     position: relative;
 }
 
+/* 커뮤니티 드롭다운 (기본 너비) */
 .community-dropdown{
     position: absolute;
     top: calc(100% + 9px);
@@ -167,8 +187,27 @@ html[data-theme="dark"] .site-header{
     transition: opacity 0.16s ease, transform 0.16s ease;
 }
 
-/* 버튼과 하위 메뉴 사이의 빈 공간에서도 hover가 끊기지 않게 연결 */
-.community-dropdown::before{
+/* 용어사전 드롭다운 (글자 길이가 길어서 너비를 190px로 확장) */
+.dictionary-dropdown{
+    position: absolute;
+    top: calc(100% + 9px);
+    left: 50%;
+    width: 190px;
+    padding: 7px;
+    border: 1px solid var(--header-line);
+    border-radius: 13px;
+    background: var(--header-bg);
+    box-shadow: 0 16px 38px rgba(15, 23, 42, 0.15);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -5px) scaleY(0.96);
+    transform-origin: top;
+    transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+/* 버튼과 하위 메뉴 사이 빈 공간 마우스 연결 다리 */
+.community-dropdown::before,
+.dictionary-dropdown::before{
     content: "";
     position: absolute;
     top: -12px;
@@ -177,24 +216,32 @@ html[data-theme="dark"] .site-header{
     height: 12px;
 }
 
+/* 마우스 호버 시 드롭다운 상자 표시 */
 .main-nav-community:hover .community-dropdown,
-.main-nav-community:focus-within .community-dropdown{
+.main-nav-community:focus-within .community-dropdown,
+.main-nav-dictionary:hover .dictionary-dropdown,
+.main-nav-dictionary:focus-within .dictionary-dropdown{
     opacity: 1;
     pointer-events: auto;
     transform: translate(-50%, 0) scaleY(1);
 }
 
-.community-dropdown a{
+/* 하위 메뉴 항목 공통 스타일 */
+.community-dropdown a,
+.dictionary-dropdown a{
     display: block;
     padding: 8px 10px;
     border-radius: 8px;
     color: var(--header-muted);
     font-size: 13px;
     font-weight: 600;
+    white-space: nowrap;
     transition: background-color 0.16s ease, color 0.16s ease, padding-left 0.16s ease;
 }
 
-.community-dropdown a:hover{
+/* 하위 메뉴 항목 호버 스타일 */
+.community-dropdown a:hover,
+.dictionary-dropdown a:hover{
     padding-left: 14px;
     background: var(--header-blue-soft);
     color: var(--header-blue-dark);
@@ -779,7 +826,7 @@ html[data-theme="dark"] .profile-preview-placeholder{
 
 html[data-theme="dark"] .site-footer{
     border-top-color: #334155;
-    background: #111827;
+    background: #0d1117;
     color: #94a3b8;
 }
 
@@ -1032,6 +1079,54 @@ html[data-theme="dark"] .login-form input[type="password"]:focus{
     .community-dropdown{
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+}
+
+/*용어 사전 css*/
+
+.glossary {
+    padding: 40px 0;
+}
+
+.glossary-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.glossary-info{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.category {
+    display: inline-block;
+    width: calc(33.333% - 24px);
+    margin: 10px;
+    text-decoration: none;
+}
+
+.category-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 130px;
+    padding: 20px;
+
+    color: #222;
+    background-color: #fff;
+    border: 1px solid #d9dfeb;
+    border-radius: 12px;
+
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.category:hover{
+
 }
 
 /* 공용 유틸 */
