@@ -1,113 +1,310 @@
-/* 회원가입 화면 스크립트 */
-const profileImageInput = document.querySelector("#profile-image"); //프로필 이미지 파일 태그
-const checkIdReult = document.querySelector("#check-id-btn"); //아이디 중복체크 버튼
-const memberIdInput = document.querySelector("#member-id"); //아이디 입력창
-const checkIdResult = document.querySelector("#check-id-result"); //아이디 상태
+// 회원가입 화면에서 사용하는 요소
+const profileInput = document.querySelector("#profile-image");
+const idButton = document.querySelector("#check-id-btn");
+const idInput = document.querySelector("#member-id");
+const idResult = document.querySelector("#check-id-result");
+const nicknameButton = document.querySelector("#check-nickname-btn");
+const nicknameInput = document.querySelector("#nickname");
+const nicknameResult = document.querySelector("#check-nickname-result");
+const passwordInput = document.querySelector("#member-pwd");
+const passwordConfirmInput = document.querySelector("#member-pwd-confirm");
+const passwordRuleResult = document.querySelector("#password-rule-result");
+const passwordConfirmResult = document.querySelector("#check-pwd-result");
+const emailInput = document.querySelector("#email");
+const emailLocalInput = document.querySelector("#email-local");
+const emailDomainInput = document.querySelector("#email-domain");
+const emailDomainSelect = document.querySelector("#email-domain-select");
+const emailResult = document.querySelector("#email-result");
+const joinForm = document.querySelector("#join-form");
 
-//서버에 마지막으로 중복이 아님을 확인받은 아이디값
-let checkedMemberId = null;
-let checkedPwd = false;
+// 아이디·닉네임·비밀번호·이메일 입력 규칙
+const idPattern = /^[A-Za-z0-9]{6,50}$/;
+const nicknamePattern = /^[가-힣A-Za-z0-9]{2,10}$/;
+const passwordPattern =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])[\x21-\x7E]{10,100}$/;
+const emailLocalPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]{6,50}$/;
+const emailDomainPattern = /^[A-Za-z]+(?:\.com|\.co\.kr|\.net)$/;
 
-/* 프로필 이미지 미리보기 */
-profileImageInput.addEventListener("change", function(ev){
-    //업로드한 파일중 첫번째 요소를 가져옴
-    const file = ev.target.files[0];
-    if(!file){
+// 중복확인과 비밀번호 검사 상태
+let checkedId = null;
+let checkedNickname = null;
+let passwordRulePassed = false;
+let passwordMatched = false;
+
+// 선택한 프로필 이미지를 화면에 미리 표시
+profileInput.addEventListener("change", function (e) {
+    // 선택한 첫 번째 파일을 가져옴
+    const file = e.target.files[0];
+    if (!file) {
         return;
     }
 
-    // FileReader - 아직 서버에 업로드하지 않은, 사용자 PC에 있는 파일을
-    // 브라우저 메모리에 올리기위해 base64라는 문자열로 만들어주는 js객체
-    // base64로 변경해야 img태그의 src속성에 넣어 사용이 가능
+    // 브라우저에서 파일을 읽는 객체
     const reader = new FileReader();
-    reader.onload = function(ev){
-        const profilePreview = document.querySelector("#profile-preview");
-        profilePreview.src = ev.target.result;
-        profilePreview.style.display = "block";
 
-        const profilePlaceholder = document.querySelector("#profile-preview-placeholder");
-        profilePlaceholder.style.display = "none";
-    }
+    // 파일 읽기가 끝나면 미리보기를 표시
+    reader.onload = function (event) {
+        const preview = document.querySelector("#profile-preview");
+        const placeholder = document.querySelector("#profile-preview-placeholder");
 
-    // 업로드한 파일을 base64방식의 데이터URL로 변경.
+        preview.src = event.target.result;
+        preview.style.display = "block";
+        placeholder.style.display = "none";
+    };
+
+    // 이미지를 브라우저용 주소로 읽음
     reader.readAsDataURL(file);
+});
 
-})
+// 중복확인 버튼을 누르면 서버에 아이디를 확인
+idButton.addEventListener("click", async function () {
+    // 입력값의 앞뒤 공백을 제거
+    const memberId = idInput.value.trim();
 
-/* 아이디 중복확인 */
-checkIdReult.addEventListener("click",async function(){
-    const memberId = memberIdInput.value.trim();
-    if(memberId.length === 0) {
-        checkIdResult.textContent = "아이디를 입력해주세요";
-        checkIdResult.className = "form-tip form-tip-error";
-        checkedMemberId = null;
+    // 입력 규칙이 맞지 않으면 서버에 요청하지 않음
+    if (!idPattern.test(memberId)) {
+        showResult(
+            idResult,
+            "영문·숫자로 6자 이상 입력해주세요.",
+            false
+        );
+        checkedId = null;
         return;
     }
-    
+
     try {
-        // encodeURIComponent감싸주는 이유: 아이디에 &, =와같은 요청 url에 영향을 주는 것들을 제거해주는 용도
-        const response = await fetch(`/member/checkId?memberId=${encodeURIComponent(memberId)}`,{
-                                    method: "GET",
-                                    headers: {"X-Request-With": "XMLHtttpRequest"}
-                                });
-
-        // response.json() : json응답을 자바스크립트 객체로 변경
+        // 서버의 아이디 중복확인 주소를 호출
+        const response = await fetch(
+            `/member/checkId?memberId=${encodeURIComponent(memberId)}`,
+            {headers: {"X-Requested-With": "XMLHttpRequest"}}
+        );
         const result = await response.json();
-        const isDuplicate = result.data;
-        
-        checkIdResult.textContent = result.message;
-        checkIdResult.className = isDuplicate ? "form-tip form-tip-error" : "form-tip form-tip-ok";
+        const duplicate = result.data;
 
-        checkedMemberId = isDuplicate ? null : memberId;
-    } catch(err){
-        checkIdResult.textContent = "중복확인 중 오류가 발생했습니다.";
-        checkIdResult.className = "form-tip form-tip-error";
+        // 결과 메시지와 확인된 아이디를 저장
+        showResult(idResult, result.message, !duplicate);
+        checkedId = duplicate ? null : memberId;
+    } catch (e) {
+        // 통신 실패 메시지를 표시
+        showResult(idResult, "중복확인 중 오류가 발생했습니다.", false);
+        checkedId = null;
     }
-})
+});
 
-memberIdInput.addEventListener("input", function(){
-    checkedMemberId = null;
-    checkIdResult.textContent = "";
-})
+// 중복확인 버튼을 누르면 서버에 닉네임을 확인
+nicknameButton.addEventListener("click", async function () {
+    // 입력값의 앞뒤 공백을 제거
+    const nickname = nicknameInput.value.trim();
 
-/* 비밀번호 확인 */
-const pwInput = document.querySelector("#member-pwd"); //비밀번호 입력창
-const pwConfirmInput = document.querySelector("#member-pwd-confirm"); //비밀번호 입력창
-
-function validatePwdConfirm(){
-    const pwConfirmResult = document.querySelector("#check-pwd-result");
-
-    //비밀번호 확인창이 비어있다면 검사x
-    if(!pwConfirmInput.value.trim()){
-        pwConfirmResult.textContent = "";
-        checkedPwd = false;
+    // 입력 규칙이 맞지 않으면 서버에 요청하지 않음
+    if (!nicknamePattern.test(nickname)) {
+        showResult(
+            nicknameResult,
+            "특수문자 없이 2자 이상 10자 이하로 입력해주세요.",
+            false
+        );
+        checkedNickname = null;
         return;
     }
 
-    checkedPwd = pwInput.value === pwConfirmInput.value;
+    try {
+        // 서버의 닉네임 중복확인 주소를 호출
+        const response = await fetch(
+            `/member/checkNickname?nickname=${encodeURIComponent(nickname)}`,
+            {headers: {"X-Requested-With": "XMLHttpRequest"}}
+        );
+        const result = await response.json();
+        const duplicate = result.data;
 
-    pwConfirmResult.textContent = checkedPwd ? "비밀번호가 일치합니다" : "비밀번호가 일치하지 않습니다";
-    pwConfirmResult.className = checkedPwd ? "form-tip form-tip-ok" : "form-tip form-tip-error";
+        // 결과 메시지와 확인된 닉네임을 저장
+        showResult(nicknameResult, result.message, !duplicate);
+        checkedNickname = duplicate ? null : nickname;
+    } catch (e) {
+        // 통신 실패 메시지를 표시
+        showResult(nicknameResult, "중복확인 중 오류가 발생했습니다.", false);
+        checkedNickname = null;
+    }
+});
+
+// 아이디가 바뀌면 기존 중복확인을 취소
+idInput.addEventListener("input", function () {
+    checkedId = null;
+    idResult.textContent = "";
+});
+
+// 닉네임이 바뀌면 기존 중복확인을 취소
+nicknameInput.addEventListener("input", function () {
+    checkedNickname = null;
+    nicknameResult.textContent = "";
+});
+
+// 비밀번호 입력이 바뀔 때마다 규칙과 일치 여부를 확인
+passwordInput.addEventListener("input", checkPassword);
+passwordConfirmInput.addEventListener("input", checkPassword);
+
+// 이메일 앞부분이나 직접 입력 도메인이 바뀔 때 형식을 바로 확인
+emailLocalInput.addEventListener("input", checkEmail);
+emailDomainInput.addEventListener("input", checkEmail);
+
+// 목록에서 도메인을 선택하면 직접 입력란에 반영하고 수정 여부를 전환
+emailDomainSelect.addEventListener("change", function () {
+    const selectedDomain = emailDomainSelect.value;
+
+    if (selectedDomain) {
+        emailDomainInput.value = selectedDomain;
+        emailDomainInput.readOnly = true;
+        emailDomainInput.classList.add("input-readonly");
+    } else {
+        emailDomainInput.value = "";
+        emailDomainInput.readOnly = false;
+        emailDomainInput.classList.remove("input-readonly");
+        emailDomainInput.focus();
+    }
+
+    checkEmail();
+});
+
+// 가입 전 모든 입력 규칙과 중복확인 상태를 검사
+joinForm.addEventListener("submit", function (e) {
+    // 아이디 형식이 올바르지 않으면 전송 중단
+    if (!idPattern.test(idInput.value.trim())) {
+        e.preventDefault();
+        alert("아이디 입력 규칙을 확인해주세요.");
+        idInput.focus();
+        return;
+    }
+
+    // 현재 아이디가 중복확인되지 않았으면 전송 중단
+    if (checkedId !== idInput.value.trim()) {
+        e.preventDefault();
+        alert("아이디 중복확인을 진행해주세요.");
+        return;
+    }
+
+    // 닉네임 형식이 올바르지 않으면 전송 중단
+    if (!nicknamePattern.test(nicknameInput.value.trim())) {
+        e.preventDefault();
+        alert("닉네임 입력 규칙을 확인해주세요.");
+        nicknameInput.focus();
+        return;
+    }
+
+    // 현재 닉네임이 중복확인되지 않았으면 전송 중단
+    if (checkedNickname !== nicknameInput.value.trim()) {
+        e.preventDefault();
+        alert("닉네임 중복확인을 진행해주세요.");
+        return;
+    }
+
+    // 이메일 앞부분과 도메인이 지정한 형식에 맞는지 검사
+    if (!checkEmail()) {
+        e.preventDefault();
+        alert("이메일 입력 형식을 확인해주세요.");
+
+        if (!emailLocalPattern.test(emailLocalInput.value.trim())) {
+            emailLocalInput.focus();
+        } else {
+            emailDomainInput.focus();
+        }
+        return;
+    }
+
+    // 나누어 입력한 이메일을 서버로 보낼 하나의 값으로 합침
+    emailInput.value =
+        `${emailLocalInput.value.trim()}@${emailDomainInput.value.trim().toLowerCase()}`;
+
+    // 비밀번호가 필수 조합에 맞지 않으면 전송 중단
+    if (!passwordRulePassed) {
+        e.preventDefault();
+        alert("비밀번호 입력 규칙을 확인해주세요.");
+        passwordInput.focus();
+        return;
+    }
+
+    // 비밀번호가 서로 다르면 전송 중단
+    if (!passwordMatched) {
+        e.preventDefault();
+        alert("비밀번호가 일치하지 않습니다.");
+        passwordConfirmInput.focus();
+    }
+});
+
+// 이메일 앞부분과 도메인의 형식을 검사하고 결과를 표시
+function checkEmail() {
+    const local = emailLocalInput.value.trim();
+    const domain = emailDomainInput.value.trim().toLowerCase();
+    const fullEmail = `${local}@${domain}`;
+    const localPassed = emailLocalPattern.test(local);
+    const domainPassed = emailDomainPattern.test(domain);
+
+    if (!local && !domain) {
+        emailResult.textContent = "";
+        emailResult.className = "form-tip";
+        return false;
+    }
+
+    if (!localPassed) {
+        showResult(
+            emailResult,
+            "이메일 앞부분은 영문과 숫자를 모두 포함하여 6자 이상 입력해주세요.",
+            false
+        );
+        return false;
+    }
+
+    if (!domainPassed) {
+        showResult(
+            emailResult,
+            "도메인은 영문 + .com, .co.kr 또는 .net 형식으로 입력해주세요.",
+            false
+        );
+        return false;
+    }
+
+    if (fullEmail.length > 100) {
+        showResult(emailResult, "이메일은 전체 100자 이하로 입력해주세요.", false);
+        return false;
+    }
+
+    showResult(emailResult, "사용 가능한 이메일 형식입니다.", true);
+    return true;
 }
 
-pwInput.addEventListener("input", validatePwdConfirm);
-pwConfirmInput.addEventListener("input", validatePwdConfirm);
+// 비밀번호 규칙과 확인 값의 상태를 표시
+function checkPassword() {
+    const password = passwordInput.value;
+    const passwordConfirm = passwordConfirmInput.value;
 
-/* 회원가입 폼 제출 */
-const joinForm = document.querySelector("#join-form");
-joinForm.addEventListener("submit", function (ev){
-    if(!checkedMemberId){
-        ev.preventDefault();
-        alert("아이디 중복확인을 진행해주세요");
+    // 비밀번호 필수 조합을 검사
+    passwordRulePassed = passwordPattern.test(password);
+    passwordRuleResult.textContent = passwordRulePassed
+        ? "사용 가능한 비밀번호입니다."
+        : "한글 없이 대문자·소문자·숫자·특수문자를 포함한 10자 이상이 필요합니다.";
+    passwordRuleResult.className = passwordRulePassed
+        ? "form-tip form-tip-ok"
+        : "form-tip form-tip-error";
+
+    // 확인 값이 없으면 일치 메시지를 비움
+    if (!passwordConfirm) {
+        passwordMatched = false;
+        passwordConfirmResult.textContent = "";
         return;
     }
 
-    if(!checkedPwd){
-        ev.preventDefault();
-        alert("비밀번호가 일치하지 않습니다.");
-        return;
-    }
-    // js에서의 검증은 UX관점일 뿐.
-    // 우회가 얼마든지 가능하기 때문에 서버에서 재 검증이 필요하다.
-    // (아이디 중복o, 비밀번호확인x)
-})
+    // 두 비밀번호가 같은지 검사
+    passwordMatched = password === passwordConfirm;
+    passwordConfirmResult.textContent = passwordMatched
+        ? "비밀번호가 일치합니다."
+        : "비밀번호가 일치하지 않습니다.";
+    passwordConfirmResult.className = passwordMatched
+        ? "form-tip form-tip-ok"
+        : "form-tip form-tip-error";
+}
+
+// 검사 메시지의 내용과 색상을 변경
+function showResult(element, message, ok) {
+    element.textContent = message;
+    element.className = ok
+        ? "form-tip form-tip-ok"
+        : "form-tip form-tip-error";
+}

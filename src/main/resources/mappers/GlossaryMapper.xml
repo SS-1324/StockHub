@@ -2,6 +2,62 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.kh.demo.brokerage.mapper.GlossaryMapper">
+<mapper namespace="com.kh.demo.dictionary.mapper.GlossaryMapper">
 
+    <select id="selectAllTerms" resultType="com.kh.demo.dictionary.dto.GlossaryDto">
+        SELECT term_id, term, definition, category FROM glossary
+    </select>
+
+    <!-- resultMap으로 DB에 쓰이는 스네이크 케이스와
+         자바 필드명에 쓰이는 카멀 케이스를 일치시키는 과정   -->
+    <resultMap id="glossaryResultMap" type="com.kh.demo.dictionary.dto.GlossaryDto">
+        <!-- property는 자바 필드명, column은 DB명
+             id는 PK, 나머지 칼럼은 result  -->
+        <id property="termId" column="term_id"/>
+        <result property="term" column="term"/>
+        <result property="definition" column="definition"/>
+        <result property="category" column="category"/>
+    </resultMap>
+
+    <!-- <select>: SQL select문 시작/전체 용어 조회하기-->
+    <!-- 위에서 지정한 resultMap(glossaryResultMap) 적용-->
+    <select id="selectGlossaryList" resultMap="glossaryResultMap">
+        SELECT term_id, term, definition, category
+        FROM glossary
+        ORDER BY category ASC, term ASC
+    </select>
+
+    <!-- 용어 번호로 상세 조회 -->
+    <select id="selectGlossaryById" resultMap="glossaryResultMap">
+        SELECT term_id, term, definition, category
+        FROM glossary
+        <!-- 자바 필드명과 DB명이 같은 내용 찾기-->
+        WHERE term_id = #{termId}
+    </select>
+
+    <!-- 검색 -->
+    <select id="searchGlossary" resultMap="glossaryResultMap">
+        SELECT term_id, term, definition, category
+        FROM glossary
+        <!-- CONCAT 쓰는 이유: AI가 말하길 보안 문제로 '%${keyword}%'라고 쓰면 취약점이 생긴다고 함-->
+        <!-- CONCAT을 통해 #{}과 % 2개를 붙여서 앞뒤 공백, 혹은 사이에 든 단어라도 검색 가능하게 만듦 -->
+        WHERE term LIKE CONCAT('%', #{keyword}, '%')
+        OR definition LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY category ASC, term ASC
+    </select>
+
+    <!-- 카테고리별 조회 -->
+    <select id="selectGlossaryByCategory" resultMap="glossaryResultMap">
+        SELECT term_id, term, definition, category
+        FROM glossary
+        WHERE category = #{category}
+        ORDER BY term ASC
+    </select>
+
+    <!-- 카테고리 목록 조회 -->
+    <select id="selectCategoryList" resultType="string">
+        SELECT DISTINCT category
+        FROM glossary
+        ORDER BY category ASC
+    </select>
 </mapper>

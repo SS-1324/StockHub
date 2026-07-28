@@ -1,0 +1,359 @@
+/*
+    커뮤니티 게시판 전용 스타일
+    공통 primitive(.btn, .alert, .form*, .file-label 등)는 common.css를 그대로 재사용하고
+    여기서는 게시판에서만 쓰이는 컴포넌트 클래스만 정의한다.
+*/
+
+/* 폼 공통 - textarea/select는 common.css에 정의가 없어 여기서 보강 */
+.form textarea,
+.form select{
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    width: 100%;
+    font-family: inherit;
+}
+
+.form textarea{
+    resize: vertical;
+    min-height: 160px;
+}
+
+/* 카테고리 필터/선택 */
+.category-filter{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.category-tab{
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid #ccc;
+    font-size: 13px;
+    color: #555;
+    background: #fff;
+}
+
+.category-tab-active{
+    background: #222;
+    color: #fff;
+    border-color: #222;
+}
+
+.category-badge{
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #f0f0f0;
+    color: #555;
+    font-size: 12px;
+}
+
+/* 목록 */
+.board-list{
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.board-card{
+    display: block;
+    padding: 16px 18px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+}
+
+.board-card:hover{
+    border-color: #ccc;
+    scale: calc(1);
+}
+
+.board-card-title{
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.board-card-snippet{
+    color: #555;
+    font-size: 14px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.board-card-meta{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: #999;
+}
+
+.pagination{
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+/* 상세 */
+.board-title{
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.board-header-meta{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #888;
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+.board-images{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.board-image{
+    max-width: 100%;
+    border-radius: 8px;
+}
+
+.board-content{
+    font-size: 15px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-bottom: 20px;
+}
+
+.board-meta-bottom{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 0;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 24px;
+}
+
+.board-actions{
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.btn-icon{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #fff;
+    color: #555;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.btn-icon:hover{
+    background: #f5f5f5;
+    scale: calc(1);
+}
+
+.btn-icon.active{
+    border-color: #222;
+    color: #222;
+    font-weight: 700;
+}
+
+.meta-count{
+    color: #999;
+    font-size: 13px;
+}
+
+/* 이미지 미리보기 (글쓰기 폼) */
+.image-preview-list{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.image-preview-item{
+    width: 96px;
+    height: 96px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #eee;
+}
+
+.image-preview-item img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 기존 이미지(수정화면 읽기전용) */
+.board-existing-images{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.board-existing-images img{
+    width: 96px;
+    height: 96px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #eee;
+}
+
+/* 댓글 */
+.comment-section{
+    margin-top: 12px;
+}
+
+.comment-section-title{
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 14px;
+}
+
+.comment-form{
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.comment-form textarea{
+    flex: 1;
+    min-height: 60px;
+}
+
+.comment-list{
+    display: flex;
+    flex-direction: column;
+}
+
+.comment-item{
+    padding: 14px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.comment-author{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    cursor: default;
+}
+
+.comment-avatar{
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #f0f0f0;
+}
+
+.comment-avatar-placeholder{
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #eee;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #aaa;
+}
+
+.comment-nickname{
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.comment-mention{
+    color: #3366cc;
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+.comment-body{
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-bottom: 8px;
+}
+
+.comment-meta{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: #999;
+}
+
+.comment-meta button{
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.comment-meta button.active{
+    color: #222;
+    font-weight: 700;
+}
+
+.reply-form{
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.reply-form textarea{
+    flex: 1;
+    min-height: 44px;
+}
+
+/* 전문용어 하이라이트 */
+.term-highlight{
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    cursor: help;
+    color: inherit;
+}
+
+.term-tooltip{
+    position: fixed;
+    max-width: 260px;
+    padding: 10px 12px;
+    background: #222;
+    color: #fff;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+}

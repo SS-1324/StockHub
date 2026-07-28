@@ -2,6 +2,18 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.kh.demo.brokerage.mapper.BoardLikeMapper">
+<mapper namespace="com.kh.demo.community.mapper.BoardLikeMapper">
+
+    <select id="existsBoardLike" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM board_like WHERE board_id = #{boardId} AND member_id = #{memberId}
+    </select>
+
+    <insert id="insertBoardLike">
+        INSERT INTO board_like(board_id, member_id) VALUES(#{boardId}, #{memberId})
+    </insert>
+
+    <delete id="deleteBoardLike">
+        DELETE FROM board_like WHERE board_id = #{boardId} AND member_id = #{memberId}
+    </delete>
 
 </mapper>

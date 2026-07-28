@@ -2,6 +2,64 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.kh.demo.brokerage.mapper.BoardCommentMapper">
+<mapper namespace="com.kh.demo.community.mapper.BoardCommentMapper">
+
+    <insert id="insertBoardComment" parameterType="com.kh.demo.community.dto.BoardCommentDto"
+            useGeneratedKeys="true" keyProperty="commentId" keyColumn="comment_id">
+        INSERT INTO board_comment(board_id, member_id, parent_comment_id, content)
+        VALUES(#{boardId}, #{memberId}, #{parentCommentId}, #{content})
+    </insert>
+
+    <!--
+        board_comment 테이블 자체에는 좋아요 수 캐시 컬럼이 없어서(comment_like를 직접 세는 구조),
+        댓글마다 comment_like를 서브쿼리로 세어서 like_count를 채운다.
+    -->
+    <sql id="commentColumns">
+        c.comment_id, c.board_id, c.member_id, c.parent_comment_id, c.content,
+        COALESCE(lc.like_count, 0) AS like_count,
+        c.create_at, DATE_FORMAT(c.create_at, '%Y-%m-%d %H:%i') AS create_at_str,
+        m.nickname, m.profile,
+        pm.nickname AS parent_nickname
+    </sql>
+
+    <sql id="commentJoins">
+        LEFT JOIN member m ON c.member_id = m.member_id
+        LEFT JOIN board_comment p ON c.parent_comment_id = p.comment_id
+        LEFT JOIN member pm ON p.member_id = pm.member_id
+        LEFT JOIN (
+            SELECT comment_id, COUNT(*) AS like_count FROM comment_like GROUP BY comment_id
+        ) lc ON lc.comment_id = c.comment_id
+    </sql>
+
+    <select id="selectById" resultType="com.kh.demo.community.dto.BoardCommentDto">
+        SELECT <include refid="commentColumns"/>
+        FROM board_comment c
+        <include refid="commentJoins"/>
+        WHERE c.comment_id = #{commentId}
+    </select>
+
+    <!--
+        parent_comment_id가 있으면 그 값, 없으면 자기 comment_id로 정렬 기준을 묶어서
+        최상위 댓글 바로 뒤에 그 답글들이 작성순으로 이어지도록 함(깊이 1이라 트리 조립 코드 불필요).
+    -->
+    <select id="selectByBoardId" resultType="com.kh.demo.community.dto.BoardCommentDto">
+        SELECT <include refid="commentColumns"/>
+        FROM board_comment c
+        <include refid="commentJoins"/>
+        WHERE c.board_id = #{boardId}
+        ORDER BY COALESCE(c.parent_comment_id, c.comment_id) ASC, c.create_at ASC
+    </select>
+
+    <!--
+        board_comment.parent_comment_id와 board_id FK 모두 ON DELETE CASCADE로 걸려있어서
+        (comment_like도 마찬가지) 자신의 행 하나만 지우면 답글/좋아요는 DB가 알아서 정리해준다.
+    -->
+    <delete id="deleteById">
+        DELETE FROM board_comment WHERE comment_id = #{commentId} AND member_id = #{memberId}
+    </delete>
+
+    <select id="selectLikeCount" resultType="long">
+        SELECT COUNT(*) FROM comment_like WHERE comment_id = #{commentId}
+    </select>
 
 </mapper>
