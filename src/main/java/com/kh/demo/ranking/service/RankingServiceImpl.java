@@ -1,9 +1,9 @@
 package com.kh.demo.ranking.service;
 
-<<<<<<< HEAD
-import com.kh.demo.ranking.mapper.RankingMapper;
 import com.kh.demo.ranking.dto.RankingDto;
+import com.kh.demo.ranking.mapper.RankingMapper;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
@@ -16,11 +16,7 @@ public class RankingServiceImpl implements RankingService {
     }
 
     @Override
-    public List<RankingDto> getRankingBoard() {
-        return rankingMapper.selectRankingBoard();
+    public List<RankingDto> getRankingBoard(String period) {
+        return rankingMapper.selectRankingBoard(period);
     }
 }
-=======
-public class RankingServiceImpl {
-}
->>>>>>> origin
