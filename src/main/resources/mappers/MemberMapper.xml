@@ -16,25 +16,25 @@
             email,
             profile
         ) VALUES (
-            #{memberId},
-            #{memberPwd},
-            #{memberName},
-            #{nickname},
-            #{email},
-            #{profile}
+        #{memberId},
+        #{memberPwd},
+        #{memberName},
+        #{nickname},
+        #{email},
+        #{profile}
         )
     </insert>
 
     <!-- 새 회원의 프로필 설정 기본값을 저장 -->
     <insert id="insertDefaultSettings">
         INSERT INTO settings (
-            member_id,
-            is_profile_public,
-            is_word_tooltip
+        member_id,
+        is_profile_public,
+        is_word_tooltip
         ) VALUES (
-            #{memberId},
-            TRUE,
-            TRUE
+        #{memberId},
+        TRUE,
+        TRUE
         )
     </insert>
 
@@ -122,16 +122,27 @@
                m.member_name,
                m.nickname,
                m.email,
-               m.profile,
-               m.brokerage,
-               m.account_no,
+               COALESCE(NULLIF(m.profile, ''), '/images/common_member.png') AS profile,
+               m.member_role,
                m.create_at,
                DATE_FORMAT(m.create_at, '%Y-%m-%d %H:%i') AS create_at_str,
                COALESCE(s.is_profile_public, TRUE) AS profile_public,
-               COALESCE(s.is_word_tooltip, TRUE) AS word_tooltip
+               COALESCE(s.is_word_tooltip, TRUE) AS word_tooltip,
+               a.account_id,
+               a.account_no,
+               a.brokerage_id,
+               b.brokerage_name
         FROM member m
         LEFT JOIN settings s
                ON s.member_id = m.member_id
+        LEFT JOIN account a
+               ON a.account_id = (
+                   SELECT MIN(a2.account_id)
+                   FROM account a2
+                   WHERE a2.member_id = m.member_id
+               )
+        LEFT JOIN brokerage b
+               ON b.brokerage_id = a.brokerage_id
         WHERE m.member_id = #{memberId}
     </select>
 
@@ -140,38 +151,114 @@
         SELECT COUNT(*)
         FROM member
         WHERE nickname = #{nickname}
-          AND member_id != #{memberId}
+        AND member_id != #{memberId}
     </select>
 
     <!-- 닉네임·비밀번호·프로필 이미지·증권사·계좌번호를 수정 -->
     <update id="updateMemberProfile" parameterType="MemberDto">
         UPDATE member
         SET nickname = #{nickname},
-            profile = #{profile},
-            brokerage = #{brokerage},
-            account_no = #{accountNo}
-            <if test="memberPwd != null and memberPwd != ''">
-                , member_pwd = #{memberPwd}
-            </if>
+            profile = #{profile}
+        <if test="memberPwd != null and memberPwd != ''">
+            , member_pwd = #{memberPwd}
+        </if>
+        WHERE member_id = #{memberId}
+    </update>
+
+    <!-- 프로필 이미지 삭제 시 기본 이미지 경로로 변경 -->
+    <update id="updateProfileImage">
+        UPDATE member
+        SET profile = #{profile}
         WHERE member_id = #{memberId}
     </update>
 
     <!-- 설정이 있으면 수정하고 없으면 새로 저장 -->
     <insert id="upsertSettings" parameterType="MemberDto">
         INSERT INTO settings (
-            member_id,
-            is_profile_public,
-            is_word_tooltip
+        member_id,
+        is_profile_public,
+        is_word_tooltip
         ) VALUES (
-            #{memberId},
-            #{profilePublic},
-            #{wordTooltip}
+        #{memberId},
+        #{profilePublic},
+        #{wordTooltip}
         )
         ON DUPLICATE KEY UPDATE
-            is_profile_public = VALUES(is_profile_public),
-            is_word_tooltip = VALUES(is_word_tooltip)
+        is_profile_public = VALUES(is_profile_public),
+        is_word_tooltip = VALUES(is_word_tooltip)
     </insert>
 
+    <!-- 증권사 선택 목록을 이름순으로 조회 -->
+    <select id="selectBrokerages" resultType="BrokerageDto">
+        SELECT brokerage_id,
+        brokerage_name
+        FROM brokerage
+        ORDER BY brokerage_name
+    </select>
+
+    <!-- 선택한 증권사가 존재하는지 확인 -->
+    <select id="countByBrokerageId" resultType="int">
+        SELECT COUNT(*)
+        FROM brokerage
+        WHERE brokerage_id = #{brokerageId}
+    </select>
+
+    <!-- 현재 계좌를 제외한 같은 계좌번호 수를 조회 -->
+    <select id="countByAccountNoExceptAccount" resultType="int">
+        SELECT COUNT(*)
+        FROM account
+        WHERE account_no = #{accountNo}
+        <if test="accountId != null">
+            AND account_id != #{accountId}
+        </if>
+    </select>
+
+    <!-- 회원에게 선택한 증권사 계좌를 새로 연결 -->
+    <insert id="insertAccount" parameterType="MemberDto">
+        INSERT INTO account (
+        account_no,
+        member_id,
+        brokerage_id,
+        owner_name
+        ) VALUES (
+        #{accountNo},
+        #{memberId},
+        #{brokerageId},
+        #{memberName}
+        )
+    </insert>
+
+    <!-- 회원에게 연결된 기존 계좌를 수정 -->
+    <update id="updateAccount" parameterType="MemberDto">
+        UPDATE account
+        SET account_no = #{accountNo},
+        brokerage_id = #{brokerageId}
+        WHERE account_id = #{accountId}
+        AND member_id = #{memberId}
+    </update>
+
+    <!-- 현재 데이터베이스에 거래 테이블이 있는지 확인 -->
+    <select id="countTradeTable" resultType="int">
+        SELECT COUNT(*)
+        FROM information_schema.tables
+        WHERE table_schema = DATABASE()
+        AND table_name = 'trade'
+    </select>
+
+    <!-- 회원 계좌에 연결된 거래 내역을 먼저 삭제 -->
+    <delete id="deleteTradesByMemberId">
+        DELETE t
+        FROM trade t
+        INNER JOIN account a
+        ON a.account_id = t.account_id
+        WHERE a.member_id = #{memberId}
+    </delete>
+
+    <!-- 회원에게 연결된 계좌를 삭제 -->
+    <delete id="deleteAccountsByMemberId">
+        DELETE FROM account
+        WHERE member_id = #{memberId}
+    </delete>
     <!-- 회원 기본 정보를 삭제 -->
     <delete id="deleteMemberById">
         DELETE FROM member

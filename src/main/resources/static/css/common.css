@@ -7,6 +7,8 @@
 
 /* 전체 화면의 배경색과 기본 글꼴 */
 body{
+    display: flex;
+    flex-direction: column;
     min-height: 100vh;
     background: #f0f4ff;
     color: #222;
@@ -346,16 +348,25 @@ html[data-theme="dark"] .theme-dark-icon{
     display: none;
 }
 
-.header-profile-dropdown a{
+.header-profile-dropdown a,
+.header-profile-dropdown button{
     display: block;
+    width: 100%;
     padding: 9px 11px;
+    border: 0;
     border-radius: 8px;
+    background: transparent;
     color: var(--header-muted);
+    font-family: inherit;
     font-size: 13px;
     font-weight: 600;
+    line-height: 1.6;
+    text-align: left;
+    cursor: pointer;
 }
 
-.header-profile-dropdown a:hover{
+.header-profile-dropdown a:hover,
+.header-profile-dropdown button:hover{
     background: var(--header-soft-bg);
     color: var(--header-text);
 }
@@ -407,6 +418,8 @@ html[data-theme="dark"] .theme-dark-icon{
 
 /* 각 JSP의 본문을 감싸는 영역 */
 .container{
+    flex: 1 0 auto;
+    width: 100%;
     max-width: 960px;
     margin: 0 auto;
     padding: 32px 24px;
@@ -420,11 +433,305 @@ html[data-theme="dark"] .theme-dark-icon{
 
 /* 페이지 아래쪽 공통 푸터 */
 .site-footer{
-    border-top: 1px solid #eeeeee;
-    padding: 24px;
-    text-align: center;
-    color: #999;
+    flex-shrink: 0;
+    border-top: 1px solid #dbe4f0;
+    padding: 28px 24px 20px;
+    background: #ffffff;
+    color: #64748b;
     font-size: 13px;
+}
+
+/* 푸터 내용을 본문 너비에 맞춰 가운데 배치 */
+.site-footer-inner{
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+}
+
+/* 푸터 로고는 왼쪽, 링크는 오른쪽에 배치 */
+.site-footer-main{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+/* 푸터에 표시하는 StockHub 로고 */
+.footer-logo{
+    display: inline-flex;
+    align-items: center;
+    line-height: 0;
+}
+
+.footer-logo:hover{
+    scale: 1;
+    opacity: 0.82;
+}
+
+.footer-logo img{
+    display: block;
+    width: 150px;
+    height: auto;
+}
+
+/* 푸터의 문의·약관 버튼을 오른쪽에 배치 */
+.footer-links{
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 18px;
+}
+
+/* 링크처럼 보이는 푸터 모달 버튼 */
+.footer-link-button{
+    border: 0;
+    background: transparent;
+    color: #475569;
+    font: inherit;
+    cursor: pointer;
+}
+
+.footer-link-button:hover{
+    color: #0874f7;
+}
+
+/* 저작권 문장 위에 구분선을 표시 */
+.footer-copyright{
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid #dbe4f0;
+    color: #94a3b8;
+}
+
+/* 모달이 열렸을 때 뒤쪽 페이지의 스크롤을 막음 */
+body.modal-open{
+    overflow: hidden;
+}
+
+/* 화면 전체를 덮는 어두운 모달 배경 */
+.footer-modal-overlay{
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.7);
+}
+
+/* hidden 속성이 있는 모달은 화면에서 숨김 */
+.footer-modal-overlay[hidden]{
+    display: none;
+}
+
+/* 푸터 버튼을 눌렀을 때 표시하는 흰색 창 */
+.footer-modal{
+    width: 100%;
+    max-width: 720px;
+    overflow: hidden;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.3);
+}
+
+/* 모달 제목과 닫기 버튼을 배치 */
+.footer-modal-header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px 22px;
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.footer-modal-header h2{
+    font-size: 18px;
+}
+
+/* 모달 오른쪽 위의 X 닫기 버튼 */
+.footer-modal-close{
+    border: 0;
+    background: transparent;
+    color: #ffffff;
+    font-size: 30px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+/* 모달 안쪽 내용과 긴 약관의 스크롤 영역 */
+.footer-modal-content{
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+.footer-policy-content{
+    min-height: 300px;
+    white-space: pre-wrap;
+}
+
+/* 문의 제목과 내용 입력칸을 세로로 배치 */
+.inquiry-form{
+    display: flex;
+    flex-direction: column;
+}
+
+.inquiry-field{
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-bottom: 18px;
+}
+
+.inquiry-field input,
+.inquiry-field textarea{
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #172033;
+    font: inherit;
+}
+
+.inquiry-field textarea{
+    min-height: 170px;
+    resize: vertical;
+}
+
+.inquiry-field input:focus,
+.inquiry-field textarea:focus{
+    border-color: #0874f7;
+    outline: 3px solid rgba(8, 116, 247, 0.14);
+}
+
+/* 문의 입력칸 오른쪽 아래에 현재 글자 수를 표시 */
+.inquiry-count{
+    color: #94a3b8;
+    font-size: 12px;
+    text-align: right;
+}
+
+.inquiry-alert{
+    margin-bottom: 18px;
+}
+
+/* 문의하기 전송 버튼을 오른쪽 아래에 배치 */
+.inquiry-actions{
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 24px 24px;
+}
+
+/* 문의의 접수·처리 상태를 색상으로 구분 */
+.inquiry-status{
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.status-pending{
+    color: #15803d;
+}
+
+.status-answered{
+    color: #dc2626;
+}
+
+/* 내 문의 목록은 너무 넓어지지 않게 표시 */
+.my-inquiries-modal{
+    max-width: 660px;
+}
+
+.my-inquiry-list{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 160px;
+}
+
+.my-inquiry-card{
+    overflow: hidden;
+    border: 1px solid #dbe4f0;
+    border-radius: 10px;
+    background: #ffffff;
+}
+
+/* 문의 제목을 누르면 상세 내용이 같은 모달 안에서 펼쳐짐 */
+.my-inquiry-summary{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 13px 15px;
+    cursor: pointer;
+}
+
+.my-inquiry-summary-text{
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.my-inquiry-summary strong{
+    overflow: hidden;
+    color: #172033;
+    font-size: 14px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.my-inquiry-summary small{
+    margin-top: 2px;
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+.my-inquiry-body{
+    padding: 15px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.my-inquiry-label{
+    margin-bottom: 5px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.my-inquiry-content,
+.my-inquiry-answer-content{
+    color: #334155;
+    font-size: 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* 처리된 문의 아래에 관리자 답변을 구분하여 표시 */
+.my-inquiry-answer{
+    margin-top: 16px;
+    padding: 13px;
+    border-radius: 9px;
+    background: #eff6ff;
+}
+
+.my-inquiry-answer-date{
+    margin-top: 8px;
+    color: #94a3b8;
+    font-size: 11px;
+    text-align: right;
+}
+
+.my-inquiry-message{
+    margin: auto;
+    color: #64748b;
+    text-align: center;
+}
+
+.my-inquiry-error{
+    color: #dc2626;
 }
 
 /* 모든 버튼과 버튼 모양 링크 */
@@ -598,6 +905,20 @@ select
 /* 기본 파일 입력창은 화면에서 숨김 */
 .file-label input[type="file"]{
     display: none;
+}
+
+/* 프로필 이미지 변경·삭제 버튼을 한 줄로 배치 */
+.profile-image-actions{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* 프로필 이미지 삭제 버튼의 크기를 내용에 맞춤 */
+.btn-profile-image-delete{
+    width: auto;
 }
 
 /* 입력창과 중복확인 버튼 배치 */
@@ -803,6 +1124,52 @@ html[data-theme="dark"] .site-footer{
     border-top-color: #334155;
     background: #111827;
     color: #94a3b8;
+}
+
+/* 다크 모드의 푸터 구분선과 링크 */
+html[data-theme="dark"] .footer-copyright{
+    border-top-color: #334155;
+}
+
+html[data-theme="dark"] .footer-link-button{
+    color: #cbd5e1;
+}
+
+html[data-theme="dark"] .footer-link-button:hover{
+    color: #60a5fa;
+}
+
+/* 다크 모드의 모달과 문의 입력칸 */
+html[data-theme="dark"] .footer-modal{
+    background: #111827;
+    color: #e5e7eb;
+}
+
+html[data-theme="dark"] .inquiry-field input,
+html[data-theme="dark"] .inquiry-field textarea{
+    border-color: #475569;
+    background: #1e293b;
+    color: #f8fafc;
+}
+
+/* 다크 모드의 내 문의 카드와 관리자 답변 */
+html[data-theme="dark"] .my-inquiry-card{
+    border-color: #334155;
+    background: #111827;
+}
+
+html[data-theme="dark"] .my-inquiry-summary strong,
+html[data-theme="dark"] .my-inquiry-content,
+html[data-theme="dark"] .my-inquiry-answer-content{
+    color: #e5e7eb;
+}
+
+html[data-theme="dark"] .my-inquiry-body{
+    border-top-color: #334155;
+}
+
+html[data-theme="dark"] .my-inquiry-answer{
+    background: #1e293b;
 }
 
 html[data-theme="dark"] .btn,
@@ -1057,5 +1424,45 @@ html[data-theme="dark"] .login-form input[type="password"]:focus{
 
     .community-dropdown{
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* 공용 유틸 */
+.hidden{
+    display: none;
+}
+
+/* 키보드 사용자가 푸터 버튼의 위치를 확인할 수 있게 표시 */
+.footer-link-button:focus-visible,
+.footer-modal-close:focus-visible,
+.footer-logo:focus-visible,
+.my-inquiry-summary:focus-visible{
+    outline: 3px solid rgba(8, 116, 247, 0.24);
+    outline-offset: 3px;
+}
+
+/* 작은 화면에서는 푸터 로고와 링크를 세로로 배치 */
+@media (max-width: 680px){
+    .site-footer-main{
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .footer-links{
+        justify-content: flex-start;
+        gap: 10px 16px;
+        flex-wrap: wrap;
+    }
+
+    .footer-modal{
+        border-radius: 14px;
+    }
+
+    .footer-modal-content{
+        padding: 20px;
+    }
+
+    .inquiry-actions{
+        padding: 0 20px 20px;
     }
 }

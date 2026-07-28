@@ -3,6 +3,7 @@
 
 <%-- 공통 헤더를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
+<c:url var="defaultProfileUrl" value="/images/common_member.png" />
 
 <h2 class="page-title">회원가입</h2>
 
@@ -21,16 +22,20 @@
     <div class="form-row form-row-center">
         <div class="profile-preview-wrap">
             <div id="profile-preview-placeholder"
-                 class="profile-preview profile-preview-placeholder">사진없음</div>
+                 class="profile-preview profile-preview-placeholder"
+                 style="display:none;">사진없음</div>
             <img id="profile-preview" class="profile-preview"
-                 alt="프로필 미리보기" style="display:none;">
+                 src="${defaultProfileUrl}"
+                 alt="기본 프로필 이미지">
         </div>
 
         <label class="file-label">
             프로필 이미지 선택
             <input id="profile-image" name="profileImage"
-                   type="file" accept="image/*">
+                   type="file"
+                   accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
         </label>
+        <p class="form-tip">JPG, PNG, WEBP 파일만 선택할 수 있습니다. GIF 파일은 업로드할 수 없습니다.</p>
     </div>
 
     <%-- 아이디 입력과 중복확인 영역 --%>

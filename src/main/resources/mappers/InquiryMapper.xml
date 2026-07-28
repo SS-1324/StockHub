@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- InquiryMapper 인터페이스와 문의 SQL을 연결 -->
+<mapper namespace="com.kh.demo.inquiry.mapper.InquiryMapper">
+
+    <!-- 로그인 회원이 작성한 문의를 저장 -->
+    <insert id="insertInquiry"
+            parameterType="com.kh.demo.inquiry.dto.InquiryDto"
+            useGeneratedKeys="true"
+            keyProperty="inquiryId"
+            keyColumn="inquiry_id">
+        INSERT INTO inquiry (
+            member_id,
+            title,
+            content
+        ) VALUES (
+            #{memberId},
+            #{title},
+            #{content}
+        )
+    </insert>
+
+    <!-- 관리자와 회원 문의 목록에서 공통으로 조회하는 열 -->
+    <sql id="inquiryColumns">
+        i.inquiry_id,
+        i.member_id,
+        m.nickname,
+        i.title,
+        i.content,
+        i.status,
+        i.answer,
+        i.answered_by,
+        am.nickname AS answered_by_nickname,
+        i.create_at,
+        DATE_FORMAT(i.create_at, '%Y-%m-%d %H:%i') AS create_at_str,
+        i.answered_at,
+        DATE_FORMAT(i.answered_at, '%Y-%m-%d %H:%i') AS answered_at_str
+    </sql>
+
+    <!-- 관리자 페이지에서 모든 문의를 최신순으로 조회 -->
+    <select id="selectAllInquiries"
+            resultType="com.kh.demo.inquiry.dto.InquiryDto">
+        SELECT
+        <include refid="inquiryColumns"/>
+        FROM inquiry i
+        LEFT JOIN member m ON i.member_id = m.member_id
+        LEFT JOIN member am ON i.answered_by = am.member_id
+        ORDER BY i.create_at DESC, i.inquiry_id DESC
+    </select>
+
+    <!-- 로그인 회원 본인이 작성한 문의만 최신순으로 조회 -->
+    <select id="selectInquiriesByMemberId"
+            resultType="com.kh.demo.inquiry.dto.InquiryDto">
+        SELECT
+        <include refid="inquiryColumns"/>
+        FROM inquiry i
+        LEFT JOIN member m ON i.member_id = m.member_id
+        LEFT JOIN member am ON i.answered_by = am.member_id
+        WHERE i.member_id = #{memberId}
+        ORDER BY i.create_at DESC, i.inquiry_id DESC
+    </select>
+
+    <!-- 답변이 없는 접수 상태 문의만 처리 완료로 변경 -->
+    <update id="answerInquiry">
+        UPDATE inquiry
+        SET answer = #{answer},
+            answered_by = #{answeredBy},
+            answered_at = CURRENT_TIMESTAMP,
+            status = 'ANSWERED'
+        WHERE inquiry_id = #{inquiryId}
+          AND status = 'PENDING'
+          AND (answer IS NULL OR answer = '')
+    </update>
+
+    <!-- 관리자가 선택한 문의 한 건을 영구 삭제 -->
+    <delete id="deleteInquiry">
+        DELETE FROM inquiry
+        WHERE inquiry_id = #{inquiryId}
+    </delete>
+
+</mapper>

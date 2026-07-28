@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kh.demo.community.mapper.BoardBookmarkMapper">
+
+    <select id="existsBoardBookmark" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM board_bookmark WHERE board_id = #{boardId} AND member_id = #{memberId}
+    </select>
+
+    <!-- bookmark_at 컬럼이 DEFAULT CURRENT_TIMESTAMP라 값을 직접 넣지 않아도 됨 -->
+    <insert id="insertBoardBookmark">
+        INSERT INTO board_bookmark(board_id, member_id) VALUES(#{boardId}, #{memberId})
+    </insert>
+
+    <delete id="deleteBoardBookmark">
+        DELETE FROM board_bookmark WHERE board_id = #{boardId} AND member_id = #{memberId}
+    </delete>
+
+</mapper>

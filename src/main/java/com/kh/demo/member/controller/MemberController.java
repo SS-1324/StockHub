@@ -204,9 +204,10 @@ public class MemberController {
         }
 
         try {
-            // DB의 최신 프로필을 전달
+            // DB의 최신 프로필과 증권사 목록을 전달
             MemberDto member = memberService.getMemberProfile(loginMember.getMemberId());
             model.addAttribute("member", member);
+            model.addAttribute("brokerages", memberService.getBrokerages());
             return "member/mypage";
         } catch (IllegalStateException e) {
             // DB에서 회원을 찾지 못하면 세션을 종료
@@ -241,6 +242,29 @@ public class MemberController {
         } catch (RuntimeException e) {
             // 예상하지 못한 DB 오류를 전달
             ra.addFlashAttribute("error", "프로필 수정 중 오류가 발생했습니다.");
+        }
+
+        return "redirect:/member/mypage";
+    }
+
+    // 로그인 회원의 프로필 이미지를 삭제하고 기본 이미지로 변경
+    @PostMapping("/mypage/profile-image/delete")
+    public String deleteProfileImage(HttpSession session,
+                                     RedirectAttributes ra) {
+        MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if (loginMember == null) {
+            return "redirect:/member/login?redirectURL=/member/mypage";
+        }
+
+        try {
+            MemberDto updatedMember =
+                    memberService.deleteProfileImage(loginMember.getMemberId());
+            session.setAttribute(SessionConst.LOGIN_MEMBER, updatedMember);
+            ra.addFlashAttribute("profileImageDeleted", true);
+        } catch (IllegalStateException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        } catch (RuntimeException e) {
+            ra.addFlashAttribute("error", "프로필 이미지 삭제 중 오류가 발생했습니다.");
         }
 
         return "redirect:/member/mypage";

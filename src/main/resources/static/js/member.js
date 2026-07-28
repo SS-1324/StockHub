@@ -30,6 +30,12 @@ const passwordPattern =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])[\x21-\x7E]{10,100}$/;
 const emailLocalPattern = /^(?=.*[a-z])[a-z0-9]{1,50}$/;
 const emailDomainPattern = /^[A-Za-z]+(?:\.com|\.co\.kr|\.net)$/;
+const allowedProfileExtensionPattern = /\.(jpe?g|png|webp)$/i;
+const allowedProfileContentTypes = new Set([
+    "image/jpeg",
+    "image/png",
+    "image/webp"
+]);
 
 // 중복확인과 비밀번호 검사 상태
 let checkedId = null;
@@ -44,6 +50,14 @@ profileInput.addEventListener("change", function (e) {
     // 선택한 첫 번째 파일을 가져옴
     const file = e.target.files[0];
     if (!file) {
+        return;
+    }
+
+    // GIF와 허용되지 않은 이미지 형식은 선택 즉시 취소
+    if (!isAllowedProfileImage(file)) {
+        alert("JPG, PNG, WEBP 파일만 선택할 수 있습니다. GIF 파일은 업로드할 수 없습니다.");
+        profileInput.value = "";
+        resetProfilePreview();
         return;
     }
 
@@ -63,6 +77,22 @@ profileInput.addEventListener("change", function (e) {
     // 이미지를 브라우저용 주소로 읽음
     reader.readAsDataURL(file);
 });
+
+// 선택한 파일의 확장자와 브라우저가 전달한 형식을 함께 검사
+function isAllowedProfileImage(file) {
+    return allowedProfileExtensionPattern.test(file.name)
+        && allowedProfileContentTypes.has(file.type.toLowerCase());
+}
+
+// 잘못된 파일을 선택하면 회원가입 기본 프로필 이미지로 되돌림
+function resetProfilePreview() {
+    const preview = document.querySelector("#profile-preview");
+    const placeholder = document.querySelector("#profile-preview-placeholder");
+
+    preview.src = `${contextPath}/images/common_member.png`;
+    preview.style.display = "block";
+    placeholder.style.display = "none";
+}
 
 // 중복확인 버튼을 누르면 서버에 아이디를 확인
 idButton.addEventListener("click", async function () {
@@ -279,6 +309,15 @@ emailVerifyButton.addEventListener("click", async function () {
 
 // 가입 전 모든 입력 규칙과 중복확인 상태를 검사
 joinForm.addEventListener("submit", function (e) {
+    // 프로필 이미지가 선택된 경우 허용된 형식인지 다시 확인
+    const profileFile = profileInput.files[0];
+    if (profileFile && !isAllowedProfileImage(profileFile)) {
+        e.preventDefault();
+        alert("프로필 이미지 형식을 다시 확인해주세요.");
+        profileInput.focus();
+        return;
+    }
+
     // 아이디 형식이 올바르지 않으면 전송 중단
     if (!idPattern.test(idInput.value.trim())) {
         e.preventDefault();

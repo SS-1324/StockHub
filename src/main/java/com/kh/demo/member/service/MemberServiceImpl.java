@@ -2,6 +2,7 @@ package com.kh.demo.member.service;
 
 import com.kh.demo.common.util.FileUploadUtil;
 import com.kh.demo.common.util.SavedFile;
+import com.kh.demo.member.dto.BrokerageDto;
 import com.kh.demo.member.dto.MemberDto;
 import com.kh.demo.member.dto.ProfileUpdateDto;
 import com.kh.demo.member.mapper.MemberMapper;
@@ -12,6 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -45,13 +49,16 @@ public class MemberServiceImpl implements MemberService {
 
     // 업로드할 수 있는 이미지 확장자
     private static final Set<String> IMAGE_EXTENSIONS = Set.of(
-            ".jpg", ".jpeg", ".png", ".gif", ".webp"
+            ".jpg", ".jpeg", ".png", ".webp"
     );
 
-    // 프로필에서 선택할 수 있는 증권사 이름
-    private static final Set<String> BROKERAGES = Set.of(
-            "스톡증권", "허브증권", "KH투자증권"
+    // 업로드할 수 있는 이미지 MIME 형식
+    private static final Set<String> IMAGE_CONTENT_TYPES = Set.of(
+            "image/jpeg", "image/png", "image/webp"
     );
+
+    // 프로필 이미지가 없을 때 사용할 공통 이미지 경로
+    private static final String DEFAULT_PROFILE_PATH = "/images/common_member.png";
 
     private final PasswordEncoder passwordEncoder; // 비밀번호 암호화 도구
     private final FileUploadUtil fileUploadUtil; // 파일 저장 도구
@@ -137,30 +144,39 @@ public class MemberServiceImpl implements MemberService {
         memberDto.setMemberPwd(encodedPwd);
         memberDto.setMemberPwdConfirm(null);
 
-        // 선택한 프로필 이미지를 서버에 저장
-        SavedFile saved = fileUploadUtil.save(
-                profileImage,
-                profileUploadDir,
-                "/uploads/profile"
-        );
-
-        // 저장된 이미지 경로를 회원 정보에 입력
-        if (saved != null) {
+        // 이미지가 없으면 기본 프로필을 사용하고, 선택한 이미지가 있으면 검사 후 저장
+        SavedFile saved = null;
+        memberDto.setProfile(DEFAULT_PROFILE_PATH);
+        if (profileImage != null && !profileImage.isEmpty()) {
+            validateProfileImage(profileImage);
+            saved = fileUploadUtil.save(
+                    profileImage,
+                    profileUploadDir,
+                    "/uploads/profile"
+            );
             memberDto.setProfile(saved.getPath());
         }
 
-        // 회원 정보가 한 행 저장되지 않으면 실패 처리
-        if (memberMapper.insertMember(memberDto) != 1) {
-            throw new IllegalStateException("회원가입에 실패했습니다.");
-        }
+        try {
+            // 회원 정보가 한 행 저장되지 않으면 실패 처리
+            if (memberMapper.insertMember(memberDto) != 1) {
+                throw new IllegalStateException("회원가입에 실패했습니다.");
+            }
 
-        // 사용한 이메일 인증 기록을 가입한 회원과 연결
-        if (memberMapper.linkVerifiedEmailToMember(email, memberId) != 1) {
-            throw new IllegalStateException("이메일 인증 정보를 확인할 수 없습니다.");
-        }
+            // 사용한 이메일 인증 기록을 가입한 회원과 연결
+            if (memberMapper.linkVerifiedEmailToMember(email, memberId) != 1) {
+                throw new IllegalStateException("이메일 인증 정보를 확인할 수 없습니다.");
+            }
 
-        // 프로필 설정의 기본값을 함께 저장
-        memberMapper.insertDefaultSettings(memberDto.getMemberId());
+            // 프로필 설정의 기본값을 함께 저장
+            memberMapper.insertDefaultSettings(memberDto.getMemberId());
+        } catch (RuntimeException e) {
+            // DB 저장 실패 시 먼저 저장한 프로필 파일을 정리
+            if (saved != null) {
+                fileUploadUtil.delete(saved.getPath(), profileUploadDir);
+            }
+            throw e;
+        }
     }
 
     // 같은 아이디가 한 개 이상인지 확인
@@ -203,7 +219,7 @@ public class MemberServiceImpl implements MemberService {
         return member;
     }
 
-    // 마이페이지에 필요한 회원과 설정 정보를 조회
+    // 마이페이지에 필요한 회원·설정·계좌 정보를 조회
     @Override
     public MemberDto getMemberProfile(String memberId) {
         MemberDto member = memberMapper.selectByMemberId(memberId);
@@ -218,7 +234,13 @@ public class MemberServiceImpl implements MemberService {
         return member;
     }
 
-    // 입력값 검사 후 회원 정보와 설정을 수정
+    // 증권사 선택 목록을 반환
+    @Override
+    public List<BrokerageDto> getBrokerages() {
+        return memberMapper.selectBrokerages();
+    }
+
+    // 입력값 검사 후 회원·설정·계좌를 한 번에 수정
     @Override
     @Transactional
     public MemberDto updateProfile(ProfileUpdateDto updateDto,
@@ -265,27 +287,28 @@ public class MemberServiceImpl implements MemberService {
         member.setProfilePublic(Boolean.TRUE.equals(updateDto.getProfilePublic()));
         member.setWordTooltip(Boolean.TRUE.equals(updateDto.getWordTooltip()));
 
-        // 증권사 이름과 숫자 계좌번호를 검사
-        String brokerage = updateDto.getBrokerage() == null
-                ? ""
-                : updateDto.getBrokerage().trim();
+        // 증권사와 숫자 계좌번호를 검사
+        Long brokerageId = updateDto.getBrokerageId();
         String accountNo = updateDto.getAccountNo() == null
                 ? ""
                 : updateDto.getAccountNo().trim();
-
-        if (brokerage.isEmpty() != accountNo.isEmpty()) {
-            throw new IllegalStateException("증권사와 계좌번호를 함께 입력해주세요.");
-        }
-        if (!brokerage.isEmpty()) {
-            if (!BROKERAGES.contains(brokerage)) {
+        boolean accountUpdateRequested = brokerageId != null || !accountNo.isEmpty();
+        if (accountUpdateRequested) {
+            if (brokerageId == null || accountNo.isEmpty()) {
+                throw new IllegalStateException("증권사와 계좌번호를 함께 입력해주세요.");
+            }
+            if (memberMapper.countByBrokerageId(brokerageId) == 0) {
                 throw new IllegalStateException("올바른 증권사를 선택해주세요.");
             }
-            if (!accountNo.matches("^[0-9]{1,15}$")) {
-                throw new IllegalStateException("계좌번호는 숫자만 최대 15자리까지 입력해주세요.");
+            if (!accountNo.matches("^[0-9]{1,50}$")) {
+                throw new IllegalStateException("계좌번호는 - 없이 숫자만 입력해주세요.");
             }
+            if (memberMapper.countByAccountNoExceptAccount(accountNo, member.getAccountId()) > 0) {
+                throw new IllegalStateException("이미 등록된 계좌번호입니다.");
+            }
+            member.setBrokerageId(brokerageId);
+            member.setAccountNo(accountNo);
         }
-        member.setBrokerage(brokerage.isEmpty() ? null : brokerage);
-        member.setAccountNo(accountNo.isEmpty() ? null : accountNo);
 
         // 새 이미지가 있으면 이미지 파일인지 검사 후 저장
         String oldProfile = member.getProfile();
@@ -301,11 +324,24 @@ public class MemberServiceImpl implements MemberService {
         }
 
         try {
-            // 회원 기본 정보·증권사·계좌번호와 개인 설정을 수정
+            // 회원 기본 정보와 개인 설정을 수정
             if (memberMapper.updateMemberProfile(member) != 1) {
                 throw new IllegalStateException("프로필 수정에 실패했습니다.");
             }
             memberMapper.upsertSettings(member);
+
+            // 기존 계좌가 있으면 수정하고 없으면 새로 연결
+            if (accountUpdateRequested) {
+                if (member.getAccountId() == null) {
+                    if (memberMapper.insertAccount(member) != 1) {
+                        throw new IllegalStateException("계좌 등록에 실패했습니다.");
+                    }
+                } else {
+                    if (memberMapper.updateAccount(member) != 1) {
+                        throw new IllegalStateException("계좌 수정에 실패했습니다.");
+                    }
+                }
+            }
         } catch (RuntimeException e) {
             // DB 저장 실패 시 새로 저장한 이미지를 삭제
             if (saved != null) {
@@ -315,14 +351,40 @@ public class MemberServiceImpl implements MemberService {
         }
 
         // 수정 성공 후 교체 전 프로필 이미지를 삭제
-        if (saved != null && oldProfile != null && !oldProfile.equals(saved.getPath())) {
+        if (saved != null
+                && isUploadedProfile(oldProfile)
+                && !oldProfile.equals(saved.getPath())) {
             fileUploadUtil.delete(oldProfile, profileUploadDir);
         }
 
         return getMemberProfile(updateDto.getMemberId());
     }
 
-    // 비밀번호 확인 후 회원을 삭제
+    // 저장된 프로필 파일을 삭제하고 공통 기본 이미지로 변경
+    @Override
+    @Transactional
+    public MemberDto deleteProfileImage(String memberId) {
+        MemberDto member = memberMapper.selectByMemberId(memberId);
+        if (member == null) {
+            throw new IllegalStateException("회원 정보를 찾을 수 없습니다.");
+        }
+
+        String oldProfile = member.getProfile();
+
+        // DB에는 기본 이미지의 정적 경로를 저장
+        if (memberMapper.updateProfileImage(memberId, DEFAULT_PROFILE_PATH) != 1) {
+            throw new IllegalStateException("프로필 이미지 삭제에 실패했습니다.");
+        }
+
+        // 사용자가 업로드했던 파일만 서버 업로드 폴더에서 삭제
+        if (isUploadedProfile(oldProfile)) {
+            fileUploadUtil.delete(oldProfile, profileUploadDir);
+        }
+
+        return getMemberProfile(memberId);
+    }
+
+    // 비밀번호 확인 후 연결 데이터와 회원을 삭제
     @Override
     @Transactional
     public void withdraw(String memberId, String memberPwd) {
@@ -339,30 +401,59 @@ public class MemberServiceImpl implements MemberService {
             throw new IllegalStateException("현재 비밀번호가 일치하지 않습니다.");
         }
 
-        // 회원 기본 정보를 삭제
+        // 거래 테이블이 있는 프로젝트에서는 거래 내역을 먼저 삭제
+        if (memberMapper.countTradeTable() > 0) {
+            memberMapper.deleteTradesByMemberId(memberId);
+        }
+
+        // 계좌를 정리한 뒤 회원 정보를 삭제
+        memberMapper.deleteAccountsByMemberId(memberId);
         if (memberMapper.deleteMemberById(memberId) != 1) {
             throw new IllegalStateException("회원 탈퇴에 실패했습니다.");
         }
 
         // DB 삭제 성공 후 서버의 프로필 이미지도 삭제
-        if (member.getProfile() != null && !member.getProfile().isBlank()) {
+        if (isUploadedProfile(member.getProfile())) {
             fileUploadUtil.delete(member.getProfile(), profileUploadDir);
         }
     }
 
-    // 파일 형식과 확장자가 이미지인지 검사
-    private void validateProfileImage(MultipartFile profileImage) {
+    // 파일 형식과 확장자를 검사하고 GIF 파일을 차단
+    private void validateProfileImage(MultipartFile profileImage) throws IOException {
         String contentType = profileImage.getContentType();
         String originalName = profileImage.getOriginalFilename();
 
-        if (contentType == null || !contentType.startsWith("image/") || originalName == null) {
+        if (contentType == null || originalName == null) {
             throw new IllegalStateException("이미지 파일만 업로드할 수 있습니다.");
         }
 
         String lowerName = originalName.toLowerCase(Locale.ROOT);
-        boolean allowed = IMAGE_EXTENSIONS.stream().anyMatch(lowerName::endsWith);
-        if (!allowed) {
-            throw new IllegalStateException("JPG, PNG, GIF, WEBP 이미지만 업로드할 수 있습니다.");
+        String lowerContentType = contentType.toLowerCase(Locale.ROOT);
+
+        // 확장자나 MIME 형식을 바꾼 GIF도 파일 머리글을 확인해 차단
+        if (lowerName.endsWith(".gif")
+                || "image/gif".equals(lowerContentType)
+                || isGifContent(profileImage)) {
+            throw new IllegalStateException("GIF 파일은 프로필 이미지로 업로드할 수 없습니다.");
         }
+
+        boolean allowed = IMAGE_EXTENSIONS.stream().anyMatch(lowerName::endsWith);
+        if (!allowed || !IMAGE_CONTENT_TYPES.contains(lowerContentType)) {
+            throw new IllegalStateException("JPG, PNG, WEBP 파일만 업로드할 수 있습니다.");
+        }
+    }
+
+    // 실제 파일 내용이 GIF87a 또는 GIF89a로 시작하는지 확인
+    private boolean isGifContent(MultipartFile profileImage) throws IOException {
+        try (InputStream inputStream = profileImage.getInputStream()) {
+            byte[] signature = inputStream.readNBytes(6);
+            String header = new String(signature, StandardCharsets.US_ASCII);
+            return "GIF87a".equals(header) || "GIF89a".equals(header);
+        }
+    }
+
+    // 서버의 프로필 업로드 폴더에 저장된 사용자 파일인지 확인
+    private boolean isUploadedProfile(String profilePath) {
+        return profilePath != null && profilePath.startsWith("/uploads/profile/");
     }
 }

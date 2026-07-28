@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kh.demo.community.mapper.CommentLikeMapper">
+
+    <select id="existsCommentLike" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM comment_like WHERE comment_id = #{commentId} AND member_id = #{memberId}
+    </select>
+
+    <!-- like_at 컬럼이 DEFAULT CURRENT_TIMESTAMP라 값을 직접 넣지 않아도 됨 -->
+    <insert id="insertCommentLike">
+        INSERT INTO comment_like(comment_id, member_id) VALUES(#{commentId}, #{memberId})
+    </insert>
+
+    <delete id="deleteCommentLike">
+        DELETE FROM comment_like WHERE comment_id = #{commentId} AND member_id = #{memberId}
+    </delete>
+
+</mapper>

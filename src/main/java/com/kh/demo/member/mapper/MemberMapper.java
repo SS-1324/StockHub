@@ -1,8 +1,11 @@
 package com.kh.demo.member.mapper;
 
+import com.kh.demo.member.dto.BrokerageDto;
 import com.kh.demo.member.dto.MemberDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 // 회원 SQL을 MemberMapper.xml과 연결
 @Mapper
@@ -48,11 +51,40 @@ public interface MemberMapper {
     int countByNicknameExceptMember(@Param("nickname") String nickname,
                                     @Param("memberId") String memberId);
 
-    // 닉네임·비밀번호·프로필 이미지·증권사·계좌번호를 수정
+    // 닉네임·비밀번호·프로필 이미지를 수정
     int updateMemberProfile(MemberDto memberDto);
+
+    // 프로필 이미지 경로만 수정
+    int updateProfileImage(@Param("memberId") String memberId,
+                           @Param("profile") String profile);
 
     // 프로필 공개 여부와 툴팁 설정을 저장
     int upsertSettings(MemberDto memberDto);
+
+    // 선택할 수 있는 증권사 목록을 조회
+    List<BrokerageDto> selectBrokerages();
+
+    // 증권사 번호가 실제로 존재하는지 확인
+    int countByBrokerageId(@Param("brokerageId") Long brokerageId);
+
+    // 다른 계정이 사용하는 계좌번호인지 확인
+    int countByAccountNoExceptAccount(@Param("accountNo") String accountNo,
+                                      @Param("accountId") Long accountId);
+
+    // 회원에게 새 계좌를 연결
+    int insertAccount(MemberDto memberDto);
+
+    // 회원의 기존 계좌를 수정
+    int updateAccount(MemberDto memberDto);
+
+    // 현재 DB에 거래 테이블이 있는지 확인
+    int countTradeTable();
+
+    // 회원 계좌에 연결된 거래 내역을 삭제
+    int deleteTradesByMemberId(@Param("memberId") String memberId);
+
+    // 회원에게 연결된 계좌를 삭제
+    int deleteAccountsByMemberId(@Param("memberId") String memberId);
 
     // 회원 정보를 삭제
     int deleteMemberById(@Param("memberId") String memberId);

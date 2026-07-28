@@ -1,10 +1,12 @@
 package com.kh.demo.member.service;
 
+import com.kh.demo.member.dto.BrokerageDto;
 import com.kh.demo.member.dto.MemberDto;
 import com.kh.demo.member.dto.ProfileUpdateDto;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 // 회원 기능에서 사용할 메서드를 정의
 public interface MemberService {
@@ -27,9 +29,15 @@ public interface MemberService {
     // 마이페이지에 표시할 회원 정보를 조회
     MemberDto getMemberProfile(String memberId);
 
+    // 선택할 수 있는 증권사 목록을 조회
+    List<BrokerageDto> getBrokerages();
+
     // 입력한 내용으로 프로필을 수정
     MemberDto updateProfile(ProfileUpdateDto profileUpdateDto,
                             MultipartFile profileImage) throws IOException;
+
+    // 현재 프로필 이미지를 삭제하고 기본 이미지로 변경
+    MemberDto deleteProfileImage(String memberId);
 
     // 비밀번호 확인 후 회원 정보를 삭제
     void withdraw(String memberId, String memberPwd);
