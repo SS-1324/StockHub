@@ -56,7 +56,7 @@
                    href="${communityUrl}">커뮤니티</a>
 
                 <div class="community-dropdown">
-                    <a href="${communityUrl}?category=all">전체</a>
+                    <a href="${communityUrl}">전체</a>
                     <a href="${communityUrl}?category=free">자유</a>
                     <a href="${communityUrl}?category=trade">살까?팔까?</a>
                     <a href="${communityUrl}?category=tip">팁 공유</a>
