@@ -21,12 +21,6 @@ body {
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.hero {
-    flex: 1; /* 남은 빈 공간을 채워 footer를 바닥으로 밀어냄 */
-    padding: 48px 0;
-    text-align: center;
-}
-
 .container {
     flex: 1;
     max-width: 960px;
