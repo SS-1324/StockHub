@@ -14,33 +14,6 @@
         <p>검증된 거래 히스토리 기반 수익률 랭킹입니다.</p>
     </header>
 
-    <%-- 서버 조회 기간과 연결된 필터. 기본 선택은 월간 --%>
-    <nav class="ranking-periods" aria-label="랭킹 조회 기간">
-        <a class="${selectedPeriod eq 'daily' ? 'is-active' : ''}"
-           href="${pageContext.request.contextPath}/ranking?period=daily"
-           aria-current="${selectedPeriod eq 'daily' ? 'page' : 'false'}">
-            일간
-        </a>
-
-        <a class="${selectedPeriod eq 'weekly' ? 'is-active' : ''}"
-           href="${pageContext.request.contextPath}/ranking?period=weekly"
-           aria-current="${selectedPeriod eq 'weekly' ? 'page' : 'false'}">
-            주간
-        </a>
-
-        <a class="${selectedPeriod eq 'monthly' ? 'is-active' : ''}"
-           href="${pageContext.request.contextPath}/ranking?period=monthly"
-           aria-current="${selectedPeriod eq 'monthly' ? 'page' : 'false'}">
-            월간
-        </a>
-
-        <a class="${selectedPeriod eq 'yearly' ? 'is-active' : ''}"
-           href="${pageContext.request.contextPath}/ranking?period=yearly"
-           aria-current="${selectedPeriod eq 'yearly' ? 'page' : 'false'}">
-            연간
-        </a>
-    </nav>
-
     <div class="ranking-card">
         <c:choose>
 
@@ -58,7 +31,13 @@
                 <ol class="ranking-list">
 
                     <c:forEach var="ranking" items="${rankingList}">
-                        <li class="ranking-row">
+                        <li class="ranking-row"
+                            data-nickname="${ranking.nickname}"
+                            data-member-id="${ranking.memberId}"
+                            data-trade-count="${ranking.tradeCount}"
+                            data-return-rate="${ranking.returnRate}"
+                            data-profile="${not empty ranking.profile ? ranking.profile : '/images/default-profile.svg'}"
+                            onclick="openProfileModal(this)">
 
                             <%-- 순위 및 메달 --%>
                             <div class="ranking-position"
@@ -138,5 +117,69 @@
         </c:choose>
     </div>
 </section>
+
+<%-- 프로필 팝오버: 클릭한 랭킹 행 바로 아래에 붙어서 뜨는 작은 카드.
+     모달과 다르게 배경을 어둡게 하지 않고, 화면 전체를 덮지도 않음 --%>
+<div id="profile-popover" class="profile-popover" hidden>
+    <button class="profile-popover-close" onclick="closeProfileModal()" aria-label="닫기">×</button>
+    <img id="modal-avatar" class="profile-popover-avatar" src="" alt="프로필">
+    <h2 id="modal-nickname"></h2>
+    <p id="modal-memberid" class="profile-popover-id"></p>
+    <div class="profile-popover-stats">
+        <div>
+            <span class="stat-label">수익률</span>
+            <span id="modal-return-rate" class="stat-value"></span>
+        </div>
+        <div>
+            <span class="stat-label">거래횟수</span>
+            <span id="modal-trade-count" class="stat-value"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+// 랭킹 행을 클릭했을 때 실행됨. el = 클릭된 <li class="ranking-row"> 요소
+function openProfileModal(el) {
+    // 클릭된 행의 data-* 속성에서 정보를 읽어와 팝오버 내용 채우기
+    document.getElementById('modal-nickname').textContent = el.dataset.nickname;
+    document.getElementById('modal-memberid').textContent = '@' + el.dataset.memberId;
+    document.getElementById('modal-avatar').src =
+        '${pageContext.request.contextPath}' + el.dataset.profile;
+
+    const rate = parseFloat(el.dataset.returnRate);
+    document.getElementById('modal-return-rate').textContent =
+        (rate >= 0 ? '+' : '') + rate.toFixed(1) + '%';
+
+    document.getElementById('modal-trade-count').textContent =
+        el.dataset.tradeCount + '회';
+
+    const popover = document.getElementById('profile-popover');
+
+    // 클릭한 랭킹 행의 화면상 위치를 계산해서, 그 바로 아래에 팝오버를 붙임
+    const rect = el.getBoundingClientRect();
+    popover.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+    popover.style.left = (rect.left + window.scrollX) + 'px';
+
+    popover.hidden = false;
+}
+
+// X 버튼을 누르면 팝오버 숨김
+function closeProfileModal() {
+    document.getElementById('profile-popover').hidden = true;
+}
+
+// 팝오버가 열려있는 상태에서, 팝오버 자신과 랭킹 행이 아닌 다른 곳을 클릭하면 자동으로 닫힘
+document.addEventListener('click', function (e) {
+    const popover = document.getElementById('profile-popover');
+    if (popover.hidden) return;
+
+    const clickedRow = e.target.closest('.ranking-row');
+    const clickedInsidePopover = e.target.closest('.profile-popover');
+
+    if (!clickedInsidePopover && !clickedRow) {
+        closeProfileModal();
+    }
+});
+</script>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

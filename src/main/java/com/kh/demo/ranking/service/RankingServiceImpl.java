@@ -16,7 +16,7 @@ public class RankingServiceImpl implements RankingService {
     }
 
     @Override
-    public List<RankingDto> getRankingBoard(String period) {
-        return rankingMapper.selectRankingBoard(period);
+    public List<RankingDto> getRankingBoard() {
+        return rankingMapper.selectRankingBoard();
     }
 }
