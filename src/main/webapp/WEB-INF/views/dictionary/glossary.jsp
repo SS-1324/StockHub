@@ -3,6 +3,9 @@
 <%-- 공용 header 불러오기 --%>
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/dictionary.css">
+
 <section class="glossary">
 
     <!-- 제목 -->
