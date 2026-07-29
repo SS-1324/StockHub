@@ -1,3 +1,4 @@
+
 package com.kh.demo.community.controller;
 
 import com.kh.demo.common.SessionConst;
@@ -57,7 +58,6 @@ public class BoardController {
         model.addAttribute("page", page);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("allowedCategories", boardService.getAllowedCategories());
-        model.addAttribute("loginMemberId", currentMemberId(session));
         return "community/boardList";
     }
 
