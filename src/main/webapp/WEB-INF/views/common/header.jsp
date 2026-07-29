@@ -71,7 +71,10 @@
                     <a href="${communityUrl}?category=review">반성</a>
                 </div>
             </div>
+<<<<<<< HEAD
 
+=======
+>>>>>>> ca87cbd75861b5e56f8aa1cfbfd77ab958854df4
 
             <a class="main-nav-link ${requestUri eq tradeHubUrl ? 'is-active' : ''}"
                href="${tradeHubUrl}">거래 허브</a>
