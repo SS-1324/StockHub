@@ -6,6 +6,14 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css">
 
 <h2 class="page-title">커뮤니티 게시판</h2>
+<c:choose>
+    <c:when test="${empty loginMemberId}">
+        <a class="btn-pill" href="/community/board/write">로그인하고 글쓰기</a>
+    </c:when>
+    <c:otherwise>
+        <a class="btn-pill" href="/community/board/write">글쓰기</a>
+    </c:otherwise>
+</c:choose>
 
 <div class="category-filter">
     <a class="category-tab ${empty category ? 'category-tab-active' : ''}" href="/community/board">전체</a>

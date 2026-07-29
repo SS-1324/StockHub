@@ -8,6 +8,7 @@ import com.kh.demo.community.service.BoardImageService;
 import com.kh.demo.community.service.BoardService;
 import com.kh.demo.member.dto.MemberDto;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSessionEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -47,7 +48,8 @@ public class BoardController {
     @GetMapping
     public String list(@RequestParam(required = false) String category,
                        @RequestParam(defaultValue = "1") int page,
-                       Model model) {
+                       Model model,
+                       HttpSession session) {
         List<BoardDto> boardList = boardService.getList(category, page, PAGE_SIZE);
         int totalCount = boardService.getListCount(category);
         int totalPages = Math.max((int) Math.ceil(totalCount / (double) PAGE_SIZE), 1);
@@ -57,6 +59,7 @@ public class BoardController {
         model.addAttribute("page", page);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("allowedCategories", boardService.getAllowedCategories());
+        model.addAttribute("loginMemberId", currentMemberId(session));
         return "community/boardList";
     }
 
@@ -176,7 +179,7 @@ public class BoardController {
         return "redirect:/community/board";
     }
 
-    // 비로그인 상태로도 볼 수 있는 경로(목록/상세)에서 안전하게 로그인 회원 id를 꺼내기 위한 헬퍼
+    // 비로그인 상태로도 볼 수 있는 경로(목록/상세)에서 로그인 회원 id를 꺼내기 위한 헬퍼
     private String currentMemberId(HttpSession session) {
         if (session == null) {
             return null;
