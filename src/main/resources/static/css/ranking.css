@@ -387,3 +387,110 @@ html[data-theme="dark"] .ranking-empty strong{
         margin-top: 0;
     }
 }
+.ranking-row {
+    cursor: pointer;
+}
+
+.profile-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.profile-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.profile-modal-content {
+    position: relative;
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px;
+    width: 320px;
+    text-align: center;
+}
+
+.profile-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    border: none;
+    background: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+
+.profile-popover {
+    position: absolute;
+    z-index: 1000;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 20px;
+    width: 240px;
+    text-align: center;
+}
+
+.profile-popover[hidden] {
+    display: none;
+}
+
+.profile-popover-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    border: none;
+    background: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: #999;
+}
+
+.profile-popover-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 8px;
+}
+
+.profile-popover-id {
+    color: #888;
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+.profile-popover-stats {
+    display: flex;
+    justify-content: space-around;
+}
+
+.stat-label {
+    display: block;
+    font-size: 12px;
+    color: #888;
+}
+
+.stat-value {
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.stat-label {
+    display: block;
+    font-size: 12px;
+    color: #888;
+}
+
+.stat-value {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+}
