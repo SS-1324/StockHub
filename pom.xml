@@ -21,7 +21,7 @@
 		<developer/>
 	</developers>
 	<scm>
-		<connection/>
+		<connectiongit add pom.xml/>
 		<developerConnection/>
 		<tag/>
 		<url/>
