@@ -1,8 +1,9 @@
 package com.kh.demo.ranking.service;
 
-import com.kh.demo.ranking.mapper.RankingMapper;
 import com.kh.demo.ranking.dto.RankingDto;
+import com.kh.demo.ranking.mapper.RankingMapper;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service

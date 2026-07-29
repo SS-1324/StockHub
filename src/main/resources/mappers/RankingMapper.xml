@@ -1,12 +1,60 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
 <mapper namespace="com.kh.demo.ranking.mapper.RankingMapper">
 
+    <!-- 전체 누적 기준 랭킹 상위 5명 조회 -->
     <select id="selectRankingBoard" resultType="com.kh.demo.ranking.dto.RankingDto">
-        SELECT member_id, nickname
-        FROM member
-        ORDER BY member_id
-        LIMIT 10
+
+        SELECT rb.rank_position,
+        rb.member_id,
+        m.nickname,
+        m.profile,
+        rb.return_rate,
+        COALESCE(tc.trade_count, 0) AS trade_count,
+        COALESCE(pp.profit, 0) AS profit
+
+        FROM ranking_board rb
+
+        JOIN member m
+        ON m.member_id = rb.member_id
+
+        LEFT JOIN (
+        SELECT a.member_id,
+        COUNT(t.trade_id) AS trade_count
+        FROM account a
+        JOIN trade t ON t.account_id = a.account_id
+        GROUP BY a.member_id
+        ) tc
+        ON tc.member_id = rb.member_id
+
+        LEFT JOIN (
+        SELECT a.member_id,
+        SUM(
+        (CAST(s.current_price AS SIGNED) - CAST(h.avg_price AS SIGNED))
+        * CAST(h.quantity AS SIGNED)
+        ) AS profit
+        FROM account a
+        JOIN holding h ON h.account_id = a.account_id
+        JOIN stock s ON s.stock_code = h.stock_code
+        GROUP BY a.member_id
+        ) pp
+        ON pp.member_id = rb.member_id
+
+        WHERE rb.stock_code IS NULL
+
+        AND rb.rank_date = (
+        SELECT MAX(rank_date)
+        FROM ranking_board
+        WHERE stock_code IS NULL
+        )
+
+        ORDER BY rb.rank_position ASC
+
+        LIMIT 5
+
     </select>
 
 </mapper>

@@ -16,6 +16,13 @@
 <c:url var="commonCssUrl" value="/css/common.css" />
 <c:url var="headerJsUrl" value="/js/header.js" />
 <c:set var="requestUri" value="${pageContext.request.requestURI}" />
+<%--용어사전용 주소--%>
+<c:url var="dictionaryTradingUrl" value="/dictionary/category/trading" />
+<c:url var="dictionaryRiskUrl" value="/dictionary/category/risk-management" />
+<c:url var="dictionaryPositionUrl" value="/dictionary/category/position" />
+<c:url var="dictionaryMarketUrl" value="/dictionary/category/market" />
+<c:url var="dictionaryFundamentalUrl" value="/dictionary/category/fundamental" />
+<c:url var="dictionaryChartUrl" value="/dictionary/category/chart" />
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -63,8 +70,18 @@
                href="${tradeHubUrl}">거래 허브</a>
             <a class="main-nav-link ${requestUri eq rankingUrl ? 'is-active' : ''}"
                href="${rankingUrl}">랭킹</a>
-            <a class="main-nav-link ${requestUri eq dictionaryUrl ? 'is-active' : ''}"
-               href="${dictionaryUrl}">용어사전</a>
+            <div class = "main-nav-dictionary">
+                <a class="main-nav-link ${requestUri eq dictionaryUrl ? 'is-active' : ''}"
+                href="${dictionaryUrl}">용어사전</a>
+                <div class = "dictionary-dropdown">
+                    <a href="${dictionaryTradingUrl}">매매와 투자 행동</a>
+                    <a href="${dictionaryRiskUrl}">투자자·자금·손익 관리</a>
+                    <a href="${dictionaryPositionUrl}">상품과 포지션</a>
+                    <a href="${dictionaryMarketUrl}">시장·지수·주문·거래 제도</a>
+                    <a href="${dictionaryFundamentalUrl}">종목 정보와 기업 분석</a>
+                    <a href="${dictionaryChartUrl}">차트와 기술적 분석</a>
+                </div>
+            </div>
         </nav>
 
         <div class="header-actions">

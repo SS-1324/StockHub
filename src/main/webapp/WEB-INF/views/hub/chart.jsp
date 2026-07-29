@@ -1,9 +1,12 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
+<%-- 공통 헤더를 현재 페이지에 포함 --%>
+<jsp:include page="/WEB-INF/views/common/header.jsp" />
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StockHub - 함께 나누는 주식 이야기</title>
@@ -21,34 +24,8 @@
     <link rel="stylesheet" href="<c:url value='/css/stockhub.css'/>">
 </head>
 <body>
-
-<!-- 1. 상단 메인 네비게이션 바 -->
-<header class="navbar">
-    <div class="nav-left">
-        <a href="/" class="logo">
-            <i class="fa-solid fa-chart-line logo-icon"></i>
-            <span>StockHub</span>
-        </a>
-        <nav class="nav-menu">
-            <a href="#" class="nav-item active">홈</a>
-            <a href="#" class="nav-item">커뮤니티</a>
-            <a href="#" class="nav-item">거래 허브</a>
-            <a href="#" class="nav-item">랭킹</a>
-            <a href="#" class="nav-item">용어사전</a>
-        </nav>
-    </div>
-
-    <div class="nav-right">
-        <button class="theme-toggle" aria-label="테마 변경">
-            <i class="fa-regular fa-sun"></i>
-        </button>
-        <button class="login-btn">
-            <i class="fa-solid fa-lock"></i>
-            <span>로그인이 필요합니다</span>
-        </button>
-    </div>
-</header>
-
+<H3>주식 거래 허브</H3>
+<a>증권사별 시세와 수수료를 비교하고 매매 페이지로 연결합니다.</a>
 <!-- 2. 주식 종목 실시간 티커 띠 (Stock Ticker Bar) -->
 <!-- 4. lightweight-charts 차트 영역 -->
 <div class="chart-wrapper">
@@ -95,3 +72,5 @@
 <script src="<c:url value='/js/stockhub.js'/>"></script>
 </body>
 </html>
+<%-- 공통 푸터를 현재 페이지에 포함 --%>
+<jsp:include page="/WEB-INF/views/common/footer.jsp" />
