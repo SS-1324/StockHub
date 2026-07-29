@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kh.demo.brokerage.mapper.StockMapper">
+
+    <select id="selectAllStocks" resultType="com.kh.demo.brokerage.dto.StockDto">
+        SELECT stock_code,
+               stock_name,
+               current_price,
+               description,
+               create_at
+        FROM stock
+        ORDER BY stock_code
+    </select>
+
+    <select id="selectStockByCode" parameterType="string" resultType="com.kh.demo.brokerage.dto.StockDto">
+        SELECT stock_code,
+               stock_name,
+               current_price,
+               description,
+               create_at
+        FROM stock
+        WHERE stock_code = #{stockCode}
+    </select>
+
+</mapper>
