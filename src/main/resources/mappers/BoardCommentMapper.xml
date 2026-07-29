@@ -18,7 +18,8 @@
         c.comment_id, c.board_id, c.member_id, c.parent_comment_id, c.content,
         COALESCE(lc.like_count, 0) AS like_count,
         c.create_at, DATE_FORMAT(c.create_at, '%Y-%m-%d %H:%i') AS create_at_str,
-        m.nickname, m.profile,
+        m.nickname,
+        COALESCE(NULLIF(m.profile, ''), '/images/common_member.png') AS profile,
         pm.nickname AS parent_nickname
     </sql>
 

@@ -1,0 +1,138 @@
+/* 메인 문구와 최신 게시글을 가운데에 배치 */
+.home-main{
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 54px 0 70px;
+}
+
+/* 메인 문구 두 줄의 간격과 크기 */
+.home-headline{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 42px;
+    font-size: clamp(32px, 5vw, 54px);
+    line-height: 1.25;
+    letter-spacing: -0.045em;
+    text-align: center;
+}
+
+/* 메인 문구의 검정색 첫 번째 줄 */
+.home-headline-main{
+    color: #111827;
+}
+
+/* 메인 문구의 파란색 두 번째 줄 */
+.home-headline-accent{
+    color: #0874f7;
+}
+
+/* 최신 게시글 세 개를 세로로 배치 */
+.home-latest-list{
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+/* 메인 화면에 표시하는 게시글 한 개 */
+.home-latest-card{
+    display: block;
+    padding: 18px 20px;
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+/* 최신 게시글 카드에 마우스를 올린 상태 */
+.home-latest-card:hover{
+    border-color: #93c5fd;
+    transform: translateY(-2px);
+    scale: 1;
+}
+
+/* 게시글 카테고리 이름 */
+.home-latest-category{
+    margin-bottom: 4px;
+    color: #0874f7;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* 게시글 제목을 한 줄까지만 표시 */
+.home-latest-title{
+    overflow: hidden;
+    margin-bottom: 6px;
+    color: #172033;
+    font-size: 18px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 게시글 내용을 두 줄까지만 표시 */
+.home-latest-content{
+    display: -webkit-box;
+    overflow: hidden;
+    color: #64748b;
+    font-size: 14px;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+/* 작성자와 작성일을 오른쪽에 표시 */
+.home-latest-meta{
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 12px;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+/* 게시글이 없을 때 표시하는 안내 문구 */
+.home-empty-message{
+    padding: 30px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    color: #64748b;
+    text-align: center;
+}
+
+/* 다크 모드의 홈 문구와 게시글 카드 */
+html[data-theme="dark"] .home-headline-main{
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] .home-latest-card{
+    border-color: #334155;
+    background: #111827;
+}
+
+html[data-theme="dark"] .home-latest-title{
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] .home-latest-content,
+html[data-theme="dark"] .home-empty-message{
+    color: #94a3b8;
+}
+
+/* 작은 화면에서는 메인 문구와 카드 간격을 줄임 */
+@media (max-width: 600px){
+    .home-main{
+        padding: 30px 0 50px;
+    }
+
+    .home-headline{
+        margin-bottom: 30px;
+    }
+
+    .home-latest-card{
+        padding: 16px;
+    }
+}

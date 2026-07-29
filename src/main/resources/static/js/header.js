@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const mainNavigation = document.getElementById("main-navigation");
     const profileToggle = document.querySelector(".header-profile-toggle");
     const profileDropdown = document.getElementById("header-profile-dropdown");
+    const mobileMenuQuery = window.matchMedia("(max-width: 840px)");
 
     const closeMobileMenu = () => {
         mainNavigation?.classList.remove("is-open");
@@ -76,6 +77,11 @@ document.addEventListener("DOMContentLoaded", () => {
         profileToggle.setAttribute("aria-expanded", String(willOpen));
     });
 
+    // 회원 메뉴의 링크나 모달 버튼을 누르면 드롭다운을 닫음
+    profileDropdown?.querySelectorAll("a, button").forEach((menuItem) => {
+        menuItem.addEventListener("click", closeProfileDropdown);
+    });
+
     document.addEventListener("click", (event) => {
         if (!profileToggle || !profileDropdown) {
             return;
@@ -98,8 +104,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    window.addEventListener("resize", () => {
-        if (window.innerWidth > 980) {
+    mobileMenuQuery.addEventListener("change", (event) => {
+        if (!event.matches) {
             closeMobileMenu();
         }
     });

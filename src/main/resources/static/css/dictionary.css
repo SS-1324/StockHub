@@ -1,0 +1,11 @@
+/*사전 전용 css*/
+
+.glossary-header h3 {
+    width: 100%;
+    text-align: center;
+}
+
+.glossary-info{
+    padding: 20px;
+}
+
