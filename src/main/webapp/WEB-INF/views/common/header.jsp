@@ -31,12 +31,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap"
           rel="stylesheet">
 
-    <link rel="stylesheet" href="${commonCssUrl}?v=7">
+    <link rel="stylesheet" href="${commonCssUrl}?v=8">
     <%-- 현재 화면에서 요청한 전용 CSS를 head 안에서 불러옴 --%>
     <c:if test="${not empty requestScope.pageCssUrl}">
         <link rel="stylesheet" href="${requestScope.pageCssUrl}">
     </c:if>
-    <script src="${headerJsUrl}?v=4" defer></script>
+    <script src="${headerJsUrl}?v=5" defer></script>
 </head>
 <body>
 <%-- 로고, 페이지 이동 메뉴, 회원 메뉴를 표시하는 공통 헤더 --%>

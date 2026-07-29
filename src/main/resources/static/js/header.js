@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const mainNavigation = document.getElementById("main-navigation");
     const profileToggle = document.querySelector(".header-profile-toggle");
     const profileDropdown = document.getElementById("header-profile-dropdown");
+    const mobileMenuQuery = window.matchMedia("(max-width: 840px)");
 
     const closeMobileMenu = () => {
         mainNavigation?.classList.remove("is-open");
@@ -103,8 +104,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    window.addEventListener("resize", () => {
-        if (window.innerWidth > 980) {
+    mobileMenuQuery.addEventListener("change", (event) => {
+        if (!event.matches) {
             closeMobileMenu();
         }
     });
