@@ -21,7 +21,7 @@
 		<developer/>
 	</developers>
 	<scm>
-		<connectiongit add pom.xml/>
+		<connection/>
 		<developerConnection/>
 		<tag/>
 		<url/>
@@ -47,6 +47,15 @@
 			<artifactId>mysql-connector-j</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+
+		<!-- 데브툴 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -89,17 +98,6 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- 서버 재시작 없이 정적 리소스/클래스 변경 반영 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
-
-		<dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
-
-
     </dependencies>
 
 	<build>
@@ -112,10 +110,6 @@
 						<exclude>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
-						</exclude>
-						<exclude>
-							<groupId>org.springframework.boot</groupId>
-							<artifactId>spring-boot-devtools</artifactId>
 						</exclude>
 					</excludes>
 				</configuration>
