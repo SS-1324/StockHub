@@ -1,5 +1,6 @@
 package com.kh.demo.common.config;
 
+import com.kh.demo.common.interceptor.AdminInterceptor;
 import com.kh.demo.common.interceptor.LoginInterceptor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -43,5 +44,9 @@ public class WebConfig implements WebMvcConfigurer {
                         "/community/board/bookmark/**",
                         "/community/board/*/comment/**"
                 );
+
+        // ADMIN 권한을 가진 로그인 회원만 관리자 페이지에 접근
+        registry.addInterceptor(new AdminInterceptor())
+                .addPathPatterns("/admin", "/admin/**");
     }
 }

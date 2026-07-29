@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <%-- 모든 페이지에서 공통으로 사용하는 주소 --%>
 <c:url var="homeUrl" value="/" />
@@ -10,9 +11,10 @@
 <c:url var="loginUrl" value="/member/login" />
 <c:url var="joinUrl" value="/member/join" />
 <c:url var="mypageUrl" value="/member/mypage" />
+<c:url var="adminUrl" value="/admin" />
 <c:url var="logoutUrl" value="/member/logout" />
 <c:url var="logoUrl" value="/images/StockHub_logo_blue.png" />
-<c:url var="defaultProfileUrl" value="/images/default-profile.svg" />
+<c:url var="defaultProfileUrl" value="/images/common_member.png" />
 <c:url var="commonCssUrl" value="/css/common.css" />
 <c:url var="headerJsUrl" value="/js/header.js" />
 <c:set var="requestUri" value="${pageContext.request.requestURI}" />
@@ -36,8 +38,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap"
           rel="stylesheet">
 
-    <link rel="stylesheet" href="${commonCssUrl}?v=6">
-    <script src="${headerJsUrl}?v=3" defer></script>
+    <link rel="stylesheet" href="${commonCssUrl}?v=8">
+    <%-- 현재 화면에서 요청한 전용 CSS를 head 안에서 불러옴 --%>
+    <c:if test="${not empty requestScope.pageCssUrl}">
+        <link rel="stylesheet" href="${requestScope.pageCssUrl}">
+    </c:if>
+    <script src="${headerJsUrl}?v=5" defer></script>
 </head>
 <body>
 <%-- 로고, 페이지 이동 메뉴, 회원 메뉴를 표시하는 공통 헤더 --%>
@@ -56,6 +62,15 @@
                 <a class="main-nav-link ${requestUri eq communityUrl ? 'is-active' : ''}"
                    href="${communityUrl}">커뮤니티</a>
 
+                <div class="community-dropdown">
+                    <a href="${communityUrl}">전체</a>
+                    <a href="${communityUrl}?category=free">자유</a>
+                    <a href="${communityUrl}?category=trade">살까?팔까?</a>
+                    <a href="${communityUrl}?category=tip">팁 공유</a>
+                    <a href="${communityUrl}?category=profit">수익인증</a>
+                    <a href="${communityUrl}?category=review">반성</a>
+                </div>
+            </div>
                 <div class="community-dropdown">
                     <a href="${communityUrl}?category=all">전체</a>
                     <a href="${communityUrl}?category=free">자유</a>
@@ -127,6 +142,14 @@
                              hidden>
                             <a href="${mypageUrl}">프로필 수정</a>
                             <a href="${tradeHubUrl}">내 주식</a>
+                            <%-- 로그인 회원의 문의 목록을 페이지 이동 없이 표시 --%>
+                            <button type="button"
+                                    data-modal-target="my-inquiries-modal"
+                                    data-load-my-inquiries="true">내 문의</button>
+                            <%-- ADMIN 권한 회원에게만 관리자 페이지 링크를 표시 --%>
+                            <c:if test="${fn:toUpperCase(sessionScope.loginMember.memberRole) eq 'ADMIN'}">
+                                <a href="${adminUrl}">관리자 페이지</a>
+                            </c:if>
                             <a class="header-logout-link" href="${logoutUrl}">로그아웃</a>
                         </div>
                     </div>
