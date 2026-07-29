@@ -1,6 +1,5 @@
-/* 커뮤니티 게시판 화면 스크립트 (member.js와 동일하게 순수 fetch/async 스타일, 공용 헬퍼 모듈 없이 이 파일 안에서만 완결) */
-
-const MAX_IMAGE_COUNT = 5;
+const MAX_IMAGE_COUNT = 5; // 최대 5개까지 업로드 가능
+let selectedFiles = []; // 지금까지 누적된 파일
 
 const imageInput = document.querySelector("#image-input");
 const imagePreviewList = document.querySelector("#image-preview-list");
@@ -90,21 +89,25 @@ async function toggleCommentLike(commentId, button){
     }
 }
 
-/* 댓글/답글 작성 - 성공하면 새로고침해서 서버가 만든 하이라이트/멘션 마크업을 그대로 받는다 */
-async function submitComment(boardId, content, parentCommentId){
-    const response = await fetch(`/community/board/${boardId}/comment`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-Requested-With": "XMLHttpRequest"
-        },
-        body: JSON.stringify({content: content, parentCommentId: parentCommentId})
-    });
-    const result = await response.json();
-    if (!response.ok || !result.success) {
-        throw new Error(result.message || "댓글 등록에 실패했습니다.");
+// 댓글/답글 작성 - 성공하면 새로고침해서 서버가 만든 하이라이트/멘션 마크업을 그대로 받는다
+async function submitComment(boardId, content, parentCommentId) {
+    try {
+        const response = await fetch(`/community/board/${boardId}/comment`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: JSON.stringify({content: content, parentCommentId: parentCommentId})
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || "댓글 등록에 실패했습니다.");
+        }
+        location.reload();
+    } catch (err) {
+        alert("에러가 발생했습니다.");
     }
-    location.reload();
 }
 
 /* 댓글 삭제 - 성공하면 새로고침 */
