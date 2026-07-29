@@ -71,15 +71,6 @@
                     <a href="${communityUrl}?category=review">반성</a>
                 </div>
             </div>
-                <div class="community-dropdown">
-                    <a href="${communityUrl}?category=all">전체</a>
-                    <a href="${communityUrl}?category=free">자유</a>
-                    <a href="${communityUrl}?category=trade">살까?팔까?</a>
-                    <a href="${communityUrl}?category=tip">팁 공유</a>
-                    <a href="${communityUrl}?category=profit">수익인증</a>
-                    <a href="${communityUrl}?category=review">반성</a>
-                </div>
-            </div>
 
             <a class="main-nav-link ${requestUri eq tradeHubUrl ? 'is-active' : ''}"
                href="${tradeHubUrl}">거래 허브</a>
