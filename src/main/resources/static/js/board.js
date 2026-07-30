@@ -1,5 +1,6 @@
 const MAX_IMAGE_COUNT = 5; // 최대 5개까지 업로드 가능
-let selectedFiles = []; // 지금까지 누적된 파일
+let selectedFiles = []; // 지금까지 누적된 파일 별도 저장 배열
+let nextImageId = 0;
 
 const imageInput = document.querySelector("#image-input");
 const imagePreviewList = document.querySelector("#image-preview-list");
@@ -8,33 +9,21 @@ const bookmarkBtn = document.querySelector("#bookmark-btn");
 const commentForm = document.querySelector("#comment-form");
 const commentList = document.querySelector("#comment-list");
 
-/* 이미지 첨부 미리보기 (글쓰기 화면) */
-function previewSelectedImages(){
-    imagePreviewList.innerHTML = "";
-
-    const files = Array.from(imageInput.files).slice(0, MAX_IMAGE_COUNT);
-    files.forEach(function(file){
-        const reader = new FileReader();
-        reader.onload = function(ev){
-            const item = document.createElement("div");
-            item.className = "image-preview-item";
-
-            const img = document.createElement("img");
-            img.src = ev.target.result;
-            img.alt = file.name;
-
-            item.appendChild(img);
-            imagePreviewList.appendChild(item);
-        };
-        reader.readAsDataURL(file);
+/* selectedFiles 배열 내용을 실제 input.files와 동기화해서 파일 선택이 누적되게 만들기 위한 함수
+ * 원래 input.files는 배열 할당을 못 해서 이를 우회하기 위함
+ */
+function syncInputFiles() {
+    const dataTransfer = new DataTransfer();
+    selectedImages.forEach(function(entry){
+       dataTransfer.items.add(entry.file)
     });
+
 }
 
-if (imageInput) {
-    imageInput.addEventListener("change", previewSelectedImages);
-}
 
-/* 서버에 상태를 바꾸는 요청을 보내는 공용 헬퍼 (좋아요/북마크/댓글좋아요 토글에서만 사용) */
+
+
+/* 서버에 상태를 바꾸는 요청을 보내는 공용 헬퍼 (좋아요/북마크/댓글좋아요 토글에서 사용) */
 async function postAction(url){
     const response = await fetch(url, {
         method: "POST",
