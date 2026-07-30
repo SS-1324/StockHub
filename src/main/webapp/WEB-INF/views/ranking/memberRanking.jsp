@@ -62,22 +62,24 @@
                                 </c:choose>
                             </div>
 
-                            <%-- 프로필 이미지 --%>
-                            <c:choose>
-                                <c:when test="${not empty ranking.profile}">
-                                    <img class="ranking-avatar"
-                                         src="${pageContext.request.contextPath}${ranking.profile}"
-                                         onerror="this.onerror=null;
-                                                  this.src='${pageContext.request.contextPath}/images/default-profile.svg';"
-                                         alt="랭커 프로필">
-                                </c:when>
+                          <%-- 프로필 이미지 --%>
+                          <c:set var="medalClass" value="${ranking.rankPosition le 3 ? ' ranking-avatar-'.concat(ranking.rankPosition) : ''}"/>
+                          <c:choose>
+                              <c:when test="${not empty ranking.profile}">
+                                  <img class="ranking-avatar${medalClass}"
+                                       src="${pageContext.request.contextPath}${ranking.profile}"
+                                       onerror="this.onerror=null;
+                                                this.src='${pageContext.request.contextPath}/images/default-profile.svg';"
+                                       alt="랭커 프로필">
+                              </c:when>
 
-                                <c:otherwise>
-                                    <img class="ranking-avatar"
-                                         src="${pageContext.request.contextPath}/images/default-profile.svg"
-                                         alt="기본 프로필">
-                                </c:otherwise>
-                            </c:choose>
+                              <c:otherwise>
+                                  <img class="ranking-avatar${medalClass}"
+                                       src="${pageContext.request.contextPath}/images/default-profile.svg"
+                                       alt="기본 프로필">
+                              </c:otherwise>
+                          </c:choose>
+
 
                             <%-- 회원 닉네임, 아이디, 거래 횟수 --%>
                             <div class="ranking-member">

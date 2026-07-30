@@ -108,7 +108,7 @@
     font-weight: 700;
 }
 
-/* 이모지 대신 CSS로 메달을 그림 */
+/* 메달 리본 - 그라데이션 + 은은한 광택 */
 .ranking-medal{
     position: relative;
     display: block;
@@ -123,7 +123,7 @@
     width: 7px;
     height: 15px;
     border-radius: 2px 2px 0 0;
-    background: #4e8ef7;
+    background: linear-gradient(180deg, #7ba9ff 0%, #3f6fd6 100%);
     content: "";
 }
 
@@ -149,26 +149,29 @@
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    color: #6b4815;
     font-size: 10px;
     font-weight: 800;
     line-height: 1;
+    box-shadow: inset 0 1px 2px rgba(255,255,255,0.6),
+    0 1px 3px rgba(0,0,0,0.25);
 }
 
 .ranking-medal-1 b{
-    background: #f5ae3d;
+    background: linear-gradient(145deg, #ffe28a, #f5ae3d 60%, #c9860f);
+    color: #6b4815;
 }
 
 .ranking-medal-2 b{
-    background: #d9c8ed;
+    background: linear-gradient(145deg, #f1e9fb, #d9c8ed 60%, #a992c9);
     color: #715f85;
 }
 
 .ranking-medal-3 b{
-    background: #d98c58;
+    background: linear-gradient(145deg, #eab48a, #d98c58 60%, #a85f2f);
     color: #70401f;
 }
 
+/* 프로필 아바타 - 기본 */
 .ranking-avatar{
     display: block;
     width: 46px;
@@ -177,6 +180,38 @@
     border-radius: 50%;
     background: #f1f5f9;
     object-fit: cover;
+}
+
+/* 1~3위 아바타 - 금/은/동 테두리가 은은하게 빛남 */
+.ranking-avatar-1,
+.ranking-avatar-2,
+.ranking-avatar-3{
+    border-width: 3px;
+    animation: avatar-glow 2.4s ease-in-out infinite;
+}
+
+.ranking-avatar-1{
+    border-color: #f5ae3d;
+    --glow-color: rgba(245, 174, 61, 0.65);
+}
+
+.ranking-avatar-2{
+    border-color: #b9a8d6;
+    --glow-color: rgba(185, 168, 214, 0.65);
+}
+
+.ranking-avatar-3{
+    border-color: #d98c58;
+    --glow-color: rgba(217, 140, 88, 0.65);
+}
+
+@keyframes avatar-glow{
+    0%, 100%{
+        box-shadow: 0 0 4px 0 var(--glow-color);
+    }
+    50%{
+        box-shadow: 0 0 12px 3px var(--glow-color);
+    }
 }
 
 .ranking-member{
