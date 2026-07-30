@@ -27,32 +27,6 @@
 <H3>주식 거래 허브</H3>
 <a>증권사별 시세와 수수료를 비교하고 매매 페이지로 연결합니다.</a>
 
-<!-- 1. 상단 메인 네비게이션 바 -->
-<header class="navbar">
-    <div class="nav-left">
-        <a href="/" class="logo">
-            <i class="fa-solid fa-chart-line logo-icon"></i>
-            <span>StockHub</span>
-        </a>
-        <nav class="nav-menu">
-            <a href="#" class="nav-item active">홈</a>
-            <a href="#" class="nav-item">커뮤니티</a>
-            <a href="#" class="nav-item">거래 허브</a>
-            <a href="#" class="nav-item">랭킹</a>
-            <a href="#" class="nav-item">용어사전</a>
-        </nav>
-    </div>
-
-    <div class="nav-right">
-        <button class="theme-toggle" aria-label="테마 변경">
-            <i class="fa-regular fa-sun"></i>
-        </button>
-        <button class="login-btn">
-            <i class="fa-solid fa-lock"></i>
-            <span>로그인이 필요합니다</span>
-        </button>
-    </div>
-</header>
 
 <!-- 2. 주식 종목 실시간 티커 띠 (Stock Ticker Bar) -->
 <!-- 4. lightweight-charts 차트 영역 -->
@@ -74,19 +48,6 @@
     </div>
 </section>
 
-<!-- 3. 메인 히어로 섹션 -->
-<main class="hero-container">
-    <!-- 상단 뱃지 -->
-    <div class="status-badge">
-        <span class="pulse-dot"></span>
-        실시간 시세 연동 중
-    </div>
-
-    <!-- 히어로 헤드라인 -->
-    <h1 class="hero-title">
-        주식, 혼자보면 숫지만<br>
-        <span class="highlight">같이보면 이야기니까.</span>
-    </h1>
 
     <!-- 서브 텍스트 -->
     <p class="hero-subtitle">
