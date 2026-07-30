@@ -12,11 +12,5 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css">
-
 </head>
 <body>
-
-</body>
-</html>
-
-

@@ -3,7 +3,15 @@
 <%-- 공용 header 불러오기 --%>
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/dictionary.css">
+
 <section class="glossary">
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>용어 사전</title>
 
     <!-- 제목 -->
     <header class="glossary-header">
@@ -50,8 +58,11 @@
        class="category">
         <span class="category-box">차트와 기술적 분석</span>
     </a>
-
-</section>
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css">
+</head>
 <%-- 공용 footer 불러오기 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />
+</body>

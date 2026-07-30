@@ -10,11 +10,19 @@ const passwordConfirmResult = document.querySelector("#password-confirm-result")
 const brokerageInput = document.querySelector("#brokerage-id");
 const accountInput = document.querySelector("#account-no");
 const accountResult = document.querySelector("#account-result");
+const deleteProfileForm = document.querySelector("#delete-profile-image-form");
+const currentProfileUrl = profileForm.dataset.currentProfileUrl;
 
 // 비밀번호 필수 조합을 검사하는 규칙
 const nicknamePattern = /^[가-힣A-Za-z0-9]{2,10}$/;
 const passwordPattern =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])[\x21-\x7E]{10,100}$/;
+const allowedProfileExtensionPattern = /\.(jpe?g|png|webp)$/i;
+const allowedProfileContentTypes = new Set([
+    "image/jpeg",
+    "image/png",
+    "image/webp"
+]);
 
 // 선택한 프로필 이미지를 화면에 미리 표시
 profileInput.addEventListener("change", function (e) {
@@ -24,10 +32,11 @@ profileInput.addEventListener("change", function (e) {
         return;
     }
 
-    // 이미지가 아니면 선택을 취소
-    if (!file.type.startsWith("image/")) {
-        alert("이미지 파일만 선택할 수 있습니다.");
+    // GIF와 허용되지 않은 이미지 형식은 선택 즉시 취소
+    if (!isAllowedProfileImage(file)) {
+        alert("JPG, PNG, WEBP 파일만 선택할 수 있습니다. GIF 파일은 업로드할 수 없습니다.");
         profileInput.value = "";
+        resetProfilePreview();
         return;
     }
 
@@ -46,6 +55,29 @@ profileInput.addEventListener("change", function (e) {
 
     // 이미지를 브라우저용 주소로 읽음
     reader.readAsDataURL(file);
+});
+
+// 선택한 파일의 확장자와 브라우저가 전달한 형식을 함께 검사
+function isAllowedProfileImage(file) {
+    return allowedProfileExtensionPattern.test(file.name)
+        && allowedProfileContentTypes.has(file.type.toLowerCase());
+}
+
+// 잘못된 파일을 선택하면 서버에 저장된 현재 이미지로 되돌림
+function resetProfilePreview() {
+    const preview = document.querySelector("#profile-preview");
+    const placeholder = document.querySelector("#profile-preview-placeholder");
+
+    preview.src = currentProfileUrl;
+    preview.style.display = "block";
+    placeholder.style.display = "none";
+}
+
+// 프로필 이미지 삭제 버튼을 누르면 한 번 더 확인
+deleteProfileForm.addEventListener("submit", function (e) {
+    if (!confirm("프로필 이미지를 삭제하고 기본 이미지로 변경할까요?")) {
+        e.preventDefault();
+    }
 });
 
 // 비밀번호 입력이 바뀔 때마다 규칙과 일치 여부를 확인
@@ -67,11 +99,12 @@ nicknameInput.addEventListener("input", function () {
 
 // 계좌 입력값에서 숫자가 아닌 문자를 바로 제거
 accountInput.addEventListener("input", function () {
-    const onlyNumber = accountInput.value.replace(/[^0-9]/g, "");
+    const originalValue = accountInput.value;
+    const onlyNumber = originalValue.replace(/[^0-9]/g, "").slice(0, 50);
 
-    // 문자가 제거되었으면 숫자 입력 안내를 표시
-    if (accountInput.value !== onlyNumber) {
-        accountResult.textContent = "계좌번호는 - 없이 숫자만 입력할 수 있습니다.";
+    // 숫자가 아닌 문자가 제거되었으면 입력 안내를 표시
+    if (originalValue !== onlyNumber) {
+        accountResult.textContent = "계좌번호는 - 없이 숫자만 입력해주세요.";
         accountResult.className = "form-tip form-tip-error";
     } else {
         accountResult.textContent = "";
@@ -82,6 +115,15 @@ accountInput.addEventListener("input", function () {
 
 // 전송 전에 비밀번호와 계좌 입력값을 다시 확인
 profileForm.addEventListener("submit", function (e) {
+    // 프로필 이미지가 선택된 경우 허용된 형식인지 다시 확인
+    const profileFile = profileInput.files[0];
+    if (profileFile && !isAllowedProfileImage(profileFile)) {
+        e.preventDefault();
+        alert("프로필 이미지 형식을 다시 확인해주세요.");
+        profileInput.focus();
+        return;
+    }
+
     // 닉네임 형식이 올바르지 않으면 전송 중단
     if (!nicknamePattern.test(nicknameInput.value.trim())) {
         e.preventDefault();
@@ -116,7 +158,7 @@ profileForm.addEventListener("submit", function (e) {
     }
 
     // 입력한 계좌번호에 숫자 이외 문자가 있으면 전송 중단
-    if (hasAccount && !/^[0-9]+$/.test(accountInput.value)) {
+    if (hasAccount && !/^[0-9]{1,50}$/.test(accountInput.value)) {
         e.preventDefault();
         alert("계좌번호는 - 없이 숫자만 입력해주세요.");
         accountInput.focus();
