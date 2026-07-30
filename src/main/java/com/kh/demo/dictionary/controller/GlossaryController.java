@@ -33,10 +33,10 @@ public class GlossaryController {
 
         String categoryName = switch(category){
             case "trading" -> "매매와 투자 행동";
-            case "investor" -> "투자자·자금·손익 관리";
-            case "product" -> "상품과 포지션";
+            case "risk-management" -> "투자자·자금·손익 관리";
+            case "position" -> "상품과 포지션";
             case "market" -> "시장·지수·주문·거래 제도";
-            case "company" -> "종목 정보와 기업 분석";
+            case "fundamental" -> "종목 정보와 기업 분석";
             case "chart" -> "차트와 기술적 분석";
             default -> "주식 용어 사전";
         };
