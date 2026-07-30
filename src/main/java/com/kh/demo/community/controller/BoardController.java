@@ -30,7 +30,7 @@ import java.util.NoSuchElementException;
  */
 
 @Controller
-@RequestMapping("/community/board")
+@RequestMapping("/community")
 public class BoardController {
 
     private static final int PAGE_SIZE = 10;
@@ -83,17 +83,17 @@ public class BoardController {
             boardId = boardService.write(boardDto, images);
         } catch (IllegalArgumentException | IllegalStateException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/community/board/write";
+            return "redirect:/community/write";
         }
 
-        return "redirect:/community/board/" + boardId;
+        return "redirect:/community/" + boardId;
     }
 
     // 이미지 용량 초과(전역 설정값을 넘는 파일) 업로드 시 처리 - 이 컨트롤러의 폼 제출 흐름에서만 사용
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public String handleMaxUploadSize(RedirectAttributes redirectAttributes) {
         redirectAttributes.addFlashAttribute("error", "첨부파일 용량이 너무 큽니다.");
-        return "redirect:/community/board/write";
+        return "redirect:/community/write";
     }
 
     @GetMapping("/{boardId}")
@@ -109,7 +109,7 @@ public class BoardController {
             board = boardService.getDetail(boardId, loginMemberId);
         } catch (NoSuchElementException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/community/board";
+            return "redirect:/community";
         }
         comments = boardCommentService.getList(boardId, loginMemberId);
 
@@ -132,12 +132,12 @@ public class BoardController {
             board = boardService.getDetail(boardId, loginMember.getMemberId());
         } catch (NoSuchElementException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/community/board";
+            return "redirect:/community";
         }
 
         if (!loginMember.getMemberId().equals(board.getMemberId())) {
             redirectAttributes.addFlashAttribute("error", "수정 권한이 없습니다.");
-            return "redirect:/community/board/" + boardId;
+            return "redirect:/community/" + boardId;
         }
 
         model.addAttribute("board", board);
@@ -157,10 +157,10 @@ public class BoardController {
             boardService.update(boardId, boardDto, loginMember.getMemberId());
         } catch (IllegalArgumentException | IllegalStateException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/community/board/edit/" + boardId;
+            return "redirect:/community/edit/" + boardId;
         }
 
-        return "redirect:/community/board/" + boardId;
+        return "redirect:/community/" + boardId;
     }
 
     @PostMapping("/delete/{boardId}")
@@ -173,10 +173,10 @@ public class BoardController {
             boardService.delete(boardId, loginMember.getMemberId());
         } catch (IllegalStateException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/community/board/" + boardId;
+            return "redirect:/community/" + boardId;
         }
 
-        return "redirect:/community/board";
+        return "redirect:/community";
     }
 
     // 비로그인 상태로도 볼 수 있는 경로(목록/상세)에서 안전하게 로그인 회원 id를 꺼내기 위한 헬퍼
