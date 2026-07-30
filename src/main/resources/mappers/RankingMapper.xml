@@ -5,55 +5,75 @@
 
 <mapper namespace="com.kh.demo.ranking.mapper.RankingMapper">
 
-    <!-- 전체 누적 기준 랭킹 상위 5명 조회 -->
-    <select id="selectRankingBoard" resultType="com.kh.demo.ranking.dto.RankingDto">
+    <select id="selectRankingBoard"
+            resultType="com.kh.demo.ranking.dto.RankingDto">
 
-        SELECT rb.rank_position,
-        rb.member_id,
+        SELECT
+        ROW_NUMBER() OVER (
+        ORDER BY COALESCE(rb.return_rate_snapshot, 0) DESC,
+        m.member_id ASC
+        ) AS rank_position,
+
+        m.member_id,
         m.nickname,
         m.profile,
-        rb.return_rate,
-        COALESCE(tc.trade_count, 0) AS trade_count,
+
+        COALESCE(rb.return_rate_snapshot, 0) AS return_rate_snapshot,
+        COALESCE(hq.holding_quantity, 0) AS holding_quantity,
         COALESCE(pp.profit, 0) AS profit
 
-        FROM ranking_board rb
+        FROM member m
 
-        JOIN member m
-        ON m.member_id = rb.member_id
-
+        <!-- 최신 수익률 -->
         LEFT JOIN (
-        SELECT a.member_id,
-        COUNT(t.trade_id) AS trade_count
-        FROM account a
-        JOIN trade t ON t.account_id = a.account_id
-        GROUP BY a.member_id
-        ) tc
-        ON tc.member_id = rb.member_id
-
-        LEFT JOIN (
-        SELECT a.member_id,
-        SUM(
-        (CAST(s.current_price AS SIGNED) - CAST(h.avg_price AS SIGNED))
-        * CAST(h.quantity AS SIGNED)
-        ) AS profit
-        FROM account a
-        JOIN holding h ON h.account_id = a.account_id
-        JOIN stock s ON s.stock_code = h.stock_code
-        GROUP BY a.member_id
-        ) pp
-        ON pp.member_id = rb.member_id
-
-        WHERE rb.stock_code IS NULL
-
-        AND rb.rank_date = (
+        SELECT
+        member_id,
+        MAX(return_rate_snapshot) AS return_rate_snapshot
+        FROM ranking_board
+        WHERE stock_code IS NULL
+        AND rank_date = (
         SELECT MAX(rank_date)
         FROM ranking_board
         WHERE stock_code IS NULL
         )
+        GROUP BY member_id
+        ) rb
+        ON rb.member_id = m.member_id
 
-        ORDER BY rb.rank_position ASC
+        <!-- 회원이 현재 보유한 전체 주식 수량 -->
+        LEFT JOIN (
+        SELECT
+        a.member_id,
+        SUM(h.quantity) AS holding_quantity
+        FROM account a
+        JOIN holding h
+        ON h.account_id = a.account_id
+        WHERE h.quantity > 0
+        GROUP BY a.member_id
+        ) hq
+        ON hq.member_id = m.member_id
 
-        LIMIT 5
+        <!-- 회원별 현재 평가손익 -->
+        LEFT JOIN (
+        SELECT
+        a.member_id,
+        SUM(
+        (CAST(s.current_price AS SIGNED)
+        - CAST(h.avg_price AS SIGNED))
+        * CAST(h.quantity AS SIGNED)
+        ) AS profit
+        FROM account a
+        JOIN holding h
+        ON h.account_id = a.account_id
+        JOIN stock s
+        ON s.stock_code = h.stock_code
+        GROUP BY a.member_id
+        ) pp
+        ON pp.member_id = m.member_id
+
+        WHERE m.member_role = 'USER'
+
+        ORDER BY rank_position ASC
 
     </select>
 

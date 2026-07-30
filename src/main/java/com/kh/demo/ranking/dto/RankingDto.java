@@ -22,8 +22,10 @@ public class RankingDto {
     // 프로필 이미지 경로
     private String profile;
 
-    // 선택한 기간의 거래 횟수
-    private Long tradeCount;
+    // 거래내역 공개 여부: Y 또는 N
+    private String tradeHistoryPublicYn;
+
+    private Long holdingQuantity;
 
     // 수익률
     private BigDecimal returnRate;
