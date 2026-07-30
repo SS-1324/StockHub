@@ -12,19 +12,19 @@
         ROW_NUMBER() OVER (
         ORDER BY COALESCE(rb.return_rate_snapshot, 0) DESC,
         m.member_id ASC
-        ) AS rank_position,
+        ) AS rankPosition,
 
-        m.member_id,
-        m.nickname,
-        m.profile,
+        m.member_id AS memberId,
+        m.nickname AS nickname,
+        m.profile AS profile,
 
-        COALESCE(rb.return_rate_snapshot, 0) AS return_rate_snapshot,
-        COALESCE(hq.holding_quantity, 0) AS holding_quantity,
+        COALESCE(rb.return_rate_snapshot, 0) AS returnRate,
+        COALESCE(hq.holding_quantity, 0) AS holdingQuantity,
         COALESCE(pp.profit, 0) AS profit
 
         FROM member m
 
-        <!-- 최신 수익률 -->
+        <!-- 가장 최근 날짜의 회원별 수익률 -->
         LEFT JOIN (
         SELECT
         member_id,
@@ -73,7 +73,7 @@
 
         WHERE m.member_role = 'USER'
 
-        ORDER BY rank_position ASC
+        ORDER BY rankPosition ASC
 
     </select>
 
