@@ -126,7 +126,7 @@
                                     <strong>
                                         <fmt:formatNumber
                                                 value="${ranking.returnRate}"
-                                                pattern="#,##0.00"/>%
+                                             pattern="#,##0.00"/>%
                                     </strong>
 
                                     <span>
