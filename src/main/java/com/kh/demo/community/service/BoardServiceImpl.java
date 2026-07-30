@@ -63,15 +63,15 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
-    public List<BoardDto> getList(String category, int page, int size) {
+    public List<BoardDto> getList(String category, String keyword, int page, int size) {
         int safePage = Math.max(page, 1);
         int offset = (safePage - 1) * size;
-        return boardMapper.selectBoardList(category, offset, size);
+        return boardMapper.selectBoardList(category, keyword, offset, size);
     }
 
     @Override
-    public int getListCount(String category) {
-        return boardMapper.countBoardList(category);
+    public int getListCount(String category, String keyword) {
+        return boardMapper.countBoardList(category, keyword);
     }
 
     @Override

@@ -1,4 +1,3 @@
-
 package com.kh.demo.community.controller;
 
 import com.kh.demo.common.SessionConst;
@@ -47,16 +46,19 @@ public class BoardController {
 
     @GetMapping
     public String list(@RequestParam(required = false) String category,
+                       @RequestParam(required = false) String keyword,
                        @RequestParam(defaultValue = "1") int page,
                        Model model) {
-        List<BoardDto> boardList = boardService.getList(category, page, PAGE_SIZE);
-        int totalCount = boardService.getListCount(category);
+        List<BoardDto> boardList = boardService.getList(category, keyword, page, PAGE_SIZE);
+        int totalCount = boardService.getListCount(category, keyword);
         int totalPages = Math.max((int) Math.ceil(totalCount / (double) PAGE_SIZE), 1);
 
         model.addAttribute("boardList", boardList);
         model.addAttribute("category", category);
+        model.addAttribute("keyword", keyword);
         model.addAttribute("page", page);
         model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalCount", totalCount);
         model.addAttribute("allowedCategories", boardService.getAllowedCategories());
         return "community/boardList";
     }

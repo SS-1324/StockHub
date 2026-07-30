@@ -12,13 +12,15 @@ public interface BoardMapper {
     // 게시글 등록
     int insertBoard(BoardDto boardDto);
 
-    // 게시글 목록 조회 (카테고리 필터 + 페이징)
+    // 게시글 목록 조회 (카테고리 필터 + 키워드 검색 + 페이징)
     List<BoardDto> selectBoardList(@Param("category") String category,
-                                    @Param("offset") int offset,
-                                    @Param("size") int size);
+                                   @Param("keyword") String keyword,
+                                   @Param("offset") int offset,
+                                   @Param("size") int size);
 
     // 게시글 목록 총 개수 (페이징 계산용)
-    int countBoardList(@Param("category") String category);
+    int countBoardList(@Param("category") String category,
+                       @Param("keyword") String keyword);
 
     // 게시글 상세 조회
     BoardDto selectBoardDetail(@Param("boardId") Long boardId);
