@@ -1,5 +1,31 @@
 /* hub/chart.jsp 전용 스타일 */
 
+.ticker-wrapper {
+    display: flex;
+    gap: 8px;
+    max-width: 960px;
+    margin: 40px auto 0;
+}
+
+.ticker-item {
+    padding: 8px 16px;
+    border-radius: 6px;
+    background: #1e222d;
+    color: #d1d4dc;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.ticker-item:hover {
+    background: #2a2e39;
+}
+
+.ticker-item.active {
+    background: #2962ff;
+    color: #fff;
+}
+
 .chart-wrapper {
     width: 100%;
     max-width: 960px;
@@ -12,4 +38,97 @@
 #stockhub-chart {
     width: 100%;
     height: 500px;
+}
+
+.gainers-card {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto 40px;
+    padding: 20px;
+    background: #131722;
+    border-radius: 8px;
+}
+
+.gainers-card-title {
+    margin: 0 0 12px;
+    color: #d1d4dc;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.gainers-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.gainers-item {
+    border-bottom: 1px solid #242732;
+}
+
+.gainers-item:last-child {
+    border-bottom: none;
+}
+
+.gainers-item a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 4px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.gainers-item a:hover {
+    background: #1e222d;
+}
+
+.gainers-rank {
+    width: 20px;
+    color: #787b86;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.gainers-name {
+    flex: 1;
+    min-width: 0;
+    color: #d1d4dc;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.gainers-name small {
+    margin-left: 6px;
+    color: #787b86;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.gainers-price {
+    color: #d1d4dc;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+}
+
+.gainers-change {
+    min-width: 64px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.gainers-change.up {
+    color: #26a69a;
+}
+
+.gainers-change.down {
+    color: #ef5350;
+}
+
+.gainers-empty {
+    color: #787b86;
+    font-size: 14px;
 }
