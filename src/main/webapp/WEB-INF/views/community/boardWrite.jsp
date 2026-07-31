@@ -11,14 +11,14 @@
     <p class="alert alert-error">${error}</p>
 </c:if>
 
-<form id="board-write-form" class="form form-flex" action="/community/board/write"
+<form id="board-write-form" class="form form-flex" action="${communityUrl}/write"
       method="post" enctype="multipart/form-data">
 
     <div class="form-row">
         <label for="category">카테고리</label>
         <select id="category" name="category">
-            <c:forEach var="c" items="${allowedCategories}">
-                <option value="${c}" ${c == defaultCategory ? 'selected' : ''}>${c}</option>
+            <c:forEach var="entry" items="${allowedCategories}">
+                <option value="${entry.key}" ${entry.key == defaultCategory ? 'selected' : ''}>${entry.value}</option>
             </c:forEach>
         </select>
     </div>
@@ -35,15 +35,15 @@
 
     <div class="form-row">
         <label class="file-label">
-            이미지 첨부 (최대 5장)
-            <input type="file" id="image-input" name="images" accept="image/*" multiple>
+            이미지 첨부 (최대 <c:out value="${maxImageCount}" />장)
+            <input type="file" id="image-input" name="images" accept="image/*" multiple data-max-count="${maxImageCount}">
         </label>
         <div id="image-preview-list" class="image-preview-list"></div>
     </div>
 
     <div class="form-row form-row-actions">
         <button type="submit" class="btn btn-primary">등록</button>
-        <a class="btn btn-outline" href="/community/board">취소</a>
+        <a class="btn btn-outline" href="${communityUrl}">취소</a>
     </div>
 </form>
 

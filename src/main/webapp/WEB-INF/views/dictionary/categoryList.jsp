@@ -2,19 +2,31 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
-
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/dictionary.css">
 <section class="glossary-category">
 
-    <h2>${categoryName}</h2>
+    <h2 class = "category-name">${categoryName}</h2>
 
     <c:choose>
         <c:when test="${not empty glossaryList}">
+        <div class = "glossary-list">
             <c:forEach var="glossary" items="${glossaryList}">
+
                 <div class="glossary-item">
-                    <h3>${glossary.term}</h3>
-                    <p>${glossary.definition}</p>
+
+                    <h3 class="glossary-term">
+                        <c:out value="${glossary.term}" />
+                    </h3>
+
+                    <p class="glossary-definition">
+                        <c:out value="${glossary.definition}" />
+                    </p>
+
                 </div>
-            </c:forEach>
+
+                </c:forEach>
+        </div>
         </c:when>
 
         <c:otherwise>

@@ -1,12 +1,12 @@
 package com.kh.demo.community.controller;
 
-import com.kh.demo.common.SessionConst;
+import com.kh.demo.common.util.SessionUtil;
+import com.kh.demo.community.CommunityUrls;
 import com.kh.demo.community.dto.BoardCommentDto;
 import com.kh.demo.community.dto.BoardDto;
 import com.kh.demo.community.service.BoardCommentService;
 import com.kh.demo.community.service.BoardImageService;
 import com.kh.demo.community.service.BoardService;
-import com.kh.demo.member.dto.MemberDto;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -30,7 +30,7 @@ import java.util.NoSuchElementException;
  */
 
 @Controller
-@RequestMapping("/community/board")
+@RequestMapping(CommunityUrls.BASE)
 public class BoardController {
 
     private static final int PAGE_SIZE = 10;
@@ -45,28 +45,37 @@ public class BoardController {
     private BoardImageService boardImageService;
 
     @GetMapping
-    public String list(@RequestParam(required = false) String category,
-                       @RequestParam(required = false) String keyword,
-                       @RequestParam(defaultValue = "1") int page,
-                       Model model) {
-        List<BoardDto> boardList = boardService.getList(category, keyword, page, PAGE_SIZE);
-        int totalCount = boardService.getListCount(category, keyword);
-        int totalPages = Math.max((int) Math.ceil(totalCount / (double) PAGE_SIZE), 1);
+    public String list(@RequestParam(required = false) String category, HttpSession session, Model model) {
+        String loginMemberId = SessionUtil.currentMemberId(session);
+        // 무한스크롤의 첫 페이지 - 2페이지부터는 /feed가 담당(아래 참고)
+        List<BoardDto> boardList = boardService.getList(category, 1, PAGE_SIZE, loginMemberId);
 
         model.addAttribute("boardList", boardList);
         model.addAttribute("category", category);
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("page", page);
-        model.addAttribute("totalPages", totalPages);
-        model.addAttribute("totalCount", totalCount);
+        model.addAttribute("loginMemberId", loginMemberId);
         model.addAttribute("allowedCategories", boardService.getAllowedCategories());
         return "community/boardList";
+    }
+
+    // 무한스크롤 다음 페이지 - board.js가 화면 바닥의 sentinel이 보이면 이 엔드포인트를 호출해 카드 조각(HTML)만 받아 붙인다.
+    // 더 가져올 게시글이 없으면 boardCards.jsp가 아무것도 출력하지 않아 빈 응답이 오고, JS는 그걸 보고 관찰을 멈춘다.
+    @GetMapping("/feed")
+    public String feed(@RequestParam(required = false) String category,
+                       @RequestParam(defaultValue = "2") int page,
+                       HttpSession session,
+                       Model model) {
+        String loginMemberId = SessionUtil.currentMemberId(session);
+        List<BoardDto> boardList = boardService.getList(category, page, PAGE_SIZE, loginMemberId);
+        model.addAttribute("boardList", boardList);
+        model.addAttribute("allowedCategories", boardService.getAllowedCategories());
+        return "community/boardCards";
     }
 
     @GetMapping("/write")
     public String writeForm(Model model) {
         model.addAttribute("allowedCategories", boardService.getAllowedCategories());
         model.addAttribute("defaultCategory", boardService.getDefaultCategory());
+        model.addAttribute("maxImageCount", boardImageService.getMaxImageCount());
         return "community/boardWrite";
     }
 
@@ -75,25 +84,23 @@ public class BoardController {
                         @RequestParam(required = false) List<MultipartFile> images,
                         HttpSession session,
                         RedirectAttributes redirectAttributes) {
-        MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        boardDto.setMemberId(loginMember.getMemberId());
-
+        boardDto.setMemberId(SessionUtil.requireLoginMemberId(session));
         Long boardId;
         try {
             boardId = boardService.write(boardDto, images);
         } catch (IllegalArgumentException | IllegalStateException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/community/board/write";
+            return "redirect:/community/write";
         }
 
-        return "redirect:/community/board/" + boardId;
+        return "redirect:/community/" + boardId;
     }
 
     // 이미지 용량 초과(전역 설정값을 넘는 파일) 업로드 시 처리 - 이 컨트롤러의 폼 제출 흐름에서만 사용
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public String handleMaxUploadSize(RedirectAttributes redirectAttributes) {
         redirectAttributes.addFlashAttribute("error", "첨부파일 용량이 너무 큽니다.");
-        return "redirect:/community/board/write";
+        return "redirect:/community/write";
     }
 
     @GetMapping("/{boardId}")
@@ -101,7 +108,7 @@ public class BoardController {
                          HttpSession session,
                          Model model,
                          RedirectAttributes redirectAttributes) {
-        String loginMemberId = currentMemberId(session);
+        String loginMemberId = SessionUtil.currentMemberId(session);
 
         BoardDto board;
         List<BoardCommentDto> comments;
@@ -109,7 +116,7 @@ public class BoardController {
             board = boardService.getDetail(boardId, loginMemberId);
         } catch (NoSuchElementException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/community/board";
+            return "redirect:/community";
         }
         comments = boardCommentService.getList(boardId, loginMemberId);
 
@@ -117,6 +124,7 @@ public class BoardController {
         model.addAttribute("images", boardImageService.getByBoardId(boardId));
         model.addAttribute("comments", comments);
         model.addAttribute("loginMemberId", loginMemberId);
+        model.addAttribute("allowedCategories", boardService.getAllowedCategories());
         return "community/boardDetail";
     }
 
@@ -125,66 +133,87 @@ public class BoardController {
                            HttpSession session,
                            Model model,
                            RedirectAttributes redirectAttributes) {
-        MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        String loginMemberId = SessionUtil.requireLoginMemberId(session);
 
         BoardDto board;
         try {
-            board = boardService.getDetail(boardId, loginMember.getMemberId());
+            board = boardService.getDetail(boardId, loginMemberId);
         } catch (NoSuchElementException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/community/board";
+            return "redirect:/community";
         }
 
-        if (!loginMember.getMemberId().equals(board.getMemberId())) {
+        boolean isOwner = loginMemberId.equals(board.getMemberId());
+        boolean isAdminOverride = board.getMemberId() == null && SessionUtil.isAdmin(session);
+        if (!isOwner && !isAdminOverride) {
             redirectAttributes.addFlashAttribute("error", "수정 권한이 없습니다.");
-            return "redirect:/community/board/" + boardId;
+            return "redirect:/community/" + boardId;
         }
 
         model.addAttribute("board", board);
         model.addAttribute("images", boardImageService.getByBoardId(boardId));
         model.addAttribute("allowedCategories", boardService.getAllowedCategories());
+        model.addAttribute("maxImageCount", boardImageService.getMaxImageCount());
         return "community/boardEdit";
     }
 
     @PostMapping("/edit/{boardId}")
     public String edit(@PathVariable Long boardId,
                        @ModelAttribute BoardDto boardDto,
+                       @RequestParam(required = false) List<Long> deleteImageIds,
+                       @RequestParam(required = false) List<MultipartFile> images,
                        HttpSession session,
                        RedirectAttributes redirectAttributes) {
-        MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
-
         try {
-            boardService.update(boardId, boardDto, loginMember.getMemberId());
-        } catch (IllegalArgumentException | IllegalStateException e) {
+            boardService.update(boardId, boardDto, SessionUtil.requireLoginMemberId(session), deleteImageIds, images);
+        } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/community/board/edit/" + boardId;
+            return "redirect:/community/edit/" + boardId;
+        } catch (IllegalStateException notOwner) {
+            // 본인 소유가 아니라 실패한 경우 - 관리자면 "주인 없는(탈퇴 회원) 글"에 한해 마지막으로 한 번 더 시도
+            if (!tryUpdateAsAdmin(boardId, boardDto, session, redirectAttributes)) {
+                return "redirect:/community/edit/" + boardId;
+            }
         }
 
-        return "redirect:/community/board/" + boardId;
+        return "redirect:/community/" + boardId;
     }
 
     @PostMapping("/delete/{boardId}")
     public String delete(@PathVariable Long boardId,
                          HttpSession session,
                          RedirectAttributes redirectAttributes) {
-        MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
-
         try {
-            boardService.delete(boardId, loginMember.getMemberId());
-        } catch (IllegalStateException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/community/board/" + boardId;
+            boardService.delete(boardId, SessionUtil.requireLoginMemberId(session));
+        } catch (IllegalStateException notOwner) {
+            if (!SessionUtil.isAdmin(session)) {
+                redirectAttributes.addFlashAttribute("error", notOwner.getMessage());
+                return "redirect:/community/" + boardId;
+            }
+            try {
+                boardService.deleteAsAdmin(boardId);
+            } catch (IllegalStateException adminFailed) {
+                redirectAttributes.addFlashAttribute("error", adminFailed.getMessage());
+                return "redirect:/community/" + boardId;
+            }
         }
 
-        return "redirect:/community/board";
+        return "redirect:/community";
     }
 
-    // 비로그인 상태로도 볼 수 있는 경로(목록/상세)에서 안전하게 로그인 회원 id를 꺼내기 위한 헬퍼
-    private String currentMemberId(HttpSession session) {
-        if (session == null) {
-            return null;
+    // 일반 update()가 "본인 글이 아님"으로 실패했을 때, 관리자에 한해 주인 없는 글 수정을 한 번 더 시도
+    private boolean tryUpdateAsAdmin(Long boardId, BoardDto boardDto, HttpSession session,
+                                     RedirectAttributes redirectAttributes) {
+        if (!SessionUtil.isAdmin(session)) {
+            redirectAttributes.addFlashAttribute("error", "수정 권한이 없습니다.");
+            return false;
         }
-        MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        return loginMember == null ? null : loginMember.getMemberId();
+        try {
+            boardService.updateAsAdmin(boardId, boardDto);
+            return true;
+        } catch (IllegalArgumentException | IllegalStateException adminFailed) {
+            redirectAttributes.addFlashAttribute("error", adminFailed.getMessage());
+            return false;
+        }
     }
 }

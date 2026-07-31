@@ -11,39 +11,30 @@
     </insert>
 
     <select id="selectBoardList" resultType="com.kh.demo.community.dto.BoardDto">
-        SELECT b.board_id, b.member_id, b.category, b.title, b.content,
-        b.count, b.like_count, b.create_at,
-        DATE_FORMAT(b.create_at, '%Y-%m-%d %H:%i') AS create_at_str,
-        b.update_at, m.nickname
+        SELECT b.board_id,
+               b.member_id,
+               b.category,
+               b.title,
+               b.content,
+               b.count,
+               b.like_count,
+               (SELECT COUNT(*) FROM board_comment bc WHERE bc.board_id = b.board_id) AS comment_count,
+               b.create_at,
+               DATE_FORMAT(b.create_at, '%Y-%m-%d %H:%i') AS create_at_str,
+               b.update_at,
+               m.nickname,
+               COALESCE(NULLIF(m.profile, ''), '/images/common_member.png') AS profile
         FROM board b
+        <!-- INNER JOIN 금지: 탈퇴 회원은 member_id가 NULL이 되어도 게시글 자체는 남아있어야 하므로 LEFT JOIN 유지 -->
         LEFT JOIN member m ON b.member_id = m.member_id
         <where>
             <if test="category != null and category != ''">
                 AND b.category = #{category}
             </if>
-            <if test="keyword != null and keyword != ''">
-                AND (b.title LIKE CONCAT('%', #{keyword}, '%')
-                OR b.content LIKE CONCAT('%', #{keyword}, '%'))
-            </if>
         </where>
         ORDER BY b.create_at DESC
         LIMIT #{offset}, #{size}
     </select>
-
-    <select id="countBoardList" resultType="int">
-        SELECT COUNT(*)
-        FROM board
-        <where>
-            <if test="category != null and category != ''">
-                AND category = #{category}
-            </if>
-            <if test="keyword != null and keyword != ''">
-                AND (title LIKE CONCAT('%', #{keyword}, '%')
-                OR content LIKE CONCAT('%', #{keyword}, '%'))
-            </if>
-        </where>
-    </select>
-
 
     <select id="selectBoardDetail" parameterType="long" resultType="com.kh.demo.community.dto.BoardDto">
         SELECT b.board_id,
@@ -57,8 +48,10 @@
                DATE_FORMAT(b.create_at, '%Y-%m-%d %H:%i') AS create_at_str,
                b.update_at,
                DATE_FORMAT(b.update_at, '%Y-%m-%d %H:%i') AS update_at_str,
-               m.nickname
+               m.nickname,
+               COALESCE(NULLIF(m.profile, ''), '/images/common_member.png') AS profile
         FROM board b
+        <!-- INNER JOIN 금지: 탈퇴 회원은 member_id가 NULL이 되어도 게시글 자체는 남아있어야 하므로 LEFT JOIN 유지 -->
         LEFT JOIN member m ON b.member_id = m.member_id
         WHERE b.board_id = #{boardId}
     </select>
@@ -78,6 +71,20 @@
 
     <delete id="deleteBoard">
         DELETE FROM board WHERE board_id = #{boardId} AND member_id = #{memberId}
+    </delete>
+
+    <!-- 작성자가 탈퇴해 member_id가 NULL인 게시글만 대상으로 하는 관리자 전용 수정/삭제 -->
+    <update id="updateBoardAsAdmin" parameterType="com.kh.demo.community.dto.BoardDto">
+        UPDATE board
+        SET category = #{category},
+            title = #{title},
+            content = #{content}
+        WHERE board_id = #{boardId}
+          AND member_id IS NULL
+    </update>
+
+    <delete id="deleteBoardAsAdmin">
+        DELETE FROM board WHERE board_id = #{boardId} AND member_id IS NULL
     </delete>
 
     <select id="existsById" resultType="boolean">
