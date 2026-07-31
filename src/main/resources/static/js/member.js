@@ -482,7 +482,8 @@ function checkPassword() {
         : "비밀번호가 일치하지 않습니다.";
     passwordConfirmResult.className = passwordMatched
         ? "form-tip form-tip-ok"
-        : "form-tip form-tip-error";
+        : "form-tip form" +
+        "-tip-error";
 }
 
 // 검사 메시지의 내용과 색상을 변경

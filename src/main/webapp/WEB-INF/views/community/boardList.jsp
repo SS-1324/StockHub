@@ -34,18 +34,18 @@
 </div>
 <c:choose>
     <c:when test="${empty loginMemberId}">
-        <a class="btn-pill" href="/community/board/write">로그인하고 글쓰기</a>
+        <a class="btn-pill" href="${communityUrl}/write">로그인하고 글쓰기</a>
     </c:when>
     <c:otherwise>
-        <a class="btn-pill" href="/community/board/write">글쓰기</a>
+        <a class="btn-pill" href="${communityUrl}/write">글쓰기</a>
     </c:otherwise>
 </c:choose>
 
 <div class="category-filter">
-    <a class="category-tab ${empty category ? 'category-tab-active' : ''}" href="/community/board">전체</a>
-    <c:forEach var="c" items="${allowedCategories}">
-        <a class="category-tab ${category == c ? 'category-tab-active' : ''}"
-           href="/community/board?category=${c}">${c}</a>
+    <a class="category-tab ${empty category ? 'category-tab-active' : ''}" href="${communityUrl}">전체</a>
+    <c:forEach var="entry" items="${allowedCategories}">
+        <a class="category-tab ${category == entry.key ? 'category-tab-active' : ''}"
+           href="${communityUrl}?category=${entry.key}">${entry.value}</a>
     </c:forEach>
 </div>
 <c:if test="${not empty keyword}">
@@ -59,31 +59,12 @@
     <p class="form-tip">등록된 게시글이 없습니다.</p>
 </c:if>
 
-<div class="board-list">
-    <c:forEach var="board" items="${boardList}">
-        <a class="board-card" href="/community/board/${board.boardId}">
-            <c:if test="${not empty board.title}">
-                <div class="board-card-title">${board.title}</div>
-            </c:if>
-            <div class="board-card-snippet">${board.content}</div>
-            <div class="board-card-meta">
-                <span class="category-badge">${board.category}</span>
-                <span>${board.nickname}</span>
-                <span>${board.createAtStr}</span>
-                <span>조회 ${board.count}</span>
-                <span>좋아요 ${board.likeCount}</span>
-            </div>
-        </a>
-    </c:forEach>
+<div class="board-list" id="board-list">
+    <jsp:include page="/WEB-INF/views/community/boardCards.jsp" />
 </div>
 
-<c:if test="${totalPages > 1}">
-    <div class="pagination">
-        <c:forEach begin="1" end="${totalPages}" var="p">
-            <a class="btn ${p == page ? 'btn-primary' : 'btn-outline'}"
-               href="/community/board?page=${p}${not empty category ? '&category='.concat(category) : ''}">${p}</a>
-        </c:forEach>
-    </div>
-</c:if>
+<%-- 이 요소가 화면에 보이면 board.js가 다음 페이지를 불러와 위 목록 끝에 이어붙인다(무한스크롤) --%>
+<div id="feed-sentinel" data-next-page="2" data-category="${category}"></div>
 
+<script src="/js/board.js"></script>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

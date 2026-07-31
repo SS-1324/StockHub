@@ -14,6 +14,9 @@ import java.util.NoSuchElementException;
 @Service
 public class BoardCommentServiceImpl implements BoardCommentService {
 
+    // board_comment.content 컬럼 크기(VARCHAR(1500))와 맞춘 길이 제한 - DB 예외로 새는 대신 명확한 메시지로 미리 검증
+    private static final int MAX_CONTENT_LENGTH = 1500;
+
     @Autowired
     private BoardCommentMapper boardCommentMapper;
 
@@ -85,6 +88,9 @@ public class BoardCommentServiceImpl implements BoardCommentService {
     private void validateContent(BoardCommentDto boardCommentDto) {
         if (boardCommentDto.getContent() == null || boardCommentDto.getContent().isBlank()) {
             throw new IllegalArgumentException("빈 댓글은 작성할 수 없습니다.");
+        }
+        if (boardCommentDto.getContent().length() > MAX_CONTENT_LENGTH) {
+            throw new IllegalArgumentException("댓글은 " + MAX_CONTENT_LENGTH + "자를 넘을 수 없습니다.");
         }
     }
 

@@ -12,15 +12,10 @@ public interface BoardMapper {
     // 게시글 등록
     int insertBoard(BoardDto boardDto);
 
-    // 게시글 목록 조회 (카테고리 필터 + 키워드 검색 + 페이징)
+    // 게시글 목록 조회 (카테고리 필터 + 페이징)
     List<BoardDto> selectBoardList(@Param("category") String category,
-                                   @Param("keyword") String keyword,
-                                   @Param("offset") int offset,
-                                   @Param("size") int size);
-
-    // 게시글 목록 총 개수 (페이징 계산용)
-    int countBoardList(@Param("category") String category,
-                       @Param("keyword") String keyword);
+                                    @Param("offset") int offset,
+                                    @Param("size") int size);
 
     // 게시글 상세 조회
     BoardDto selectBoardDetail(@Param("boardId") Long boardId);
@@ -33,6 +28,12 @@ public interface BoardMapper {
 
     // 게시글 삭제 (작성자 본인만 삭제 가능하도록 memberId도 함께 조건으로 사용)
     int deleteBoard(@Param("boardId") Long boardId, @Param("memberId") String memberId);
+
+    // 작성자가 탈퇴해 member_id가 NULL인 게시글만 대상으로 하는 관리자 전용 수정/삭제.
+    // 일반 updateBoard/deleteBoard는 member_id 일치를 조건으로 걸어서 주인 없는 글은 아무도 못 건드리므로 별도로 둠.
+    int updateBoardAsAdmin(BoardDto boardDto);
+
+    int deleteBoardAsAdmin(@Param("boardId") Long boardId);
 
     // 게시글 존재 여부 확인 (조회수 증가 부작용 없이 존재만 확인할 때 사용)
     boolean existsById(@Param("boardId") Long boardId);
