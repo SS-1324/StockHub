@@ -65,6 +65,9 @@ public class MemberServiceImpl implements MemberService {
     // 프로필 이미지가 없을 때 사용할 공통 이미지 경로
     private static final String DEFAULT_PROFILE_PATH = "/images/common_member.png";
 
+    // 업로드한 프로필 이미지의 웹 접근 경로
+    private static final String PROFILE_UPLOAD_URL_PREFIX = "/uploads/profile";
+
     private final PasswordEncoder passwordEncoder; // 비밀번호 암호화 도구
     private final FileUploadUtil fileUploadUtil; // 파일 저장 도구
     private final MemberMapper memberMapper; // 회원 DB 접근 객체
@@ -168,7 +171,7 @@ public class MemberServiceImpl implements MemberService {
             saved = fileUploadUtil.save(
                     profileImage,
                     profileUploadDir,
-                    "/uploads/profile"
+                    PROFILE_UPLOAD_URL_PREFIX
             );
             memberDto.setProfile(saved.getPath());
         }
@@ -334,7 +337,7 @@ public class MemberServiceImpl implements MemberService {
             saved = fileUploadUtil.save(
                     profileImage,
                     profileUploadDir,
-                    "/uploads/profile"
+                    PROFILE_UPLOAD_URL_PREFIX
             );
             member.setProfile(saved.getPath());
         }
@@ -470,6 +473,6 @@ public class MemberServiceImpl implements MemberService {
 
     // 서버의 프로필 업로드 폴더에 저장된 사용자 파일인지 확인
     private boolean isUploadedProfile(String profilePath) {
-        return profilePath != null && profilePath.startsWith("/uploads/profile/");
+        return profilePath != null && profilePath.startsWith(PROFILE_UPLOAD_URL_PREFIX + "/");
     }
 }
