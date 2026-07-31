@@ -44,4 +44,11 @@ public interface GlossaryMapper {
 
     // 하이라이트가 전체 용어 목록을 조회
     List<GlossaryDto> selectAllTerms();
+
+    // 검색어 자동 완성 목록 조회
+    List<String> selectAutocompleteTerms(
+            @Param("keyword") String keyword
+    );
+
 }
+

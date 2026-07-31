@@ -84,4 +84,15 @@
         ORDER BY term ASC
     </select>
 
+    <!-- 검색창 자동 완성 -->
+    <select id = "selectAutocompleteTerms"
+            resultType="string">
+        SELECT term
+        FROM glossary
+        WHERE term LIKE CONCAT('%', #{keyword}, '%')
+
+
+
+    </select>
+
 </mapper>
