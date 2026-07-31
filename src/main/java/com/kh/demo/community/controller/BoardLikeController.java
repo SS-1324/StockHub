@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.NoSuchElementException;
 
+
 /*
 * 게시글 좋아요 토글 API (F-COM-01-04). 이 경로는 WebConfig의 LoginInterceptor가 보호하므로
 * 진입 시점에는 항상 로그인 상태가 보장된다.

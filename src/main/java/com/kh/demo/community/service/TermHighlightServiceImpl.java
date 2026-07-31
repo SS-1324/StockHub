@@ -158,7 +158,9 @@ public class TermHighlightServiceImpl implements TermHighlightService {
     private String wrapWithHighlight(GlossaryDto term) {
         String termId = term.getTermId() == null ? "" : String.valueOf(term.getTermId());
         String escapedDefinition = HtmlUtils.htmlEscape(term.getDefinition() == null ? "" : term.getDefinition(), "UTF-8");
+        // 매칭은 원문 그대로의 term.getTerm()을 기준으로 이미 끝났으므로, 여기서는 화면에 찍을 때만 방어적으로 이스케이프한다.
+        String escapedTerm = HtmlUtils.htmlEscape(term.getTerm() == null ? "" : term.getTerm(), "UTF-8");
         return "<span class=\"term-highlight\" data-term-id=\"" + termId + "\" data-definition=\"" + escapedDefinition + "\">"
-                + term.getTerm() + "</span>";
+                + escapedTerm + "</span>";
     }
 }
