@@ -19,7 +19,7 @@ public class HomeController {
     @GetMapping("/")
     public String home(Model model){
         // 전체 게시판에서 가장 최근에 작성된 글 3개를 메인 화면에 전달
-        model.addAttribute("latestBoards", boardService.getList(null, 1, 3, null));
+        model.addAttribute("latestBoards", boardService.getList(null, 1, 3));
         return "home/index";
     }
 }
