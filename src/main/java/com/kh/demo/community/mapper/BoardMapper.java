@@ -29,8 +29,7 @@ public interface BoardMapper {
     // 게시글 삭제 (작성자 본인만 삭제 가능하도록 memberId도 함께 조건으로 사용)
     int deleteBoard(@Param("boardId") Long boardId, @Param("memberId") String memberId);
 
-    // 작성자가 탈퇴해 member_id가 NULL인 게시글만 대상으로 하는 관리자 전용 수정/삭제.
-    // 일반 updateBoard/deleteBoard는 member_id 일치를 조건으로 걸어서 주인 없는 글은 아무도 못 건드리므로 별도로 둠.
+    // 작성자와 관계없이 처리하는 관리자 전용 수정/삭제
     int updateBoardAsAdmin(BoardDto boardDto);
 
     int deleteBoardAsAdmin(@Param("boardId") Long boardId);

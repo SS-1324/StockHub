@@ -77,7 +77,9 @@
     <div class="form-row">
         <label for="member-name">이름</label>
         <input id="member-name" name="memberName"
-               type="text" maxlength="50" required>
+               type="text" maxlength="50"
+               pattern="\S{1,50}" required autocomplete="off">
+        <p class="form-tip">띄어쓰기 없이 입력해주세요.</p>
     </div>
 
     <%-- 닉네임 입력과 중복확인 영역 --%>

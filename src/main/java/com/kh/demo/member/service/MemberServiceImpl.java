@@ -29,6 +29,11 @@ public class MemberServiceImpl implements MemberService {
             "^[A-Za-z0-9]{6,50}$"
     );
 
+    // 이름은 띄어쓰기 없이 1자 이상 사용
+    private static final Pattern MEMBER_NAME_PATTERN = Pattern.compile(
+            "^\\S{1,50}$"
+    );
+
     // 닉네임은 한글·영문·숫자만 2자 이상 10자 이하 사용
     private static final Pattern NICKNAME_PATTERN = Pattern.compile(
             "^[가-힣A-Za-z0-9]{2,10}$"
@@ -59,6 +64,9 @@ public class MemberServiceImpl implements MemberService {
 
     // 프로필 이미지가 없을 때 사용할 공통 이미지 경로
     private static final String DEFAULT_PROFILE_PATH = "/images/common_member.png";
+
+    // 업로드한 프로필 이미지의 웹 접근 경로
+    private static final String PROFILE_UPLOAD_URL_PREFIX = "/uploads/profile";
 
     private final PasswordEncoder passwordEncoder; // 비밀번호 암호화 도구
     private final FileUploadUtil fileUploadUtil; // 파일 저장 도구
@@ -96,6 +104,17 @@ public class MemberServiceImpl implements MemberService {
         if (isMemberIdCheck(memberId)) {
             throw new IllegalStateException("이미 사용 중인 아이디입니다.");
         }
+
+        // 자바스크립트를 우회해 요청해도 이름에 띄어쓰기를 저장하지 않음
+        String memberName = memberDto.getMemberName() == null
+                ? ""
+                : memberDto.getMemberName();
+        if (!MEMBER_NAME_PATTERN.matcher(memberName).matches()) {
+            throw new IllegalStateException(
+                    "이름은 띄어쓰기 없이 입력해주세요."
+            );
+        }
+        memberDto.setMemberName(memberName);
 
         // 닉네임 형식과 중복 여부를 검사
         String nickname = memberDto.getNickname() == null
@@ -152,7 +171,7 @@ public class MemberServiceImpl implements MemberService {
             saved = fileUploadUtil.save(
                     profileImage,
                     profileUploadDir,
-                    "/uploads/profile"
+                    PROFILE_UPLOAD_URL_PREFIX
             );
             memberDto.setProfile(saved.getPath());
         }
@@ -318,7 +337,7 @@ public class MemberServiceImpl implements MemberService {
             saved = fileUploadUtil.save(
                     profileImage,
                     profileUploadDir,
-                    "/uploads/profile"
+                    PROFILE_UPLOAD_URL_PREFIX
             );
             member.setProfile(saved.getPath());
         }
@@ -454,6 +473,6 @@ public class MemberServiceImpl implements MemberService {
 
     // 서버의 프로필 업로드 폴더에 저장된 사용자 파일인지 확인
     private boolean isUploadedProfile(String profilePath) {
-        return profilePath != null && profilePath.startsWith("/uploads/profile/");
+        return profilePath != null && profilePath.startsWith(PROFILE_UPLOAD_URL_PREFIX + "/");
     }
 }

@@ -73,18 +73,17 @@
         DELETE FROM board WHERE board_id = #{boardId} AND member_id = #{memberId}
     </delete>
 
-    <!-- 작성자가 탈퇴해 member_id가 NULL인 게시글만 대상으로 하는 관리자 전용 수정/삭제 -->
+    <!-- 컨트롤러에서 ADMIN 권한을 확인한 뒤 사용하는 관리자 전용 수정/삭제 -->
     <update id="updateBoardAsAdmin" parameterType="com.kh.demo.community.dto.BoardDto">
         UPDATE board
         SET category = #{category},
             title = #{title},
             content = #{content}
         WHERE board_id = #{boardId}
-          AND member_id IS NULL
     </update>
 
     <delete id="deleteBoardAsAdmin">
-        DELETE FROM board WHERE board_id = #{boardId} AND member_id IS NULL
+        DELETE FROM board WHERE board_id = #{boardId}
     </delete>
 
     <select id="existsById" resultType="boolean">
