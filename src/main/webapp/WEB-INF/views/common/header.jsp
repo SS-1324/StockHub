@@ -19,7 +19,7 @@
 <c:set var="requestUri" value="${pageContext.request.requestURI}" />
 
 <%-- 커뮤니티용 주소 --%>
-<c:url var="communityUrl" value="/community" />
+<c:url var="communityUrl" value="/community" scope="request" />
 <c:url var="communityFreeUrl" value="/community?category=free" />
 <c:url var="communityTradeUrl" value="/community?category=trade" />
 <c:url var="communityTipUrl" value="/community?category=tip" />

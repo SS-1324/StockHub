@@ -1,11 +1,11 @@
 package com.kh.demo.community.controller;
 
-import com.kh.demo.common.SessionConst;
 import com.kh.demo.common.dto.ApiResponse;
+import com.kh.demo.common.util.SessionUtil;
+import com.kh.demo.community.CommunityUrls;
 import com.kh.demo.community.dto.ToggleResultDto;
 import com.kh.demo.community.service.BoardCommentService;
 import com.kh.demo.community.service.CommentLikeService;
-import com.kh.demo.member.dto.MemberDto;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,7 +22,7 @@ import java.util.NoSuchElementException;
 * 진입 시점에는 항상 로그인 상태가 보장된다.
 * */
 @RestController
-@RequestMapping("/community/comment/like")
+@RequestMapping(CommunityUrls.COMMENT_LIKE)
 public class CommentLikeController {
 
     @Autowired
@@ -37,16 +37,11 @@ public class CommentLikeController {
             if (!boardCommentService.exists(commentId)) {
                 throw new NoSuchElementException("댓글을 찾을 수 없습니다.");
             }
-            String memberId = loginMemberId(session);
+            String memberId = SessionUtil.requireLoginMemberId(session);
             ToggleResultDto result = commentLikeService.toggleCommentLike(commentId, memberId);
             return ResponseEntity.ok(ApiResponse.success(result));
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.fail(e.getMessage()));
         }
-    }
-
-    private String loginMemberId(HttpSession session) {
-        MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        return loginMember.getMemberId();
     }
 }
