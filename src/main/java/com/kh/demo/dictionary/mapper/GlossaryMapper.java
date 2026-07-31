@@ -37,7 +37,7 @@ public interface GlossaryMapper {
     );
 
     //
-    List<GlossaryDto> selectGlossaryByCategoryKeyword(
+    List<GlossaryDto> selectGlossaryByCategoryAndKeyword(
             @Param("category") String category,
             @Param("keyword") String keyword
     );
