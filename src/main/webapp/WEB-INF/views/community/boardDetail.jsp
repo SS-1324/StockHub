@@ -13,10 +13,10 @@
 <%--
     비로그인 방문자는 loginMemberId도 null이라, 예전엔 탈퇴 회원(member.memberId가 null)의 글에서
     "null == null"이 참이 되어 아무나 수정/삭제 버튼을 보는 버그가 있었음.
-    본인 소유이거나(loginMemberId가 비어있지 않고 일치), 관리자가 주인 없는 글을 처리하는 경우에만 노출.
+    본인 소유이거나(loginMemberId가 비어있지 않고 일치), ADMIN 권한이 있는 경우에만 노출.
 --%>
 <c:set var="isAdmin" value="${not empty sessionScope.loginMember and fn:toUpperCase(sessionScope.loginMember.memberRole) eq 'ADMIN'}" />
-<c:if test="${(not empty loginMemberId and loginMemberId == board.memberId) or (isAdmin and empty board.memberId)}">
+<c:if test="${(not empty loginMemberId and loginMemberId == board.memberId) or isAdmin}">
     <div class="board-actions">
         <a class="btn btn-outline" href="${communityUrl}/edit/${board.boardId}">수정</a>
         <form action="${communityUrl}/delete/${board.boardId}" method="post"
@@ -108,6 +108,17 @@
                 <%-- white-space: pre-wrap이 걸려있어서, 아래 태그 사이에 줄바꿈/들여쓰기를 남기면
                      그 공백까지 그대로 화면에 찍힌다(댓글 앞에 빈 칸이 생기던 원인). 한 줄로 붙여서 방지. --%>
                 <div class="comment-body"><c:if test="${not empty c.parentNickname}"><span class="comment-mention">@${c.parentNickname}</span></c:if>${c.highlightedContent}</div>
+                <c:if test="${isAdmin}">
+                    <form class="comment-edit-form hidden"
+                          data-comment-id="${c.commentId}"
+                          data-board-id="${board.boardId}">
+                        <textarea maxlength="1500" required><c:out value="${c.content}"/></textarea>
+                        <div class="comment-edit-actions">
+                            <button type="submit" class="btn btn-primary">수정 완료</button>
+                            <button type="button" class="btn btn-outline comment-edit-cancel">취소</button>
+                        </div>
+                    </form>
+                </c:if>
                 <div class="comment-meta">
                     <span>${c.createAtStr}</span>
                     <button type="button" class="comment-like-btn ${c.liked ? 'active' : ''}"
@@ -117,7 +128,10 @@
                     <c:if test="${empty c.parentCommentId && not empty loginMemberId}">
                         <button type="button" class="comment-reply-btn" data-comment-id="${c.commentId}">답글</button>
                     </c:if>
-                    <c:if test="${c.memberId == loginMemberId}">
+                    <c:if test="${isAdmin}">
+                        <button type="button" class="comment-edit-btn" data-comment-id="${c.commentId}">수정</button>
+                    </c:if>
+                    <c:if test="${(not empty loginMemberId and c.memberId == loginMemberId) or isAdmin}">
                         <button type="button" class="comment-delete-btn" data-comment-id="${c.commentId}">삭제</button>
                     </c:if>
                 </div>

@@ -31,7 +31,7 @@
             <c:when test="${not empty latestBoards}">
                 <c:forEach var="board" items="${latestBoards}">
                     <a class="home-latest-card"
-                       href="${pageContext.request.contextPath}/community/board/${board.boardId}">
+                       href="${pageContext.request.contextPath}/community/${board.boardId}">
                         <div class="home-latest-category">
                             <c:out value="${board.category}"/>
                         </div>

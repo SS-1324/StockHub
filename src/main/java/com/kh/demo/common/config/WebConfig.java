@@ -36,7 +36,11 @@ public class WebConfig implements WebMvcConfigurer {
                 // 로그인 이후에만 접근 가능한 페이지 경로
                 .addPathPatterns(
                         "/member/mypage",
+                        "/member/mypage/**",
+                        "/member/stocks",
+                        "/member/stocks/**",
                         "/member/withdraw",
+                        "/member/withdraw/**",
                         CommunityUrls.WRITE,
                         CommunityUrls.EDIT_ANY,
                         CommunityUrls.DELETE_ANY,

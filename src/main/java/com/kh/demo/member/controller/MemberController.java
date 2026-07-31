@@ -199,9 +199,6 @@ public class MemberController {
     public String mypage(HttpSession session, Model model) {
         // 세션에서 로그인 회원을 확인
         MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        if (loginMember == null) {
-            return "redirect:/member/login?redirectURL=/member/mypage";
-        }
 
         try {
             // DB의 최신 프로필과 증권사 목록을 전달
@@ -224,9 +221,6 @@ public class MemberController {
                                 RedirectAttributes ra) {
         // 로그인하지 않은 요청은 로그인 화면으로 이동
         MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        if (loginMember == null) {
-            return "redirect:/member/login?redirectURL=/member/mypage";
-        }
 
         // 화면에서 전달된 아이디 대신 세션 아이디를 사용
         profileUpdateDto.setMemberId(loginMember.getMemberId());
@@ -252,9 +246,6 @@ public class MemberController {
     public String deleteProfileImage(HttpSession session,
                                      RedirectAttributes ra) {
         MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        if (loginMember == null) {
-            return "redirect:/member/login?redirectURL=/member/mypage";
-        }
 
         try {
             MemberDto updatedMember =
@@ -272,13 +263,7 @@ public class MemberController {
 
     // 회원 탈퇴 확인 화면을 반환
     @GetMapping("/withdraw")
-    public String withdrawForm(HttpSession session) {
-        // 로그인하지 않은 요청은 로그인 화면으로 이동
-        MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        if (loginMember == null) {
-            return "redirect:/member/login?redirectURL=/member/withdraw";
-        }
-
+    public String withdrawForm() {
         return "member/withdraw";
     }
 
@@ -290,9 +275,6 @@ public class MemberController {
                            RedirectAttributes ra) {
         // 로그인하지 않은 요청은 로그인 화면으로 이동
         MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        if (loginMember == null) {
-            return "redirect:/member/login?redirectURL=/member/withdraw";
-        }
 
         // 탈퇴 동의를 선택하지 않으면 요청을 중단
         if (!Boolean.TRUE.equals(confirmWithdraw)) {

@@ -631,6 +631,37 @@
     margin-bottom: 8px;
 }
 
+.comment-edit-form{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 8px 0 12px;
+    padding: 10px;
+    border-radius: 12px;
+    background: #f5f6f8;
+}
+
+.comment-edit-form.hidden{
+    display: none;
+}
+
+.comment-edit-form textarea{
+    width: 100%;
+    min-height: 84px;
+    background: #fff;
+}
+
+.comment-edit-actions{
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.comment-edit-actions .btn{
+    padding: 7px 12px;
+    font-size: 12px;
+}
+
 .comment-meta{
     display: flex;
     align-items: center;

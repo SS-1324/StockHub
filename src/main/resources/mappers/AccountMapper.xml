@@ -16,6 +16,9 @@
                a.brokerage_id,
                b.brokerage_name,
                a.balance,
+               a.return_rate,
+               a.profit_amount,
+               a.holding_stock_quantity,
                a.create_at,
                a.linked_at
         FROM account a
@@ -30,6 +33,9 @@
                a.brokerage_id,
                b.brokerage_name,
                a.balance,
+               a.return_rate,
+               a.profit_amount,
+               a.holding_stock_quantity,
                a.create_at,
                a.linked_at
         FROM account a
@@ -43,6 +49,9 @@
                a.brokerage_id,
                b.brokerage_name,
                a.balance,
+               a.return_rate,
+               a.profit_amount,
+               a.holding_stock_quantity,
                a.create_at,
                a.linked_at
         FROM account a
@@ -57,6 +66,9 @@
                a.brokerage_id,
                b.brokerage_name,
                a.balance,
+               a.return_rate,
+               a.profit_amount,
+               a.holding_stock_quantity,
                a.create_at,
                a.linked_at
         FROM account a

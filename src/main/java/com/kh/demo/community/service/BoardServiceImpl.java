@@ -151,9 +151,14 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional
     public void delete(Long boardId, String loginMemberId) {
+        BoardDto board = boardMapper.selectBoardDetail(boardId);
+        if (board == null || !loginMemberId.equals(board.getMemberId())) {
+            throw new IllegalStateException("게시글이 존재하지 않거나 삭제 권한이 없습니다.");
+        }
+
         // board_comment/comment_like/board_like/board_bookmark/board_image 행은 FK의 ON DELETE CASCADE로
         // board 삭제 시 DB가 알아서 함께 정리해준다. 다만 실제 디스크의 이미지 파일은 DB가 모르므로
-        // 행이 사라지기 전에 애플리케이션에서 먼저 지운다.
+        // 소유권 확인 후 행이 사라지기 전에 애플리케이션에서 먼저 지운다.
         boardImageService.deleteByBoardId(boardId);
 
         int deleted = boardMapper.deleteBoard(boardId, loginMemberId);
@@ -164,25 +169,32 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     @Transactional
-    public void updateAsAdmin(Long boardId, BoardDto boardDto) {
+    public void updateAsAdmin(Long boardId, BoardDto boardDto,
+                              List<Long> deleteImageIds, List<MultipartFile> newImages) {
         boardDto.setBoardId(boardId);
         boardDto.setCategory(resolveCategory(boardDto.getCategory()));
         validateTitleAndContent(boardDto);
 
         int updated = boardMapper.updateBoardAsAdmin(boardDto);
         if (updated == 0) {
-            throw new IllegalStateException("게시글이 존재하지 않거나 관리자가 처리할 수 있는 글이 아닙니다.");
+            throw new IllegalStateException("게시글을 찾을 수 없습니다.");
         }
+
+        boardImageService.updateImages(boardId, deleteImageIds, newImages);
     }
 
     @Override
     @Transactional
     public void deleteAsAdmin(Long boardId) {
+        if (!boardMapper.existsById(boardId)) {
+            throw new IllegalStateException("게시글을 찾을 수 없습니다.");
+        }
+
         boardImageService.deleteByBoardId(boardId);
 
         int deleted = boardMapper.deleteBoardAsAdmin(boardId);
         if (deleted == 0) {
-            throw new IllegalStateException("게시글이 존재하지 않거나 관리자가 처리할 수 있는 글이 아닙니다.");
+            throw new IllegalStateException("게시글을 삭제하지 못했습니다.");
         }
     }
 

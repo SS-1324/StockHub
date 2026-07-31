@@ -2,6 +2,7 @@ package com.kh.demo.brokerage.dto;
 
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /*
@@ -25,6 +26,9 @@ public class AccountDto {
     private Long brokerageId;       // 개설된 증권사 번호
     private String brokerageName;   // 조회 편의를 위한 조인 컬럼
     private Long balance;           // 계좌 잔고(예수금)
+    private BigDecimal returnRate;  // 계좌 수익률
+    private Long profitAmount;      // 계좌 수익금
+    private Long holdingStockQuantity; // 계좌의 총 보유 주식 수량
     private LocalDateTime createAt; // 계좌 개설일(증권사측 기준)
     private LocalDateTime linkedAt; // 사이트 회원과 연동된 일시, 연동 전이면 null
 }
