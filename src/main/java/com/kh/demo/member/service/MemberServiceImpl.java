@@ -284,7 +284,7 @@ public class MemberServiceImpl implements MemberService {
 
         // 공개 여부와 툴팁 값이 없으면 기본값을 사용
         member.setNickname(nickname);
-        member.setProfilePublic(Boolean.TRUE.equals(updateDto.getProfilePublic()));
+        member.setStockPublic(Boolean.TRUE.equals(updateDto.getStockPublic()));
         member.setWordTooltip(Boolean.TRUE.equals(updateDto.getWordTooltip()));
 
         // 증권사와 숫자 계좌번호를 검사

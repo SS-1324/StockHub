@@ -119,13 +119,13 @@
         <legend>프로필 공개 여부</legend>
         <div class="radio-row">
             <label class="radio-label">
-                <input type="radio" name="profilePublic" value="true"
-                       <c:if test="${member.profilePublic}">checked</c:if> required>
+                <input type="radio" name="stcokPublic" value="true"
+                       <c:if test="${member.stockPublic}">checked</c:if> required>
                 Y
             </label>
             <label class="radio-label">
-                <input type="radio" name="profilePublic" value="false"
-                       <c:if test="${not member.profilePublic}">checked</c:if>>
+                <input type="radio" name="stockPublic" value="false"
+                       <c:if test="${not member.stockPublic}">checked</c:if>>
                 N
             </label>
         </div>

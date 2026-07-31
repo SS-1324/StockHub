@@ -14,7 +14,7 @@ import lombok.*;
 public class SettingDto {
 
     private String memberId;
-    private Boolean isProfilePublic;
+    private Boolean isStockPublic;
     private Boolean isWordTooltip;
     private Boolean isLightMode;
 }
