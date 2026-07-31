@@ -29,7 +29,7 @@
     <insert id="insertDefaultSettings">
         INSERT INTO settings (
         member_id,
-        is_profile_public,
+        is_stock_public,
         is_word_tooltip
         ) VALUES (
         #{memberId},
@@ -126,7 +126,7 @@
                m.member_role,
                m.create_at,
                DATE_FORMAT(m.create_at, '%Y-%m-%d %H:%i') AS create_at_str,
-               COALESCE(s.is_profile_public, TRUE) AS profile_public,
+               COALESCE(s.is_stock_public, FALSE) AS stock_public,
                COALESCE(s.is_word_tooltip, TRUE) AS word_tooltip,
                a.account_id,
                a.account_no,
@@ -176,15 +176,15 @@
     <insert id="upsertSettings" parameterType="MemberDto">
         INSERT INTO settings (
         member_id,
-        is_profile_public,
+        is_stock_public,
         is_word_tooltip
         ) VALUES (
         #{memberId},
-        #{profilePublic},
+        #{stockPublic},
         #{wordTooltip}
         )
         ON DUPLICATE KEY UPDATE
-        is_profile_public = VALUES(is_profile_public),
+        is_stock_public = VALUES(is_stock_public),
         is_word_tooltip = VALUES(is_word_tooltip)
     </insert>
 

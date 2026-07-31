@@ -5,7 +5,7 @@
 <mapper namespace="com.kh.demo.setting.mapper.SettingMapper">
 
     <select id="selectByMemberId" resultType="com.kh.demo.setting.dto.SettingDto">
-        SELECT member_id, is_profile_public, is_word_tooltip, is_light_mode
+        SELECT member_id, is_stock_public, is_word_tooltip, is_light_mode
         FROM settings
         WHERE member_id = #{memberId}
     </select>
