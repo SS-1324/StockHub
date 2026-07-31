@@ -59,7 +59,7 @@ ALTER TABLE member
 -- 개인 환경설정
 CREATE TABLE IF NOT EXISTS settings (
     member_id          VARCHAR(50) NOT NULL COMMENT '회원 아이디(PK, FK)',
-    is_profile_public  BOOLEAN     NOT NULL DEFAULT TRUE COMMENT '내 주식 공개 여부',
+    is_stock_public  BOOLEAN     NOT NULL DEFAULT FALSE COMMENT '내 주식 공개 여부',
     is_word_tooltip    BOOLEAN     NOT NULL DEFAULT TRUE COMMENT '주식 용어 툴팁 사용 여부',
     is_light_mode      BOOLEAN     NOT NULL DEFAULT TRUE COMMENT '라이트 모드 사용 여부',
     update_at          DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP
