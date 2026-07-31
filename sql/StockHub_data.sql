@@ -267,7 +267,7 @@ CREATE TABLE IF NOT EXISTS ranking_board (
     stock_code       VARCHAR(20)     NULL COMMENT '종목별 랭킹의 대상 종목(FK), 전체 랭킹이면 NULL',
     rank_date        DATE            NOT NULL COMMENT '랭킹 산정일자',
     rank_position    INT UNSIGNED    NOT NULL COMMENT '순위',
-    return_rate      DECIMAL(9, 4)   NOT NULL COMMENT '수익률(%)',
+    return_rate_snapshot      DECIMAL(9, 4)   NOT NULL COMMENT '수익률(%)',
     benefit_received VARCHAR(200)    NULL COMMENT '상위 랭커 혜택 내용',
     create_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '레코드 생성일시',
 

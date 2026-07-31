@@ -19,16 +19,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-/*
- * URL 설계
- * /board/{boardId}처럼 변수 하나짜리 패턴을 쓰지 않음
- * /board/list, /board/write, /board/detail/{boardID}처럼 각 기능마다 고정 문자열 세그먼트를 앞에 붙인다.
- * 고정문자열 : list, write, detail, edit, delete...
- *
- * /board/detail/{boardId}, /board/list 쓰는 것 대신 /board/{boardID}, /board/list로 작성해도 충돌하지는 않는다.
- * 다만 url의 의도를 명확히 드러내기가 어렵다.
- */
-
 @Controller
 @RequestMapping(CommunityUrls.BASE)
 public class BoardController {
@@ -144,8 +134,7 @@ public class BoardController {
         }
 
         boolean isOwner = loginMemberId.equals(board.getMemberId());
-        boolean isAdminOverride = board.getMemberId() == null && SessionUtil.isAdmin(session);
-        if (!isOwner && !isAdminOverride) {
+        if (!isOwner && !SessionUtil.isAdmin(session)) {
             redirectAttributes.addFlashAttribute("error", "수정 권한이 없습니다.");
             return "redirect:/community/" + boardId;
         }
@@ -165,15 +154,20 @@ public class BoardController {
                        HttpSession session,
                        RedirectAttributes redirectAttributes) {
         try {
-            boardService.update(boardId, boardDto, SessionUtil.requireLoginMemberId(session), deleteImageIds, images);
-        } catch (IllegalArgumentException e) {
+            if (SessionUtil.isAdmin(session)) {
+                boardService.updateAsAdmin(boardId, boardDto, deleteImageIds, images);
+            } else {
+                boardService.update(
+                        boardId,
+                        boardDto,
+                        SessionUtil.requireLoginMemberId(session),
+                        deleteImageIds,
+                        images
+                );
+            }
+        } catch (IllegalArgumentException | IllegalStateException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/community/edit/" + boardId;
-        } catch (IllegalStateException notOwner) {
-            // 본인 소유가 아니라 실패한 경우 - 관리자면 "주인 없는(탈퇴 회원) 글"에 한해 마지막으로 한 번 더 시도
-            if (!tryUpdateAsAdmin(boardId, boardDto, session, redirectAttributes)) {
-                return "redirect:/community/edit/" + boardId;
-            }
         }
 
         return "redirect:/community/" + boardId;
@@ -184,36 +178,16 @@ public class BoardController {
                          HttpSession session,
                          RedirectAttributes redirectAttributes) {
         try {
-            boardService.delete(boardId, SessionUtil.requireLoginMemberId(session));
-        } catch (IllegalStateException notOwner) {
-            if (!SessionUtil.isAdmin(session)) {
-                redirectAttributes.addFlashAttribute("error", notOwner.getMessage());
-                return "redirect:/community/" + boardId;
-            }
-            try {
+            if (SessionUtil.isAdmin(session)) {
                 boardService.deleteAsAdmin(boardId);
-            } catch (IllegalStateException adminFailed) {
-                redirectAttributes.addFlashAttribute("error", adminFailed.getMessage());
-                return "redirect:/community/" + boardId;
+            } else {
+                boardService.delete(boardId, SessionUtil.requireLoginMemberId(session));
             }
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/community/" + boardId;
         }
 
         return "redirect:/community";
-    }
-
-    // 일반 update()가 "본인 글이 아님"으로 실패했을 때, 관리자에 한해 주인 없는 글 수정을 한 번 더 시도
-    private boolean tryUpdateAsAdmin(Long boardId, BoardDto boardDto, HttpSession session,
-                                     RedirectAttributes redirectAttributes) {
-        if (!SessionUtil.isAdmin(session)) {
-            redirectAttributes.addFlashAttribute("error", "수정 권한이 없습니다.");
-            return false;
-        }
-        try {
-            boardService.updateAsAdmin(boardId, boardDto);
-            return true;
-        } catch (IllegalArgumentException | IllegalStateException adminFailed) {
-            redirectAttributes.addFlashAttribute("error", adminFailed.getMessage());
-            return false;
-        }
     }
 }

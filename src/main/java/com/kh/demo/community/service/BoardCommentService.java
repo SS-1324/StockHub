@@ -13,7 +13,13 @@ public interface BoardCommentService {
     List<BoardCommentDto> getList(Long boardId, String loginMemberId);
 
     // 댓글 삭제 (작성자 본인 확인, 최상위 댓글이면 딸린 답글까지 함께 삭제)
-    void delete(Long commentId, String loginMemberId);
+    void delete(Long boardId, Long commentId, String loginMemberId);
+
+    // 관리자가 작성자와 관계없이 댓글 내용을 수정
+    void updateAsAdmin(Long boardId, Long commentId, String content);
+
+    // 관리자가 작성자와 관계없이 댓글을 삭제
+    void deleteAsAdmin(Long boardId, Long commentId);
 
     // 댓글 존재 여부 확인 (댓글 좋아요 등 다른 기능에서 대상 댓글 유효성 검사용)
     boolean exists(Long commentId);

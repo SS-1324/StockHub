@@ -16,7 +16,7 @@
 
     <h2 class="page-title">커뮤니티 게시판</h2>
 
-<form class="search-form" action="/community/board" method="get">
+<form class="search-form" action="${communityUrl}" method="get">
     <c:if test="${not empty category}">
         <input type="hidden" name="category" value="${category}">
     </c:if>
@@ -51,7 +51,7 @@
 <c:if test="${not empty keyword}">
     <div class="search-result-info">
         '<strong>${keyword}</strong>' 검색결과 총 <strong>${totalCount}</strong>건
-        <a href="/community/board${not empty category ? '?category='.concat(category) : ''}" class="search-reset">전체보기</a>
+        <a href="${communityUrl}${not empty category ? '?category='.concat(category) : ''}" class="search-reset">전체보기</a>
     </div>
 </c:if>
 

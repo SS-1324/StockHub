@@ -29,6 +29,11 @@ public class MemberServiceImpl implements MemberService {
             "^[A-Za-z0-9]{6,50}$"
     );
 
+    // 이름은 띄어쓰기 없이 1자 이상 사용
+    private static final Pattern MEMBER_NAME_PATTERN = Pattern.compile(
+            "^\\S{1,50}$"
+    );
+
     // 닉네임은 한글·영문·숫자만 2자 이상 10자 이하 사용
     private static final Pattern NICKNAME_PATTERN = Pattern.compile(
             "^[가-힣A-Za-z0-9]{2,10}$"
@@ -96,6 +101,17 @@ public class MemberServiceImpl implements MemberService {
         if (isMemberIdCheck(memberId)) {
             throw new IllegalStateException("이미 사용 중인 아이디입니다.");
         }
+
+        // 자바스크립트를 우회해 요청해도 이름에 띄어쓰기를 저장하지 않음
+        String memberName = memberDto.getMemberName() == null
+                ? ""
+                : memberDto.getMemberName();
+        if (!MEMBER_NAME_PATTERN.matcher(memberName).matches()) {
+            throw new IllegalStateException(
+                    "이름은 띄어쓰기 없이 입력해주세요."
+            );
+        }
+        memberDto.setMemberName(memberName);
 
         // 닉네임 형식과 중복 여부를 검사
         String nickname = memberDto.getNickname() == null

@@ -3,6 +3,7 @@ const profileInput = document.querySelector("#profile-image");
 const idButton = document.querySelector("#check-id-btn");
 const idInput = document.querySelector("#member-id");
 const idResult = document.querySelector("#check-id-result");
+const memberNameInput = document.querySelector("#member-name");
 const nicknameButton = document.querySelector("#check-nickname-btn");
 const nicknameInput = document.querySelector("#nickname");
 const nicknameResult = document.querySelector("#check-nickname-result");
@@ -23,8 +24,9 @@ const emailCodeResult = document.querySelector("#email-code-result");
 const joinForm = document.querySelector("#join-form");
 const contextPath = joinForm.dataset.contextPath || "";
 
-// 아이디·닉네임·비밀번호·이메일 입력 규칙
+// 아이디·이름·닉네임·비밀번호·이메일 입력 규칙
 const idPattern = /^[A-Za-z0-9]{6,50}$/;
+const memberNamePattern = /^\S{1,50}$/;
 const nicknamePattern = /^[가-힣A-Za-z0-9]{2,10}$/;
 const passwordPattern =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])[\x21-\x7E]{10,100}$/;
@@ -168,6 +170,11 @@ nicknameButton.addEventListener("click", async function () {
 idInput.addEventListener("input", function () {
     checkedId = null;
     idResult.textContent = "";
+});
+
+// 이름을 입력할 때 모든 띄어쓰기를 즉시 제거
+memberNameInput.addEventListener("input", function () {
+    memberNameInput.value = memberNameInput.value.replace(/\s/g, "");
 });
 
 // 닉네임이 바뀌면 기존 중복확인을 취소
@@ -330,6 +337,14 @@ joinForm.addEventListener("submit", function (e) {
     if (checkedId !== idInput.value.trim()) {
         e.preventDefault();
         alert("아이디 중복확인을 진행해주세요.");
+        return;
+    }
+
+    // 이름에 띄어쓰기가 있으면 전송 중단
+    if (!memberNamePattern.test(memberNameInput.value)) {
+        e.preventDefault();
+        alert("이름은 띄어쓰기 없이 입력해주세요.");
+        memberNameInput.focus();
         return;
     }
 

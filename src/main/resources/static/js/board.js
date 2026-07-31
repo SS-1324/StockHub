@@ -234,11 +234,43 @@ async function deleteComment(boardId, commentId){
     location.reload();
 }
 
+/* 관리자 댓글 수정 - 성공하면 하이라이트와 수정일시를 다시 받도록 새로고침 */
+async function updateComment(boardId, commentId, content){
+    const response = await fetch(`/community/${boardId}/comment/${commentId}/edit`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify({content: content})
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+        throw new Error(result.message || "댓글 수정에 실패했습니다.");
+    }
+    location.reload();
+}
+
 /* 답글 입력창 펼치기/접기 */
 function toggleReplyForm(commentId){
     const commentItem = commentList.querySelector(`.comment-item[data-comment-id="${commentId}"]`);
     const replyForm = commentItem.querySelector(".reply-form");
     replyForm.classList.toggle("hidden");
+}
+
+/* 관리자 댓글 수정 입력창 펼치기/접기 */
+function toggleCommentEditForm(commentId, open){
+    const commentItem = commentList.querySelector(`.comment-item[data-comment-id="${commentId}"]`);
+    const editForm = commentItem?.querySelector(".comment-edit-form");
+    if (!editForm) {
+        return;
+    }
+
+    editForm.classList.toggle("hidden", !open);
+    commentItem.querySelector(".comment-body")?.classList.toggle("hidden", open);
+    if (open) {
+        editForm.querySelector("textarea").focus();
+    }
 }
 
 if (commentForm) {
@@ -272,6 +304,19 @@ if (commentList) {
             return;
         }
 
+        const editBtnEl = ev.target.closest(".comment-edit-btn");
+        if (editBtnEl) {
+            toggleCommentEditForm(editBtnEl.dataset.commentId, true);
+            return;
+        }
+
+        const editCancelEl = ev.target.closest(".comment-edit-cancel");
+        if (editCancelEl) {
+            const commentItem = editCancelEl.closest(".comment-item");
+            toggleCommentEditForm(commentItem.dataset.commentId, false);
+            return;
+        }
+
         const deleteBtnEl = ev.target.closest(".comment-delete-btn");
         if (deleteBtnEl) {
             const commentItem = deleteBtnEl.closest(".comment-item");
@@ -280,6 +325,21 @@ if (commentList) {
     });
 
     commentList.addEventListener("submit", function(ev){
+        const editForm = ev.target.closest(".comment-edit-form");
+        if (editForm) {
+            ev.preventDefault();
+            const textarea = editForm.querySelector("textarea");
+            const content = textarea.value.trim();
+            if (!content) {
+                alert("댓글 내용을 입력해주세요.");
+                return;
+            }
+
+            updateComment(editForm.dataset.boardId, editForm.dataset.commentId, content)
+                .catch(function(err){ alert(err.message); });
+            return;
+        }
+
         const replyForm = ev.target.closest(".reply-form");
         if (!replyForm) {
             return;

@@ -10,6 +10,7 @@
 <c:url var="loginUrl" value="/member/login" />
 <c:url var="joinUrl" value="/member/join" />
 <c:url var="mypageUrl" value="/member/mypage" />
+<c:url var="myStocksUrl" value="/member/stocks" />
 <c:url var="adminUrl" value="/admin" />
 <c:url var="logoutUrl" value="/member/logout" />
 <c:url var="logoUrl" value="/images/StockHub_logo_blue.png" />
@@ -138,9 +139,9 @@
 
                         <div id="header-profile-dropdown"
                              class="header-profile-dropdown"
-                             hidden>
+                            hidden>
                             <a href="${mypageUrl}">프로필 수정</a>
-                            <a href="${tradeHubUrl}">내 주식</a>
+                            <a href="${myStocksUrl}">내 주식</a>
                             <%-- 로그인 회원의 문의 목록을 페이지 이동 없이 표시 --%>
                             <button type="button"
                                     data-modal-target="my-inquiries-modal"

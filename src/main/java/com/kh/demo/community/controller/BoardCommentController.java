@@ -40,13 +40,37 @@ public class BoardCommentController {
         }
     }
 
+    @PostMapping("/{boardId}/comment/{commentId}/edit")
+    public ResponseEntity<ApiResponse<Void>> editAsAdmin(@PathVariable Long boardId,
+                                                          @PathVariable Long commentId,
+                                                          @RequestBody BoardCommentDto boardCommentDto,
+                                                          HttpSession session) {
+        if (!SessionUtil.isAdmin(session)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.fail("관리자만 댓글을 수정할 수 있습니다."));
+        }
+
+        try {
+            boardCommentService.updateAsAdmin(boardId, commentId, boardCommentDto.getContent());
+            return ResponseEntity.ok(ApiResponse.success(null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail(e.getMessage()));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.fail(e.getMessage()));
+        }
+    }
+
     @PostMapping("/{boardId}/comment/{commentId}/delete")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long boardId,
                                                      @PathVariable Long commentId,
                                                      HttpSession session) {
         try {
-            String memberId = SessionUtil.requireLoginMemberId(session);
-            boardCommentService.delete(commentId, memberId);
+            if (SessionUtil.isAdmin(session)) {
+                boardCommentService.deleteAsAdmin(boardId, commentId);
+            } else {
+                String memberId = SessionUtil.requireLoginMemberId(session);
+                boardCommentService.delete(boardId, commentId, memberId);
+            }
             return ResponseEntity.ok(ApiResponse.success(null));
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.fail(e.getMessage()));

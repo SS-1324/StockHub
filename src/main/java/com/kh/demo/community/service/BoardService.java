@@ -33,8 +33,10 @@ public interface BoardService {
     // 게시글 삭제 (작성자 본인 확인, 댓글/좋아요/북마크/이미지까지 함께 정리)
     void delete(Long boardId, String loginMemberId);
 
-    // 작성자가 탈퇴해 주인 없는(member_id NULL) 게시글을 관리자가 수정/삭제 - 컨트롤러가 ADMIN 권한 확인 후에만 호출
-    void updateAsAdmin(Long boardId, BoardDto boardDto);
+    // 관리자가 작성자와 관계없이 게시글과 첨부 이미지를 수정 - 컨트롤러가 ADMIN 권한 확인 후에만 호출
+    void updateAsAdmin(Long boardId, BoardDto boardDto,
+                       List<Long> deleteImageIds, List<MultipartFile> newImages);
 
+    // 관리자가 작성자와 관계없이 게시글을 삭제
     void deleteAsAdmin(Long boardId);
 }
