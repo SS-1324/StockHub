@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <%-- 공통 헤더를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
@@ -30,6 +31,39 @@
 </section>
 <div class="chart-wrapper">
     <div id="stockhub-chart"></div>
+</div>
+
+<!-- 5. 등락률 TOP 5 카드 -->
+<div class="gainers-card">
+    <h3 class="gainers-card-title">등락률 TOP 5</h3>
+
+    <c:choose>
+        <c:when test="${not empty topGainers}">
+            <ol class="gainers-list">
+                <c:forEach items="${topGainers}" var="item">
+                    <li class="gainers-item">
+                        <a href="<c:url value='/hub/chart'/>?code=${item.code}">
+                            <span class="gainers-rank">${item.rank}</span>
+                            <span class="gainers-name">
+                                <c:out value="${item.name}"/>
+                                <small><c:out value="${item.code}"/></small>
+                            </span>
+                            <span class="gainers-price">
+                                <fmt:formatNumber value="${item.price}" pattern="#,##0"/>원
+                            </span>
+                            <span class="gainers-change ${item.changeRate lt 0 ? 'down' : 'up'}">
+                                <c:if test="${item.changeRate ge 0}">+</c:if>
+                                <fmt:formatNumber value="${item.changeRate}" pattern="#,##0.00"/>%
+                            </span>
+                        </a>
+                    </li>
+                </c:forEach>
+            </ol>
+        </c:when>
+        <c:otherwise>
+            <p class="gainers-empty">랭킹을 불러올 수 없습니다.</p>
+        </c:otherwise>
+    </c:choose>
 </div>
 
 

@@ -41,6 +41,9 @@ public class StockController {
         List<CandleDto> candles = stockService.getCandles(resolvedCode);
         model.addAttribute("initialCandlesJson", objectMapper.writeValueAsString(candles));
         model.addAttribute("resolvedCode", resolvedCode);
+
+        // 차트 아래에 카드로 보여줄 등락률 TOP 5
+        model.addAttribute("topGainers", stockService.getTopGainers(5));
         return "hub/chart";
     }
 }
