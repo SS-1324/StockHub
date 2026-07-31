@@ -18,12 +18,18 @@
         m.nickname AS nickname,
         m.profile AS profile,
 
+
+        CASE WHEN COALESCE(s.is_stock_public, FALSE) = TRUE
+        THEN 'Y' ELSE 'N' END AS tradeHistoryPublicYn,
+
         COALESCE(rb.return_rate_snapshot, 0) AS returnRate,
         COALESCE(hq.holding_quantity, 0) AS holdingQuantity,
         COALESCE(pp.profit, 0) AS profit
 
         FROM member m
-
+        <!-- 회원별 공개 설정 (db랑 연결해서 비공개해놓은 회원은 랭킹에서 주식공개가 안되도록함 ) -->
+        LEFT JOIN settings s
+        ON s.member_id = m.member_id
         <!-- 가장 최근 날짜의 회원별 수익률 -->
         LEFT JOIN (
         SELECT
@@ -74,6 +80,7 @@
         WHERE m.member_role = 'USER'
 
         ORDER BY rankPosition ASC
+
 
     </select>
 
