@@ -2,7 +2,7 @@ package com.kh.demo.hub.dto;
 
 import java.util.List;
 
-public record TossCandleResponseDTO(Result result) {
+public record TossCandleResponseDto(Result result) {
 
     public record Result(List<TossCandleDto> candles) {
     }

@@ -15,3 +15,17 @@
 ㅇ 코드 작성시 반드시 주석을 단다. 자신이 이해한 의도, 생각 등 작성하고, 최소한 코드의 20% 비율을 지킨다.
 
 ㅇ 의견 충돌 시 다수결이 아닌 근거에 기반한 토론을 우선하고, 합의된 결정은 팀 전체가 따른다.
+
+## 로컬 실행 전 환경변수 설정
+
+`.idea` 폴더는 git에 안 올라가므로(gitignore), IntelliJ Run Configuration에 넣은 환경변수는 개인 PC에만 남습니다.
+각자 아래 환경변수를 **자기 Run Configuration(Run/Debug Configurations → Environment variables)에 직접 설정**해야 합니다.
+
+| 환경변수 | 필수 여부 | 설명 |
+|---|---|---|
+| `TOSS_CLIENT_ID` | 필수 | 토스증권 오픈API client_id. WTS(PC웹) 로그인 → 설정 → Open API에서 발급받거나 팀 채널에서 공유받은 값 사용 |
+| `TOSS_CLIENT_SECRET` | 필수 | 토스증권 오픈API client_secret. 위와 동일 경로에서 발급 |
+| `DB_USERNAME` | 선택 | 팀 공용 DB 계정. 설정 안 하면 기본값(`stockhub_team`) 사용 |
+| `DB_PASSWORD` | 선택 | 팀 공용 DB 비밀번호. 설정 안 하면 기본값 사용 |
+
+값 없이 실행하면 토스 API 관련 기능(차트 조회 등)에서 인증 오류가 납니다. 실제 client_id/secret 값은 git이나 카카오톡 텍스트로 공유하지 말고, 팀 내 합의된 안전한 방법(예: 1:1 DM, 비밀번호 관리 도구)으로 전달하세요.

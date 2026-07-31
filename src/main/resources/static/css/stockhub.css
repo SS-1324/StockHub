@@ -1,5 +1,31 @@
 /* hub/chart.jsp 전용 스타일 */
 
+.ticker-wrapper {
+    display: flex;
+    gap: 8px;
+    max-width: 960px;
+    margin: 40px auto 0;
+}
+
+.ticker-item {
+    padding: 8px 16px;
+    border-radius: 6px;
+    background: #1e222d;
+    color: #d1d4dc;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.ticker-item:hover {
+    background: #2a2e39;
+}
+
+.ticker-item.active {
+    background: #2962ff;
+    color: #fff;
+}
+
 .chart-wrapper {
     width: 100%;
     max-width: 960px;

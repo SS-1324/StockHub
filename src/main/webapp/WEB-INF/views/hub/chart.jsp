@@ -7,16 +7,6 @@
 <html lang="ko">
 <head>
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StockHub - 함께 나누는 주식 이야기</title>
-
-    <!-- Google Fonts & FontAwesome Icons -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
     <!-- lightweight-charts 라이브러리 (CDN) -->
     <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 
@@ -28,25 +18,19 @@
 <a>증권사별 시세와 수수료를 비교하고 매매 페이지로 연결합니다.</a>
 
 
-<!-- 2. 주식 종목 실시간 티커 띠 (Stock Ticker Bar) -->
+<!-- 2. 종목 전환 버튼 (클릭하면 그 종목 코드로 차트가 다시 그려짐) -->
 <!-- 4. lightweight-charts 차트 영역 -->
+<section class="ticker-bar">
+    <div class="ticker-wrapper">
+        <div class="ticker-item" data-code="005930">삼성전자</div>
+        <div class="ticker-item" data-code="000660">SK하이닉스</div>
+        <div class="ticker-item" data-code="AAPL">AAPL</div>
+        <div class="ticker-item" data-code="TSLA">TSLA</div>
+    </div>
+</section>
 <div class="chart-wrapper">
     <div id="stockhub-chart"></div>
 </div>
-<section class="ticker-bar">
-    <div class="ticker-wrapper">
-        <div class="ticker-item">DOW <span>891.23</span> <span class="down">-0.24%</span></div>
-        <div class="ticker-item">삼성전자 <span>82,400</span> <span class="up">+1.23%</span></div>
-        <div class="ticker-item">NAVER <span>198,500</span> <span class="up">+2.15%</span></div>
-        <div class="ticker-item">카카오 <span>44,650</span> <span class="down">-0.78%</span></div>
-        <div class="ticker-item">현대차 <span>234,000</span> <span class="up">+0.43%</span></div>
-        <div class="ticker-item">LG에너지 <span>412,500</span> <span class="down">-1.52%</span></div>
-        <div class="ticker-item">SK하이닉스 <span>186,300</span> <span class="up">+3.21%</span></div>
-        <div class="ticker-item">POSCO홀딩스 <span>541,000</span> <span class="down">-0.37%</span></div>
-        <div class="ticker-item">KOSPI <span>2,892.14</span> <span class="up">+0.69%</span></div>
-        <div class="ticker-item">KOSDAQ <span>891.23</span> <span class="down">-0.24%</span></div>
-    </div>
-</section>
 
 
     <!-- 서브 텍스트 -->
@@ -58,6 +42,12 @@
 </main>
 
 <!-- Custom JS -->
+<script>
+    // 서버가 결정한 종목 코드 (URL에 code가 없으면 기본 종목)
+    const resolvedCode = '<c:out value="${resolvedCode}"/>';
+    // 서버가 페이지 렌더링 시점에 미리 조회해둔 캔들 데이터 (없으면 null)
+    const initialCandles = ${empty initialCandlesJson ? 'null' : initialCandlesJson};
+</script>
 <script src="<c:url value='/js/stockhub.js'/>"></script>
 </body>
 </html>
