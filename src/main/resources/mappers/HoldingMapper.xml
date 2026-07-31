@@ -24,6 +24,38 @@
         ORDER BY h.update_at DESC
     </select>
 
+    <select id="selectPortfolioHoldings"
+            parameterType="string"
+            resultType="com.kh.demo.brokerage.dto.MyStockHoldingDto">
+        SELECT s.stock_code,
+               s.stock_name,
+               SUM(h.quantity) AS quantity,
+               SUM(h.avg_price * h.quantity) / NULLIF(SUM(h.quantity), 0) AS avg_price,
+               s.current_price,
+               CAST(SUM(h.avg_price * h.quantity) AS SIGNED) AS purchase_amount,
+               CAST(SUM(s.current_price * h.quantity) AS SIGNED) AS current_value,
+               CAST(SUM(
+                   (CAST(s.current_price AS SIGNED) - CAST(h.avg_price AS SIGNED))
+                   * CAST(h.quantity AS SIGNED)
+               ) AS SIGNED) AS profit_amount,
+               CASE
+                   WHEN SUM(h.avg_price * h.quantity) = 0 THEN 0
+                   ELSE (
+                       SUM(
+                           (CAST(s.current_price AS SIGNED) - CAST(h.avg_price AS SIGNED))
+                           * CAST(h.quantity AS SIGNED)
+                       ) * 100.0
+                   ) / SUM(h.avg_price * h.quantity)
+               END AS return_rate
+        FROM account a
+        JOIN holding h ON h.account_id = a.account_id
+        JOIN stock s ON s.stock_code = h.stock_code
+        WHERE a.member_id = #{memberId}
+          AND h.quantity > 0
+        GROUP BY s.stock_code, s.stock_name, s.current_price
+        ORDER BY current_value DESC, s.stock_code
+    </select>
+
     <insert id="insertHolding" parameterType="com.kh.demo.brokerage.dto.HoldingDto"
             useGeneratedKeys="true" keyProperty="holdingId">
         INSERT INTO holding(account_id, stock_code, quantity, avg_price)
