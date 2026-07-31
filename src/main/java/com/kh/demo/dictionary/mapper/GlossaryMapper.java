@@ -31,6 +31,17 @@ public interface GlossaryMapper {
     // 카테고리 목록 조회를 위한 메서드
     List<String> selectCategoryList();
 
+    //검색어가 들어있는 카테고리 조회를 위한 메서드
+    List<String> selectCategoryCodesByKeyword(
+            @Param("keyword") String keyword
+    );
+
+    //
+    List<GlossaryDto> selectGlossaryByCategoryKeyword(
+            @Param("category") String category,
+            @Param("keyword") String keyword
+    );
+
     // 하이라이트가 전체 용어 목록을 조회
     List<GlossaryDto> selectAllTerms();
 }

@@ -7,8 +7,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Controller
 public class GlossaryController {
@@ -16,10 +19,39 @@ public class GlossaryController {
     @Autowired
     private GlossaryService glossaryService;
 
+    private static final List<String> CATEGORY_CODES = List.of(
+            "trading",
+            "risk-management",
+            "position",
+            "market",
+            "fundamental",
+            "chart"
+    );
+
     // 용어사전 메인 페이지 (카테고리 목록)
     @GetMapping("/dictionary")
-    public String main() {
-        return "dictionary/glossary";
+    public String main(
+            @RequestParam(value = "keyword", defaultValue = "")
+            String keyword,
+            Model model
+    ){
+        String searchKeyword = keyword.trim();
+
+        Set<String> matchedCategoryCodes;
+
+        if(searchKeyword.isBlank()){
+
+            matchedCategoryCodes = new HashSet<>(CATEGORY_CODES);
+        }else {
+
+            /* 검색어가 포함된 카테고리 코드 조회 */
+
+            matchedCategoryCodes = new HashSet<>(
+                    glossaryService.selectCategoryCodesByKeyword(
+                            searchKeyword
+            )
+            );
+        }
     }
 
     // 용어사전 카테고리별 페이지 매핑
