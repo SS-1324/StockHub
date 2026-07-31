@@ -7,8 +7,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const container = document.getElementById('stockhub-chart');
     if (!container) return;
 
+
     const { chart, candleSeries } = initChart(container);
     loadInitialData(candleSeries);
+
+    setInterval(() => {
+        loadInitialData(candleSeries);
+    }, 200);
 });
 
 //candelChart를 그려주기 위한 LightweightCharts.createChart
@@ -29,11 +34,9 @@ function initChart(container) {
 
 // 최초 전체 데이터 로드
 // await를 사용하기 위해 async 사용함.
-
 async function loadInitialData(candleSeries) {
-    const res = await fetch('/api/stock/005930/chart'); // 우리 서버 API
+    const res = await fetch(`/api/stock/${code}/chart`); // 우리 서버 API
     const data = await res.json();
     candleSeries.setData(data); // 캔들차트 데이터를 넘겨받으면 캔들차트를 그림
 }
-
 
