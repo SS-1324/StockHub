@@ -17,8 +17,27 @@
         ORDER BY img_order ASC
     </select>
 
+    <select id="selectByBoardIds" resultType="com.kh.demo.community.dto.BoardImageDto">
+        SELECT img_id, board_id, original_name, save_name, img_path, img_order, create_at
+        FROM board_image
+        WHERE board_id IN
+        <foreach collection="boardIds" item="boardId" open="(" separator="," close=")">
+            #{boardId}
+        </foreach>
+        ORDER BY board_id ASC, img_order ASC
+    </select>
+
     <delete id="deleteByBoardId">
         DELETE FROM board_image WHERE board_id = #{boardId}
+    </delete>
+
+    <delete id="deleteByIds">
+        DELETE FROM board_image
+        WHERE board_id = #{boardId}
+          AND img_id IN
+        <foreach collection="imageIds" item="imageId" open="(" separator="," close=")">
+            #{imageId}
+        </foreach>
     </delete>
 
 </mapper>

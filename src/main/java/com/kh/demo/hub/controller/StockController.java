@@ -12,7 +12,7 @@ public class StockController {
         return "hub/chart";
     }
 
-    // jhk가 작업 중 쓰던 경로도 그대로 유지 (같은 화면)
+    // jhk측에서 작업 중 쓰던 경로도 그대로 유지 (같은 화면)
     @GetMapping("/hub/chart")
     public String chart() {
         return "hub/chart";

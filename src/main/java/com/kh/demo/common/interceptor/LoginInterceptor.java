@@ -16,8 +16,6 @@ import java.nio.charset.StandardCharsets;
 * 로그인이 필요한 기능마다 매번
 * if(session.getAttribute("loginMember") != null)코드를 반복해야한다.
 * 이 인터셉터를 통해 로그인이 필요한 경로와 아닌 경로를 분리해서 로그인 여부를 검사한다.
-*
-*
 * */
 public class LoginInterceptor implements HandlerInterceptor {
 
@@ -44,7 +42,6 @@ public class LoginInterceptor implements HandlerInterceptor {
 
         return false;
     }
-
 
     private boolean isApiRequest(HttpServletRequest request){
         String uri = request.getRequestURI();

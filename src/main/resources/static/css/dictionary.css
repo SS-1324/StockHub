@@ -1,11 +1,250 @@
-/*사전 전용 css*/
-
-.glossary-header h3 {
+.glossary {
     width: 100%;
+    max-width: 1050px;
+    margin: 0 auto;
+}
+
+/* 제목 영역 */
+.glossary-header {
+    margin-bottom: 46px;
     text-align: center;
 }
 
-.glossary-info{
-    padding: 20px;
+.glossary-header h1 {
+    margin: 0;
+    color: #172033;
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.3;
 }
 
+.glossary-info {
+    margin: 16px auto 0;
+    padding: 0;
+    color: #64748b;
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+/* 카테고리 카드 배치 */
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+/* 카테고리 링크 */
+.category {
+    position: relative;
+    display: flex;
+    min-height: 118px;
+    overflow: hidden;
+    border: 1px solid #dbe4f0;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 5px 18px rgba(15, 23, 42, 0.05);
+    transition:
+            transform 0.2s ease,
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+}
+
+.category-preview {
+    width: 360px;
+    height: 240px;
+    margin: 34px auto 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#category-preview-image {
+    max-width: 170%;
+    max-height: 170%;
+    object-fit: contain;
+
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#category-preview-image.show {
+    opacity: 1;
+}
+
+/* 카드 상단 강조선 */
+.category::before {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #7667ff, #0874f7);
+    content: "";
+}
+
+/* 번호 */
+.category-number {
+    position: absolute;
+    top: 17px;
+    left: 19px;
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+/* 카테고리 이름 */
+.category-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 24px 18px 24px;
+    color: #273449;
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+    word-break: keep-all;
+}
+
+/* 마우스를 올렸을 때 */
+.category:hover {
+    border-color: #8bbcff;
+    box-shadow: 0 13px 30px rgba(8, 116, 247, 0.13);
+    transform: translateY(-4px);
+}
+
+/*용어 사전 카테고리 내부 설정*/
+
+/*제목*/
+.category-name {
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+/*용어 카드 박스 배열 정렬*/
+.glossary-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 20px;
+    max-width: 960px;
+    margin: 0 auto;
+    align-items: start;
+}
+
+
+/* 용어 카드 기본 상태 */
+.glossary-item {
+    padding: 20px 24px;
+    overflow: hidden;
+    width: 100%;
+    border: 1px solid #dbe4f0;
+    border-radius: 14px;
+    background: #ffffff;
+    text-align: center;
+
+    cursor: pointer;
+
+    transition:
+            box-shadow 0.3s ease,
+            border-color 0.3s ease,
+            transform 0.3s ease;
+}
+
+/* 용어명 */
+.glossary-term {
+    margin: 0;
+    color: #273449;
+    font-size: 18px;
+    transition: color 0.3s ease;
+}
+
+/* 설명 기본 상태: 숨김 */
+.glossary-definition {
+    max-height: 0;
+    margin: 0;
+    overflow: hidden;
+
+    color: #526074;
+    font-size: 14px;
+    line-height: 1.7;
+
+    opacity: 0;
+    transform: translateY(-8px);
+
+    transition:
+            max-height 0.4s ease,
+            margin 0.4s ease,
+            padding 0.4s ease,
+            opacity 0.3s ease,
+            transform 0.4s ease;
+}
+
+/* 카드에 마우스를 올렸을 때 */
+.glossary-item:hover {
+    border-color: #8bbcff;
+    box-shadow: 0 10px 24px rgba(8, 116, 247, 0.12);
+    transform: translateY(-3px);
+}
+
+/* 호버 시 용어명 색상 */
+.glossary-item:hover .glossary-term {
+    color: #0874f7;
+}
+
+/* 호버 시 설명 펼치기 */
+.glossary-item:hover .glossary-definition {
+    max-height: 300px;
+    margin-top: 15px;
+    padding-top: 15px;
+
+    border-top: 1px solid #e8edf4;
+
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.category:hover .category-box {
+    color: #0565da;
+}
+
+.category:hover .category-number {
+    color: #0874f7;
+}
+
+/* 태블릿 */
+@media (max-width: 850px) {
+    .category-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* 모바일 */
+@media (max-width: 560px) {
+    .glossary-page {
+        padding: 48px 18px 70px;
+    }
+
+    .glossary-header {
+        margin-bottom: 32px;
+    }
+
+    .glossary-header h1 {
+        font-size: 28px;
+    }
+
+    .glossary-info br {
+        display: none;
+    }
+
+    .category-grid {
+        grid-template-columns: 1fr;
+        gap: 13px;
+    }
+
+    .category {
+        min-height: 100px;
+    }
+}

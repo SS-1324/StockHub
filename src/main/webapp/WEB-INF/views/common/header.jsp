@@ -4,7 +4,6 @@
 
 <%-- 모든 페이지에서 공통으로 사용하는 주소 --%>
 <c:url var="homeUrl" value="/" />
-<c:url var="communityUrl" value="/community/board" />
 <c:url var="tradeHubUrl" value="/trade-hub" />
 <c:url var="rankingUrl" value="/ranking" />
 <c:url var="dictionaryUrl" value="/dictionary" />
@@ -18,6 +17,15 @@
 <c:url var="commonCssUrl" value="/css/common.css" />
 <c:url var="headerJsUrl" value="/js/header.js" />
 <c:set var="requestUri" value="${pageContext.request.requestURI}" />
+
+<%-- 커뮤니티용 주소 --%>
+<c:url var="communityUrl" value="/community" scope="request" />
+<c:url var="communityFreeUrl" value="/community?category=free" />
+<c:url var="communityTradeUrl" value="/community?category=trade" />
+<c:url var="communityTipUrl" value="/community?category=tip" />
+<c:url var="communityProfitUrl" value="/community?category=profit" />
+<c:url var="communityReviewUrl" value="/community?category=review" />
+
 <%--용어사전용 주소--%>
 <c:url var="dictionaryTradingUrl" value="/dictionary/category/trading" />
 <c:url var="dictionaryRiskUrl" value="/dictionary/category/risk-management" />
@@ -64,11 +72,11 @@
 
                 <div class="community-dropdown">
                     <a href="${communityUrl}">전체</a>
-                    <a href="${communityUrl}?category=free">자유</a>
-                    <a href="${communityUrl}?category=trade">살까?팔까?</a>
-                    <a href="${communityUrl}?category=tip">팁 공유</a>
-                    <a href="${communityUrl}?category=profit">수익인증</a>
-                    <a href="${communityUrl}?category=review">반성</a>
+                    <a href="${communityFreeUrl}">자유</a>
+                    <a href="${communityTradeUrl}">살까?팔까?</a>
+                    <a href="${communityTipUrl}">팁 공유</a>
+                    <a href="${communityProfitUrl}">수익인증</a>
+                    <a href="${communityReviewUrl}">반성</a>
                 </div>
             </div>
 
