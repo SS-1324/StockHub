@@ -578,6 +578,7 @@ function initInfiniteFeed(){
 
     let nextPage = Number(sentinel.dataset.nextPage || "2");
     const category = sentinel.dataset.category || "";
+    const keyword = sentinel.dataset.keyword || "";
     let loading = false;
 
     const observer = new IntersectionObserver(function(entries){
@@ -590,7 +591,9 @@ function initInfiniteFeed(){
     });
 
     async function loadNextPage(){
-        const query = `page=${nextPage}` + (category ? `&category=${encodeURIComponent(category)}` : "");
+        const query = `page=${nextPage}`
+            + (category ? `&category=${encodeURIComponent(category)}` : "")
+            + (keyword ? `&keyword=${encodeURIComponent(keyword)}` : "");
         const response = await fetch(`/community/feed?${query}`, {
             headers: {"X-Requested-With": "XMLHttpRequest"}
         });

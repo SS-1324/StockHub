@@ -16,12 +16,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /*
-* 게시글/댓글 본문에서 URL을 링크로 바꾸고, 용어사전(dictionary) 단어를 찾아 하이라이트 span으로 감싸주는 서비스 (F-COM-01-06).
-*
-* 순서가 중요함: 사용자 입력 원문을 먼저 HTML 이스케이프한 뒤에만 URL 링크화/용어 매칭을 한다.
-* 원문을 이스케이프하지 않고 먼저 매칭/치환하면 사용자가 입력한 <script> 등이 그대로 브라우저에서 실행되는
-* XSS 취약점이 생기기 때문에 반드시 "이스케이프 -> 변환" 순서를 지켜야 한다.
-* */
+ * 게시글/댓글 본문에서 URL을 링크로 바꾸고, 용어사전(dictionary) 단어를 찾아 하이라이트 span으로 감싸주는 서비스 (F-COM-01-06).
+ *
+ * 순서가 중요함: 사용자 입력 원문을 먼저 HTML 이스케이프한 뒤에만 URL 링크화/용어 매칭을 한다.
+ * 원문을 이스케이프하지 않고 먼저 매칭/치환하면 사용자가 입력한 <script> 등이 그대로 브라우저에서 실행되는
+ * XSS 취약점이 생기기 때문에 반드시 "이스케이프 -> 변환" 순서를 지켜야 한다.
+ * */
 @Service
 public class TermHighlightServiceImpl implements TermHighlightService {
 
@@ -38,7 +38,19 @@ public class TermHighlightServiceImpl implements TermHighlightService {
     @Override
     public String highlight(String rawText, String memberId) {
         String escaped = HtmlUtils.htmlEscape(rawText == null ? "" : rawText, "UTF-8");
-        String linkified = linkifyUrls(escaped);
+        return linkifyAndHighlight(escaped, memberId);
+    }
+
+    @Override
+    public String highlightHtml(String safeHtml, String memberId) {
+        // safeHtml은 이미 write/update 시점에 jsoup으로 정제되어 안전이 보장된 상태라고 가정한다.
+        // (보장 안 된 원문을 여기로 넘기면 안 됨 - 반드시 sanitize를 통과한 값만 넘길 것)
+        return linkifyAndHighlight(safeHtml == null ? "" : safeHtml, memberId);
+    }
+
+    // 이스케이프 이후 공통으로 수행하는 URL 링크화 + 용어 하이라이트
+    private String linkifyAndHighlight(String escapedOrSafeHtml, String memberId) {
+        String linkified = linkifyUrls(escapedOrSafeHtml);
 
         if (!isTooltipEnabled(memberId)) {
             return linkified;
