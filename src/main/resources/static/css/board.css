@@ -1,226 +1,219 @@
 /*
     커뮤니티 게시판 전용 스타일
-    공통 primitive(.btn, .alert, .form*, .file-label 등)는 common.css를 그대로 재사용하고
-    여기서는 게시판에서만 쓰이는 컴포넌트 클래스만 정의한다.
+    공통 primitive(.btn, .alert, .form 등)는 common.css를 재사용한다.
 */
 
-/*
-    글쓰기/수정 폼 제목 전용 정렬.
-    .form(common.css)이 max-width:480px, margin:0 auto로 가운데 배치되어 있는데
-    <h2 class="page-title">는 그 바깥(.container, 960px)에 있어서 폼과 안 맞고 왼쪽에 붙어 보였다.
-    같은 480px 너비 + 가운데 정렬을 줘서 폼 박스 정중앙 위에 오도록 맞춘다.
-    자유게시판(글쓰기/수정) 전용이라 다른 페이지(로그인/회원가입 등)의 .page-title에는 영향 없음.
-*/
-.board-form-title{
-    max-width: 480px;
-    margin: 0 auto 20px;
-    text-align: center;
+/* 목록 화면 전체 폭과 여백 */
+.board-page{
+    width: min(100%, 960px);
+    margin: 0 auto;
+    padding: 38px 24px 64px;
 }
 
-/* 폼 공통 - textarea/select는 common.css에 정의가 없어 여기서 보강 */
-.form textarea,
-.form select{
-    padding: 10px 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-    width: 100%;
-    font-family: inherit;
+.board-list-top{
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
 }
 
-.form textarea{
-    resize: vertical;
-    min-height: 160px;
+.board-list-heading .page-title{
+    margin: 0;
+    color: #172033;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.035em;
 }
 
-/* 남은 글자수 표시 (제목/본문/댓글/답글 공용 - board.js가 maxlength 있는 곳마다 자동으로 붙임) */
-.char-counter{
-    text-align: right;
-    font-size: 12px;
-    color: #999;
-    margin-top: 4px;
+.board-list-description{
+    margin: 7px 0 0;
+    color: #7b879d;
+    font-size: 13px;
 }
 
-/* 카테고리 필터/선택 */
+.board-write-btn,
+.btn-pill{
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 18px;
+    border: 1px solid #5278f6;
+    border-radius: 11px;
+    background: #5278f6;
+    box-shadow: 0 5px 14px rgba(82, 120, 246, 0.18);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+    transition: background-color 0.16s ease, border-color 0.16s ease,
+    box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.board-write-btn:hover,
+.btn-pill:hover{
+    border-color: #4168e5;
+    background: #4168e5;
+    box-shadow: 0 7px 18px rgba(65, 104, 229, 0.24);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+/* 카테고리와 검색창 */
+.board-list-toolbar{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
 .category-filter{
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 20px;
+    margin: 0;
 }
 
 .category-tab{
-    padding: 6px 14px;
-    border-radius: 999px;
-    border: 1px solid #ccc;
-    font-size: 13px;
-    color: #555;
-    background: #fff;
-}
-
-.category-tab-active{
-    background: #222;
-    color: #fff;
-    border-color: #222;
-}
-
-.category-badge{
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 999px;
-    background: #f0f0f0;
-    color: #555;
-    font-size: 12px;
-}
-
-.btn-pill{
     display: inline-flex;
     align-items: center;
-    padding: 6px 14px;
-    margin-bottom: 12px;
+    justify-content: center;
+    min-height: 34px;
+    padding: 0 14px;
+    border: 1px solid #d9e0ec;
     border-radius: 999px;
-    border: 1px solid #5281fb;
-    background: #5281fb;
-    color: #fff;
+    background: #fff;
+    color: #58657b;
     font-size: 13px;
+    font-weight: 600;
     text-decoration: none;
+    transition: border-color 0.15s ease, background-color 0.15s ease,
+    color 0.15s ease, transform 0.15s ease;
 }
 
-.btn-pill:hover{
-    background: #333;
+.category-tab:hover{
+    border-color: #aebfff;
+    background: #f6f8ff;
+    color: #4168e5;
+    transform: translateY(-1px);
 }
 
-/*
-    게시판 글쓰기/수정 화면의 등록·취소 버튼 전용 스타일.
-    common.css의 .btn-primary/.btn-outline은 로그인/회원가입 등 사이트 전체에서
-    같이 쓰이기 때문에 거기서 직접 색을 바꾸지 않고, 게시판 전용 클래스를 따로 둔다.
-*/
-.board-form-actions{
-    justify-content: flex-end;
-}
-
-.board-form-actions > *{
-    flex: 0 0 auto;
-    min-width: 96px;
-}
-
-.btn-board-submit{
-    border-color: #5281fb;
-    background: #5281fb;
+.category-tab-active,
+.category-tab-active:hover{
+    border-color: #5278f6;
+    background: #5278f6;
     color: #fff;
+    box-shadow: 0 4px 10px rgba(82, 120, 246, 0.16);
 }
 
-.btn-board-submit:hover{
-    border-color: #3f6fe0;
-    background: #3f6fe0;
-}
-
-/* 게시판 제목 + 검색창 한 줄 배치 */
-.board-list-header{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
+.search-form{
+    flex: 0 0 auto;
 }
 
 .search-box{
     position: relative;
-    display: inline-flex;
+    display: flex;
     align-items: center;
 }
 
 .search-box input[type="text"]{
-    padding: 10px 40px 10px 16px;
-    border: 1px solid #ddd;
+    width: 300px;
+    height: 40px;
+    padding: 0 42px 0 16px;
+    border: 1px solid #d9e0ec;
     border-radius: 999px;
     background: #fff;
+    box-shadow: 0 2px 7px rgba(38, 55, 88, 0.03);
+    color: #263248;
+    font-family: inherit;
     font-size: 13px;
-    width: 320px;
     outline: none;
-    transition: border-color 0.15s;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-box input[type="text"]::placeholder{
+    color: #9aa4b5;
 }
 
 .search-box input[type="text"]:focus{
-    border-color: #5281fb;
+    border-color: #7f9cff;
+    box-shadow: 0 0 0 3px rgba(82, 120, 246, 0.11);
 }
 
 .search-icon-btn{
     position: absolute;
-    right: 12px;
     top: 50%;
-    transform: translateY(-50%);
+    right: 13px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: none;
-    border: none;
-    padding: 0;
-    color: #666;
+    padding: 3px;
+    border: 0;
+    background: transparent;
+    color: #8c97a9;
     cursor: pointer;
+    transform: translateY(-50%);
+    transition: color 0.15s ease;
 }
+
+.search-icon-btn:hover{
+    color: #5278f6;
+}
+
 .search-result-info{
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 0;
-    margin-bottom: 12px;
+    min-height: 38px;
+    padding: 9px 13px;
+    margin-bottom: 14px;
+    border: 1px solid #dfe6f2;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.75);
+    color: #657187;
     font-size: 13px;
-    color: #666;
+}
+
+.search-result-info strong{
+    color: #263248;
 }
 
 .search-reset{
-    color: #5281fb;
-    text-decoration: none;
+    color: #5278f6;
     font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
 }
 
 .search-reset:hover{
     text-decoration: underline;
 }
 
-.search-icon-btn:hover{
-    color: #5281fb;
-}
-
-/* 목록 */
-
-.search-icon-btn{
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: inline-flex;
+.board-empty-state{
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: none;
-    border: none;
-    padding: 0;
-    color: #666;
-    cursor: pointer;
+    gap: 7px;
+    min-height: 190px;
+    padding: 32px;
+    border: 1px dashed #cfd8e8;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.72);
+    color: #8792a5;
+    text-align: center;
 }
 
-.search-icon-btn:hover{
-    color: #5281fb;
-}
-.search-icon-btn{
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: none;
-    border: none;
-    padding: 0;
-    color: #999;
-    cursor: pointer;
+.board-empty-state strong{
+    color: #3d4a61;
+    font-size: 15px;
 }
 
-.search-icon-btn:hover{
-    color: #5281fb;
-}
-/* 목록 */
+/* 게시글 목록 카드 */
 .board-list{
     display: flex;
     flex-direction: column;
@@ -230,91 +223,109 @@
 
 .board-card{
     display: block;
-    padding: 16px 18px;
-    border: 1px solid #eee;
-    border-radius: 8px;
+    padding: 20px 22px 16px;
+    border: 1px solid #dce4f1;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 3px 12px rgba(45, 61, 91, 0.045);
+    color: #263248;
+    text-decoration: none;
+    transition: border-color 0.17s ease, box-shadow 0.17s ease,
+    transform 0.17s ease;
 }
 
 .board-card:hover{
-    border-color: #ccc;
-    scale: calc(1);
+    border-color: #aebfff;
+    box-shadow: 0 9px 24px rgba(52, 73, 115, 0.09);
+    color: #263248;
+    transform: translateY(-2px);
 }
 
-/* 카드 상단 - 작성자 프로필 사진 + 닉네임 + 작성일 */
 .board-card-header{
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
+    gap: 9px;
+    margin-bottom: 12px;
 }
 
 .board-card-avatar{
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    border: 1px solid #e5eaf2;
     border-radius: 50%;
+    background: #f0f3f8;
     object-fit: cover;
-    background: #f0f0f0;
 }
 
 .board-card-header-text{
     display: flex;
+    min-width: 0;
     flex-direction: column;
-    line-height: 1.3;
+    line-height: 1.35;
 }
 
 .board-card-nickname{
+    overflow: hidden;
+    color: #263248;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 750;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .board-card-date{
-    font-size: 12px;
-    color: #999;
+    color: #939daf;
+    font-size: 11px;
 }
 
 .board-card-title{
+    margin-bottom: 7px;
+    color: #172033;
     font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 6px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.45;
 }
 
-/* 줄바꿈을 그대로 보여주되(white-space: pre-wrap), 5줄이 넘으면 잘라내고 JS가 "더보기" 버튼을 붙인다 */
 .board-card-snippet{
-    color: #555;
-    font-size: 14px;
-    margin-bottom: 4px;
-    white-space: pre-wrap;
-    word-break: break-word;
-    overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 5;
+    overflow: hidden;
+    margin-bottom: 0;
+    color: #566379;
+    font-size: 14px;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
     -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
 }
 
 .board-card-snippet.expanded{
-    -webkit-line-clamp: unset;
+    display: block;
     overflow: visible;
+    -webkit-line-clamp: unset;
 }
 
 .board-card-more-btn{
     display: block;
-    margin-bottom: 10px;
     padding: 0;
-    border: none;
-    background: none;
-    color: #3366cc;
-    font-size: 13px;
+    margin: 7px 0 0;
+    border: 0;
+    background: transparent;
+    color: #5278f6;
+    font-size: 12px;
+    font-weight: 700;
     cursor: pointer;
 }
 
-/* 목록 카드용 이미지 - 높이를 통일해서(폭은 원본 비율대로) 가로로 나열하고, 이미지끼리는 붙지 않게 gap을 둔다.
-   한 장씩 넘기는 캐러셀이 아니라 그냥 옆으로 스크롤해서 보는 필름스트립 형태. */
 .board-card-image-strip{
     display: flex;
-    gap: 6px;
+    gap: 7px;
     overflow-x: auto;
-    margin-bottom: 10px;
+    margin-top: 14px;
     cursor: grab;
+    scrollbar-width: none;
 }
 
 .board-card-image-strip::-webkit-scrollbar{
@@ -327,63 +338,115 @@
 }
 
 .board-card-image-strip img{
-    height: 240px;
-    width: auto;
-    flex: 0 0 auto;
-    border-radius: 8px;
     display: block;
-    -webkit-user-drag: none;
+    width: auto;
+    height: 220px;
+    flex: 0 0 auto;
+    border: 1px solid #edf0f5;
+    border-radius: 10px;
+    object-fit: cover;
     user-select: none;
+    -webkit-user-drag: none;
 }
 
-/* 이미지가 딱 1장뿐이면 필름스트립 대신 카드 폭을 꽉 채워서 훨씬 크게 보여준다(짤방 위주 커뮤니티 특성 고려) */
 .board-card-image-single{
-    margin-bottom: 10px;
+    margin-top: 14px;
 }
 
 .board-card-image-single img{
+    display: block;
     width: 100%;
     height: auto;
-    max-height: 520px;
+    max-height: 480px;
+    border: 1px solid #edf0f5;
+    border-radius: 10px;
     object-fit: cover;
-    border-radius: 8px;
-    display: block;
-    -webkit-user-drag: none;
     user-select: none;
+    -webkit-user-drag: none;
 }
 
-/* 좋아요/북마크/댓글로 이동 - 카드 안에서 바로 반응할 수 있는 액션 버튼 줄 */
-.board-card-actions{
+.board-card-footer{
     display: flex;
     align-items: center;
-    gap: 14px;
-    margin-bottom: 8px;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 13px;
+    margin-top: 15px;
+    border-top: 1px solid #edf1f6;
+}
+
+.board-card-meta{
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 9px;
+    color: #8d98aa;
+    font-size: 12px;
+}
+
+.category-badge{
+    display: inline-flex;
+    align-items: center;
+    min-height: 25px;
+    padding: 0 9px;
+    border-radius: 999px;
+    background: #eef3ff;
+    color: #4b6fe2;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.board-card-view-count{
+    white-space: nowrap;
+}
+
+.board-card-actions{
+    display: flex;
+    min-width: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    margin: 0;
 }
 
 .board-card-action-btn{
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    border: none;
-    background: none;
-    padding: 0;
-    color: #999;
-    font-size: 13px;
+    min-height: 29px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #8b96a8;
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1;
     cursor: pointer;
+    transition: background-color 0.14s ease, color 0.14s ease;
+}
+
+.board-card-action-btn:hover{
+    background: #f3f6fc;
+    color: #5278f6;
 }
 
 .board-card-action-btn.active{
-    color: #222;
-    font-weight: 700;
+    background: #eef3ff;
+    color: #4168e5;
+    font-weight: 750;
 }
 
-.board-card-meta{
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-    font-size: 12px;
-    color: #999;
+.board-card-action-icon{
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+}
+
+.board-card-comment-link{
+    cursor: pointer;
 }
 
 .pagination{
@@ -393,31 +456,88 @@
     margin-top: 12px;
 }
 
-/* 상세 */
+/* 글쓰기/수정 폼 */
+.board-form-title{
+    max-width: 480px;
+    margin: 0 auto 20px;
+    text-align: center;
+}
+
+.form textarea,
+.form select{
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.form textarea{
+    min-height: 160px;
+    resize: vertical;
+}
+
+.char-counter{
+    margin-top: 4px;
+    color: #999;
+    font-size: 12px;
+    text-align: right;
+}
+
+.board-form-actions{
+    justify-content: flex-end;
+}
+
+.board-form-actions > *{
+    min-width: 96px;
+    flex: 0 0 auto;
+}
+
+.btn-board-submit{
+    border-color: #5278f6;
+    background: #5278f6;
+    color: #fff;
+}
+
+.btn-board-submit:hover{
+    border-color: #4168e5;
+    background: #4168e5;
+}
+
+/* 상세 화면 */
+.board-detail-card{
+    padding: 24px 26px;
+    margin-bottom: 20px;
+    border: 1px solid #dce4f1;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 4px 15px rgba(45, 61, 91, 0.05);
+}
+
 .board-title{
+    margin-bottom: 16px;
     font-size: 24px;
     font-weight: 700;
-    margin-bottom: 16px;
 }
 
 .board-header-meta{
     display: flex;
     align-items: center;
     gap: 10px;
+    margin-bottom: 16px;
     color: #888;
     font-size: 13px;
-    margin-bottom: 16px;
 }
 
 .board-header-avatar{
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    object-fit: cover;
     background: #f0f0f0;
+    object-fit: cover;
 }
 
-/* 상세 이미지 - 목록보다 큰 높이로 통일해서 가로로 나열, 붙임 처리 없이 gap을 두고 가로 스크롤로 넘겨봄 */
 .board-image-strip{
     display: flex;
     gap: 8px;
@@ -436,31 +556,30 @@
 }
 
 .board-image{
-    height: 800px;
+    display: block;
     width: auto;
+    height: 800px;
     flex: 0 0 auto;
     border-radius: 8px;
-    display: block;
-    -webkit-user-drag: none;
     user-select: none;
+    -webkit-user-drag: none;
 }
 
-/* 이미지가 1장뿐이면 고정 높이 필름스트립 대신, 좌우로 본문과 같은 폭을 꽉 채워서 보여준다 */
 .board-image-single img{
+    display: block;
     width: 100%;
     height: auto;
     border-radius: 8px;
-    display: block;
-    -webkit-user-drag: none;
     user-select: none;
+    -webkit-user-drag: none;
 }
 
 .board-content{
+    margin-bottom: 20px;
     font-size: 15px;
     line-height: 1.8;
+    overflow-wrap: anywhere;
     white-space: pre-wrap;
-    word-break: break-word;
-    margin-bottom: 20px;
 }
 
 .board-meta-bottom{
@@ -468,9 +587,9 @@
     align-items: center;
     gap: 8px;
     padding: 14px 0;
+    margin-bottom: 24px;
     border-top: 1px solid #eee;
     border-bottom: 1px solid #eee;
-    margin-bottom: 24px;
 }
 
 .board-actions{
@@ -485,8 +604,8 @@
     align-items: center;
     gap: 6px;
     padding: 8px 14px;
-    border-radius: 6px;
     border: 1px solid #ccc;
+    border-radius: 6px;
     background: #fff;
     color: #555;
     font-size: 13px;
@@ -495,7 +614,6 @@
 
 .btn-icon:hover{
     background: #f5f5f5;
-    scale: calc(1);
 }
 
 .btn-icon.active{
@@ -509,64 +627,6 @@
     font-size: 13px;
 }
 
-/* 이미지 미리보기 (글쓰기 폼) */
-.image-preview-list{
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.image-preview-item{
-    position: relative;
-    width: 96px;
-    height: 96px;
-    border-radius: 6px;
-    overflow: hidden;
-    border: 1px solid #eee;
-}
-
-.image-preview-item img{
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* 미리보기/기존 이미지 각각의 우측 상단에 뜨는 개별 삭제(X) 버튼 */
-.image-remove-btn{
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: none;
-    background: rgba(0, 0, 0, 0.6);
-    color: #fff;
-    font-size: 14px;
-    line-height: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.image-remove-btn:hover{
-    background: rgba(0, 0, 0, 0.8);
-}
-
-/*
-    상세 화면 - 글 본문이 페이지 배경(#f0f4ff)과 똑같아서 구분이 안 되던 문제.
-    본문 전체를 흰 카드로 감싸서 페이지 배경과 명확히 분리한다.
-*/
-.board-detail-card{
-    background: #fff;
-    border-radius: 12px;
-    padding: 24px 26px;
-    margin-bottom: 20px;
-}
-
-/* 이전글/다음글 네비게이션 - 같은 카테고리 안에서만 이동 */
 .board-adjacent-nav{
     display: flex;
     flex-direction: column;
@@ -584,12 +644,12 @@
 }
 
 .board-adjacent-link:hover{
-    color: #5281fb;
+    color: #5278f6;
 }
 
 .board-adjacent-label{
-    flex-shrink: 0;
     width: 48px;
+    flex-shrink: 0;
     color: #999;
     font-size: 12px;
     font-weight: 700;
@@ -597,25 +657,72 @@
 
 .board-adjacent-title{
     overflow: hidden;
-    white-space: nowrap;
     text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 이미지 미리보기 */
+.image-preview-list{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.image-preview-item{
+    position: relative;
+    width: 96px;
+    height: 96px;
+    overflow: hidden;
+    border: 1px solid #eee;
+    border-radius: 6px;
+}
+
+.image-preview-item img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-remove-btn{
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.image-remove-btn:hover{
+    background: rgba(0, 0, 0, 0.8);
 }
 
 /* 댓글 */
 .comment-section{
-    margin-top: 12px;
     padding: 20px 22px;
+    margin-top: 12px;
+    border: 1px solid #dce4f1;
+    border-radius: 14px;
     background: #fff;
-    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(45, 61, 91, 0.04);
 }
 
 .comment-section-title{
+    margin-bottom: 14px;
     font-size: 16px;
     font-weight: 700;
-    margin-bottom: 14px;
 }
 
-/* "댓글 달기" 토글 버튼 - 이걸 눌러야 아래 말풍선 모양 입력창이 펼쳐진다 */
 .comment-form-toggle{
     display: inline-flex;
     align-items: center;
@@ -634,23 +741,24 @@
     background: #f5f5f5;
 }
 
-/* 말풍선 느낌으로 - 배경/둥근 테두리를 줘서 위 게시글 본문과 분절되어 보이지 않게 함 */
 .comment-form{
     display: flex;
     gap: 8px;
     padding: 10px 12px;
     margin-bottom: 20px;
-    background: #f5f6f8;
     border-radius: 16px;
+    background: #f5f6f8;
 }
 
-.comment-form.hidden{
+.comment-form.hidden,
+.comment-edit-form.hidden,
+.reply-form.hidden{
     display: none;
 }
 
 .comment-form textarea{
-    flex: 1;
     min-height: 48px;
+    flex: 1;
     background: #fff;
 }
 
@@ -664,10 +772,9 @@
     border-bottom: 1px solid #f0f0f0;
 }
 
-/* 대댓글은 우측으로 들여쓰고 왼쪽에 얇은 선을 그어서 어느 댓글에 달린 답글인지 한눈에 보이게 함 */
 .comment-item-reply{
-    margin-left: 32px;
     padding-left: 12px;
+    margin-left: 32px;
     border-left: 2px solid #eee;
 }
 
@@ -679,24 +786,25 @@
     cursor: default;
 }
 
-.comment-avatar{
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    object-fit: cover;
-    background: #f0f0f0;
-}
-
+.comment-avatar,
 .comment-avatar-placeholder{
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: #eee;
+}
+
+.comment-avatar{
+    background: #f0f0f0;
+    object-fit: cover;
+}
+
+.comment-avatar-placeholder{
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    background: #eee;
     color: #aaa;
+    font-size: 11px;
 }
 
 .comment-nickname{
@@ -705,31 +813,27 @@
 }
 
 .comment-mention{
+    margin-right: 4px;
     color: #3366cc;
     font-weight: 600;
-    margin-right: 4px;
 }
 
 .comment-body{
+    margin-bottom: 8px;
     font-size: 14px;
     line-height: 1.6;
+    overflow-wrap: anywhere;
     white-space: pre-wrap;
-    word-break: break-word;
-    margin-bottom: 8px;
 }
 
 .comment-edit-form{
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin: 8px 0 12px;
     padding: 10px;
+    margin: 8px 0 12px;
     border-radius: 12px;
     background: #f5f6f8;
-}
-
-.comment-edit-form.hidden{
-    display: none;
 }
 
 .comment-edit-form textarea{
@@ -753,17 +857,17 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    font-size: 12px;
     color: #999;
+    font-size: 12px;
 }
 
 .comment-meta button{
-    background: none;
-    border: none;
+    padding: 0;
+    border: 0;
+    background: transparent;
     color: #999;
     font-size: 12px;
     cursor: pointer;
-    padding: 0;
 }
 
 .comment-meta button.active{
@@ -774,52 +878,43 @@
 .reply-form{
     display: flex;
     gap: 8px;
-    margin-top: 10px;
     padding: 8px 10px;
-    background: #f5f6f8;
+    margin-top: 10px;
     border-radius: 14px;
-}
-
-.reply-form.hidden{
-    display: none;
+    background: #f5f6f8;
 }
 
 .reply-form textarea{
-    flex: 1;
     min-height: 44px;
+    flex: 1;
     background: #fff;
 }
 
 /* 전문용어 하이라이트 */
 .term-highlight{
+    color: inherit;
     text-decoration: underline dotted;
     text-underline-offset: 3px;
     cursor: help;
-    color: inherit;
 }
 
 .term-tooltip{
     position: fixed;
+    z-index: 1000;
     max-width: 260px;
     padding: 10px 12px;
+    border-radius: 6px;
     background: #222;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     color: #fff;
     font-size: 12px;
     line-height: 1.5;
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 1000;
 }
 
-/*
-    글쓰기 화면 Quill 에디터.
-    - 배경을 항상 흰색으로 고정해서(로그인 폼과 같은 방식) 페이지 배경(#f0f4ff)과
-      섞이지 않게 하고, placeholder("내용을 입력하세요")도 확실히 구분되는 회색으로 지정.
-    - 최소 높이를 늘려서 글쓰기 칸을 넉넉하게 확보.
-*/
+/* Quill 에디터 */
 .ql-toolbar.ql-snow{
     border: 1px solid #ddd;
-    border-bottom: none;
+    border-bottom: 0;
     border-radius: 6px 6px 0 0;
     background: #fff;
 }
@@ -838,7 +933,90 @@
 }
 
 .ql-editor.ql-blank::before{
+    left: 15px;
     color: #999;
     font-style: normal;
-    left: 15px;
+}
+
+@media (max-width: 760px){
+    .board-page{
+        padding: 28px 16px 48px;
+    }
+
+    .board-list-top{
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .board-list-heading .page-title{
+        font-size: 21px;
+    }
+
+    .board-list-description{
+        display: none;
+    }
+
+    .board-write-btn{
+        min-height: 38px;
+        padding: 0 14px;
+        white-space: nowrap;
+    }
+
+    .board-list-toolbar{
+        align-items: stretch;
+        flex-direction: column;
+        gap: 13px;
+    }
+
+    .category-filter{
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 3px;
+        scrollbar-width: none;
+    }
+
+    .category-filter::-webkit-scrollbar{
+        display: none;
+    }
+
+    .category-tab{
+        flex: 0 0 auto;
+    }
+
+    .search-form,
+    .search-box,
+    .search-box input[type="text"]{
+        width: 100%;
+    }
+
+    .board-card{
+        padding: 17px 16px 14px;
+        border-radius: 12px;
+    }
+
+    .board-card-footer{
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .board-card-actions{
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .board-card-image-strip img{
+        height: 190px;
+    }
+
+    .board-detail-card,
+    .comment-section{
+        padding: 19px 17px;
+        border-radius: 12px;
+    }
+
+    .board-image{
+        height: 520px;
+    }
 }
