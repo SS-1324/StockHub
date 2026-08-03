@@ -60,4 +60,39 @@
         FROM glossary
         ORDER BY category ASC
     </select>
+
+    <!-- 메인 페이지 검색 -->
+    <select id = "selectCategoryCodesByKeyword"
+        resultType = "string">
+        SELECT DISTINCT category
+        FROM glossary
+        WHERE term LIKE CONCAT('%', #{keyword}, '%')
+        OR definition LIKE CONCAT ('%', #{keyword}, '%')
+        ORDER BY category ASC
+    </select>
+
+    <!-- 카테고리 내부 검색 -->
+    <select id = "selectGlossaryByCategoryAndKeyword"
+            resultMap = "glossaryResultMap">
+        SELECT term_id, term, definition, category
+        FROM glossary
+        WHERE category = #{category}
+        AND (
+        term LIKE CONCAT('%', #{keyword}, '%')
+        OR definition LIKE CONCAT('%', #{keyword}, '%')
+        )
+        ORDER BY term ASC
+    </select>
+
+    <!-- 검색창 자동 완성 -->
+    <select id = "selectAutocompleteTerms"
+            resultType="string">
+        SELECT term
+        FROM glossary
+        WHERE term LIKE CONCAT('%', #{keyword}, '%')
+
+
+
+    </select>
+
 </mapper>

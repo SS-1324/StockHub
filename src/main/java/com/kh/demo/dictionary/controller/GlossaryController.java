@@ -31,7 +31,8 @@ public class GlossaryController {
         List<GlossaryDto> glossaryList =
                 glossaryService.selectGlossaryByCategory(category);
 
-        String categoryName = switch(category){
+        model.addAttribute("categoryName", category);
+        String categoryName = switch (category) {
             case "trading" -> "매매와 투자 행동";
             case "risk-management" -> "투자자·자금·손익 관리";
             case "position" -> "상품과 포지션";
