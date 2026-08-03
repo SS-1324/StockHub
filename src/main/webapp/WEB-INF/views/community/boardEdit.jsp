@@ -6,7 +6,10 @@
 
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css">
 
-<h2 class="page-title">게시글 수정</h2>
+<!-- 글쓰기 화면과 동일한 Quill 에디터 -->
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+
+<h2 class="page-title board-form-title">게시글 수정</h2>
 
 <c:if test="${not empty error}">
     <p class="alert alert-error">${error}</p>
@@ -30,8 +33,11 @@
     </div>
 
     <div class="form-row">
-        <label for="content">내용</label>
-        <textarea id="content" name="content" maxlength="3000" required><c:out value="${board.content}" /></textarea>
+        <label for="editor-container">내용</label>
+        <div id="editor-container"></div>
+        <!-- 서버로 전송되는 값이자, 기존 글 내용을 처음에 담아두는 곳. board.content는 write.jsp에서
+             Quill로 저장한 HTML이라, value에 그대로 넣었다가 JS가 읽어서 에디터에 채워 넣는다. -->
+        <input type="hidden" id="content" name="content" value="${fn:escapeXml(board.content)}" required>
     </div>
 
     <c:if test="${not empty images}">
@@ -58,11 +64,37 @@
         <div id="image-preview-list" class="image-preview-list"></div>
     </div>
 
-    <div class="form-row form-row-actions">
-        <button type="submit" class="btn btn-primary">수정 완료</button>
+    <div class="form-row form-row-actions board-form-actions">
         <a class="btn btn-outline" href="${communityUrl}/${board.boardId}">취소</a>
+        <button type="submit" class="btn btn-primary btn-board-submit">수정 완료</button>
     </div>
 </form>
 
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<script>
+    const quill = new Quill('#editor-container', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                ['bold', 'italic', 'strike'],
+                [{ 'size': ['small', false, 'large', 'huge'] }],
+                ['link'],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }]
+            ]
+        },
+        placeholder: '내용을 입력하세요'
+    });
+
+    // hidden input에 미리 담아둔 기존 글 내용을 에디터에 채워 넣는다.
+    const existingContent = document.getElementById('content').value;
+    if (existingContent) {
+        quill.root.innerHTML = existingContent;
+    }
+
+    // 폼이 제출되기 직전에 Quill 안의 최신 HTML을 hidden input(content)으로 다시 옮긴다.
+    document.getElementById('board-edit-form').addEventListener('submit', function () {
+        document.getElementById('content').value = quill.root.innerHTML;
+    });
+</script>
 <script src="/js/board.js"></script>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

@@ -17,8 +17,16 @@ public interface BoardService {
     // 게시글 작성 (카테고리 검증/기본값 처리 + 이미지 업로드 포함) -> 생성된 게시글 번호 반환
     Long write(BoardDto boardDto, List<MultipartFile> images);
 
-    // 게시글 목록 조회 (카테고리 필터 + 페이징 + 로그인 회원 기준 좋아요/북마크 상태)
-    List<BoardDto> getList(String category, int page, int size, String loginMemberId);
+    // 게시글 목록 조회 (카테고리/검색어 필터 + 페이징 + 로그인 회원 기준 좋아요/북마크 상태)
+    List<BoardDto> getList(String category, String keyword, int page, int size, String loginMemberId);
+
+    // 검색어 없이 목록을 조회하던 기존 호출도 계속 사용할 수 있도록 제공한다.
+    default List<BoardDto> getList(String category, int page, int size, String loginMemberId) {
+        return getList(category, null, page, size, loginMemberId);
+    }
+
+    // 카테고리와 검색 조건에 맞는 전체 게시글 수
+    long getTotalCount(String category, String keyword);
 
     // 게시글 존재 여부 확인 (좋아요/북마크 등 다른 기능에서 대상 게시글 유효성 검사용)
     boolean exists(Long boardId);
