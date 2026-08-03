@@ -6,6 +6,7 @@ const imageInput = document.querySelector("#image-input");
 const imagePreviewList = document.querySelector("#image-preview-list");
 const existingImageList = document.querySelector("#existing-image-list"); // 수정 화면에만 존재
 const deleteImageInputs = document.querySelector("#delete-image-inputs"); // 수정 화면에만 존재
+const boardWriteForm = document.querySelector("#board-write-form");
 const likeBtn = document.querySelector("#like-btn");
 const bookmarkBtn = document.querySelector("#bookmark-btn");
 const commentForm = document.querySelector("#comment-form");
@@ -19,6 +20,32 @@ if (commentFormToggle && commentForm) {
         if (opened) {
             document.querySelector("#comment-input").focus();
         }
+    });
+}
+
+/* 글쓰기 폼 제출 - 일반 폼 네비게이션 대신 fetch로 보내고, 성공하면 location.replace()로 상세 이동.
+ * location.href가 아니라 replace()를 쓰는 이유: href는 히스토리에 새 항목을 쌓지만 replace는 현재 항목(글쓰기 폼)을
+ * 대체한다. 그래야 글 등록 후 상세페이지에서 "뒤로가기"를 눌렀을 때, 이미 제출한 글쓰기 폼이 아니라
+ * 그 이전 페이지(커뮤니티 목록)로 곧장 돌아간다.
+ */
+if (boardWriteForm) {
+    boardWriteForm.addEventListener("submit", function(ev){
+        ev.preventDefault();
+        fetch(boardWriteForm.getAttribute("action"), {
+            method: "POST",
+            headers: {"X-Requested-With": "XMLHttpRequest"},
+            body: new FormData(boardWriteForm)
+        })
+            .then(function(response){ return response.json().then(function(result){ return {response, result}; }); })
+            .then(function({response, result}){
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || "게시글 등록에 실패했습니다.");
+                }
+                location.replace(`/community/${result.data}`);
+            })
+            .catch(function(err){
+                alert(err.message);
+            });
     });
 }
 

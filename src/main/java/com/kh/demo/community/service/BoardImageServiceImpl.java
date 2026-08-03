@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -179,10 +181,10 @@ public class BoardImageServiceImpl implements BoardImageService {
         boardImageMapper.deleteByBoardId(boardId);
     }
 
-    // 확장자와 Content-Type을 둘 다 확인하는 이유: 둘 중 하나만 검사하면 파일명만 바꾸거나
-    // Content-Type 헤더만 조작해서 우회할 수 있음(예: 동영상 파일의 확장자만 .jpg로 변경).
-    // 다만 이것도 완벽하진 않음 - 실제 파일 시그니처(매직바이트) 검증은 아님(TODO, #7 후속).
-    private void validateImageFile(MultipartFile image) {
+    // 확장자, Content-Type, 실제 파일 시그니처(매직바이트)까지 세 가지를 확인하는 이유: 확장자/Content-Type은
+    // 파일명이나 요청 헤더만 조작하면 둘 다 속일 수 있는 값이라, 파일 내용 자체를 열어봐야만 진짜 이미지인지 알 수 있음
+    // (예: 실행 파일의 확장자만 .jpg로 바꾸고 Content-Type도 image/jpeg로 조작해서 올리는 우회를 막는다).
+    private void validateImageFile(MultipartFile image) throws IOException {
         String originalName = image.getOriginalFilename();
         String extension = extractExtension(originalName);
         if (!ALLOWED_EXTENSIONS.contains(extension)) {
@@ -192,6 +194,36 @@ public class BoardImageServiceImpl implements BoardImageService {
         String contentType = image.getContentType();
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase(Locale.ROOT))) {
             throw new IllegalArgumentException("지원하지 않는 이미지 형식입니다: " + originalName);
+        }
+
+        if (!hasKnownImageSignature(image)) {
+            throw new IllegalArgumentException("지원하지 않는 이미지 형식입니다: " + originalName);
+        }
+    }
+
+    // 실제 파일 앞부분 바이트(매직바이트)를 읽어 JPG/PNG/GIF/WEBP 중 하나가 맞는지 확인.
+    // 게시판은 짤방 공유가 잦아 GIF/PNG를 계속 허용해야 해서, board 전용으로 여기 안에서만 검사한다.
+    private boolean hasKnownImageSignature(MultipartFile image) throws IOException {
+        try (InputStream in = image.getInputStream()) {
+            byte[] header = in.readNBytes(12); // WEBP 판별에 12바이트까지 필요
+
+            if (header.length >= 3
+                    && (header[0] & 0xFF) == 0xFF && (header[1] & 0xFF) == 0xD8 && (header[2] & 0xFF) == 0xFF) {
+                return true; // JPEG
+            }
+            if (header.length >= 8
+                    && (header[0] & 0xFF) == 0x89 && header[1] == 'P' && header[2] == 'N' && header[3] == 'G') {
+                return true; // PNG
+            }
+            if (header.length >= 6) {
+                String ascii6 = new String(header, 0, 6, StandardCharsets.US_ASCII);
+                if ("GIF87a".equals(ascii6) || "GIF89a".equals(ascii6)) {
+                    return true; // GIF
+                }
+            }
+            return header.length >= 12
+                    && header[0] == 'R' && header[1] == 'I' && header[2] == 'F' && header[3] == 'F'
+                    && header[8] == 'W' && header[9] == 'E' && header[10] == 'B' && header[11] == 'P'; // WEBP
         }
     }
 

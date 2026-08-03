@@ -2,6 +2,29 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.kh.demo.banking.mapper.FinancialProductMapper">
+<mapper namespace="com.kh.demo.brokerage.mapper.FinancialProductMapper">
+
+    <select id="selectProducts" resultType="com.kh.demo.brokerage.dto.FinancialProductDto">
+        SELECT fp.product_id,
+               fp.brokerage_id,
+               b.brokerage_name,
+               fp.product_type,
+               fp.product_name,
+               fp.description,
+               fp.nav,
+               fp.maturity_date,
+               fp.launch_date
+        FROM financial_product fp
+        JOIN brokerage b ON fp.brokerage_id = b.brokerage_id
+        <where>
+            <if test="brokerageId != null">
+                AND fp.brokerage_id = #{brokerageId}
+            </if>
+            <if test="productType != null and productType != ''">
+                AND fp.product_type = #{productType}
+            </if>
+        </where>
+        ORDER BY b.brokerage_id, fp.product_id
+    </select>
 
 </mapper>
