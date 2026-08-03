@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -110,4 +111,24 @@ public class GlossaryController {
 
         return "dictionary/categoryList";
     }
+
+    //검색어 자동 완성
+    @GetMapping("/dictionary/autocomplete")
+    @ResponseBody
+    public List<String> autocomplete(
+            @RequestParam(
+                    value = "keyword",
+                    defaultValue = ""
+            ) String keyword
+    ){
+        String searchKeyword = keyword.trim();
+
+        if(searchKeyword.isBlank()){
+            return List.of();
+        }
+        return glossaryService.AutoCompleteTerms(
+                searchKeyword
+        );
+    }
+
 }

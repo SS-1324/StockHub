@@ -6,12 +6,6 @@ import java.util.List;
 
 public interface GlossaryService {
 
-    // 전체 용어 조회
-    List<GlossaryDto> selectGlossaryList();
-
-    // 용어 상세 조회
-    GlossaryDto selectGlossaryById(Long termId);
-
     // 카테고리별 조회
     List<GlossaryDto> selectGlossaryByCategory(String category);
 
@@ -23,4 +17,7 @@ public interface GlossaryService {
 
     //카테고리 내부 검색
     List<GlossaryDto> selectGlossaryByCategoryAndKeyword(String category, String keyword);
+
+    //검색어 자동 완성
+    List<String> AutoCompleteTerms(String keyword);
 }

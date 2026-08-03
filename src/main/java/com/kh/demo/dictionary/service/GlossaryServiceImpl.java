@@ -16,18 +16,6 @@ public class GlossaryServiceImpl implements GlossaryService {
 
     private final GlossaryMapper glossaryMapper;
 
-    // 전체 용어 조회
-    @Override
-    public List<GlossaryDto> selectGlossaryList() {
-        return glossaryMapper.selectGlossaryList();
-    }
-
-    // 용어 상세 조회
-    @Override
-    public GlossaryDto selectGlossaryById(Long termId) {
-        return glossaryMapper.selectGlossaryById(termId);
-    }
-
     // 카테고리별 조회
     @Override
     public List<GlossaryDto> selectGlossaryByCategory(String category) {
@@ -55,6 +43,12 @@ public class GlossaryServiceImpl implements GlossaryService {
         return glossaryMapper.selectGlossaryByCategoryAndKeyword(
                 category,
                 keyword.trim()
+        );
+    }
+
+    @Override
+    public List<String> AutoCompleteTerms(String keyword){
+        return glossaryMapper.AutoCompleteTerms(keyword.trim()
         );
     }
 }

@@ -10,12 +10,16 @@
     text-align: center;
 }
 
-.glossary-header h1 {
-    margin: 0;
-    color: #172033;
-    font-size: 34px;
-    font-weight: 800;
-    line-height: 1.3;
+.glossary-header h2 {
+    display: block;
+    font-size: 1.5em;
+    : 0.83em;
+    margin-block-end: 0.83em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-weight: bold;
+    unicode-bidi: isolate;
+    text-align: left;
 }
 
 .glossary-info {
@@ -25,6 +29,17 @@
     font-size: 15px;
     line-height: 1.8;
 }
+
+.glossary-search-form{
+        padding: 10px 40px 10px 16px;
+        border: 1px solid #ddd;
+        border-radius: 999px;
+        background: #fff;
+        font-size: 13px;
+        width: 320px;
+        outline: none;
+        transition: border-color 0.15s;
+    }
 
 /* 카테고리 카드 배치 */
 .category-grid {
@@ -229,10 +244,6 @@
 
     .glossary-header {
         margin-bottom: 32px;
-    }
-
-    .glossary-header h1 {
-        font-size: 28px;
     }
 
     .glossary-info br {

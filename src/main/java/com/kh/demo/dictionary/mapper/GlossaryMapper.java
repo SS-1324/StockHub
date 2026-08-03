@@ -36,7 +36,7 @@ public interface GlossaryMapper {
             @Param("keyword") String keyword
     );
 
-    //
+    //키워드를 활용한 사전 조회를 위한 메서드
     List<GlossaryDto> selectGlossaryByCategoryAndKeyword(
             @Param("category") String category,
             @Param("keyword") String keyword
@@ -44,4 +44,9 @@ public interface GlossaryMapper {
 
     // 하이라이트가 전체 용어 목록을 조회
     List<GlossaryDto> selectAllTerms();
+
+    // 검색어 자동 완성 기능을 위한 메서드
+    List<String> AutoCompleteTerms(
+            @Param("keyword") String keyword
+    );
 }
