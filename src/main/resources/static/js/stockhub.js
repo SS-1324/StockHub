@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function () {
         loadInitialData(candleSeries); // 다시 보일 때 바로 한 번 갱신
         intervalId = setInterval(() => {
             loadInitialData(candleSeries);
-        }, 5000);
+        }, 500);
     }
 
     function stopPolling() {
