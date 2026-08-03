@@ -26,6 +26,8 @@
     </div>
 </c:if>
 
+<div class="board-detail-card">
+
 <%-- 제목은 선택 입력: 있으면 제목 -> 이미지 -> 내용, 없으면 이미지 -> 내용 순서로만 노출 --%>
 <c:if test="${not empty board.title}">
     <h2 class="board-title"><c:out value="${board.title}" /></h2>
@@ -70,6 +72,26 @@
     <span class="meta-count">조회 ${board.count}</span>
     <span class="meta-count">댓글 ${fn:length(comments)}</span>
     <span class="category-badge">${allowedCategories[board.category]}</span>
+</div>
+
+<%-- 이전글/다음글 - 같은 카테고리 안에서만 이동. 둘 다 없으면(글이 하나뿐이면) 아무것도 안 보임 --%>
+<c:if test="${not empty board.prevBoardId or not empty board.nextBoardId}">
+    <div class="board-adjacent-nav">
+        <c:if test="${not empty board.prevBoardId}">
+            <a class="board-adjacent-link" href="${communityUrl}/${board.prevBoardId}">
+                <span class="board-adjacent-label">이전글</span>
+                <span class="board-adjacent-title"><c:out value="${board.prevTitle}" /></span>
+            </a>
+        </c:if>
+        <c:if test="${not empty board.nextBoardId}">
+            <a class="board-adjacent-link" href="${communityUrl}/${board.nextBoardId}">
+                <span class="board-adjacent-label">다음글</span>
+                <span class="board-adjacent-title"><c:out value="${board.nextTitle}" /></span>
+            </a>
+        </c:if>
+    </div>
+</c:if>
+
 </div>
 
 <div class="comment-section" id="comment-section">

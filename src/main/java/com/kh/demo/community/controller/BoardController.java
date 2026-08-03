@@ -41,13 +41,19 @@ public class BoardController {
     private BoardImageService boardImageService;
 
     @GetMapping
-    public String list(@RequestParam(required = false) String category, HttpSession session, Model model) {
+    public String list(@RequestParam(required = false) String category,
+                       @RequestParam(required = false) String keyword,
+                       HttpSession session,
+                       Model model) {
         String loginMemberId = SessionUtil.currentMemberId(session);
         // 무한스크롤의 첫 페이지 - 2페이지부터는 /feed가 담당(아래 참고)
-        List<BoardDto> boardList = boardService.getList(category, 1, PAGE_SIZE, loginMemberId);
+        List<BoardDto> boardList = boardService.getList(category, keyword, 1, PAGE_SIZE, loginMemberId);
+        long totalCount = boardService.getTotalCount(category, keyword);
 
         model.addAttribute("boardList", boardList);
         model.addAttribute("category", category);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("totalCount", totalCount);
         model.addAttribute("loginMemberId", loginMemberId);
         model.addAttribute("allowedCategories", boardService.getAllowedCategories());
         return "community/boardList";
@@ -57,11 +63,12 @@ public class BoardController {
     // 더 가져올 게시글이 없으면 boardCards.jsp가 아무것도 출력하지 않아 빈 응답이 오고, JS는 그걸 보고 관찰을 멈춘다.
     @GetMapping("/feed")
     public String feed(@RequestParam(required = false) String category,
+                       @RequestParam(required = false) String keyword,
                        @RequestParam(defaultValue = "2") int page,
                        HttpSession session,
                        Model model) {
         String loginMemberId = SessionUtil.currentMemberId(session);
-        List<BoardDto> boardList = boardService.getList(category, page, PAGE_SIZE, loginMemberId);
+        List<BoardDto> boardList = boardService.getList(category, keyword, page, PAGE_SIZE, loginMemberId);
         model.addAttribute("boardList", boardList);
         model.addAttribute("allowedCategories", boardService.getAllowedCategories());
         return "community/boardCards";

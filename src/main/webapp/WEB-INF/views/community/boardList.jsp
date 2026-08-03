@@ -56,7 +56,12 @@
 </c:if>
 
 <c:if test="${empty boardList}">
-    <p class="form-tip">등록된 게시글이 없습니다.</p>
+    <p class="form-tip">
+        <c:choose>
+            <c:when test="${not empty keyword}">검색 결과 0건이 확인되었습니다.</c:when>
+            <c:otherwise>등록된 게시글이 없습니다.</c:otherwise>
+        </c:choose>
+    </p>
 </c:if>
 
 <div class="board-list" id="board-list">
@@ -64,7 +69,10 @@
 </div>
 
 <%-- 이 요소가 화면에 보이면 board.js가 다음 페이지를 불러와 위 목록 끝에 이어붙인다(무한스크롤) --%>
-<div id="feed-sentinel" data-next-page="2" data-category="${category}"></div>
+<div id="feed-sentinel"
+     data-next-page="2"
+     data-category="${category}"
+     data-keyword="${keyword}"></div>
 
 <script src="/js/board.js"></script>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />
