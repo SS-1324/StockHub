@@ -42,7 +42,7 @@
             <ol class="gainers-list">
                 <c:forEach items="${topGainers}" var="item">
                     <li class="gainers-item">
-                        <a href="<c:url value='/hub/chart'/>?code=${item.code}">
+                        <a class="gainers-header" href="<c:url value='/hub/chart'/>?code=${item.code}">
                             <span class="gainers-rank">${item.rank}</span>
                             <span class="gainers-name">
                                 <c:out value="${item.name}"/>
@@ -56,6 +56,22 @@
                                 <fmt:formatNumber value="${item.changeRate}" pattern="#,##0.00"/>%
                             </span>
                         </a>
+
+                        <%-- 실제 매매는 각 증권사 사이트에서 이루어지므로 바로가기 버튼만 제공 --%>
+                        <ul class="broker-list">
+                            <c:forEach items="${item.brokers}" var="broker">
+                                <li class="broker-row">
+                                    <span class="broker-name"><c:out value="${broker.name}"/></span>
+                                    <span class="broker-fee">
+                                        수수료 <fmt:formatNumber value="${broker.feeRate}" pattern="#,##0.000"/>%
+                                    </span>
+                                    <a class="broker-btn broker-btn-buy"
+                                       href="<c:out value='${broker.url}'/>" target="_blank" rel="noopener">매수하기 →</a>
+                                    <a class="broker-btn broker-btn-sell"
+                                       href="<c:out value='${broker.url}'/>" target="_blank" rel="noopener">매도하기 →</a>
+                                </li>
+                            </c:forEach>
+                        </ul>
                     </li>
                 </c:forEach>
             </ol>

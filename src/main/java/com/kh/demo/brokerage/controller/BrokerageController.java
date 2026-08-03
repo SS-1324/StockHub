@@ -5,6 +5,7 @@ import com.kh.demo.common.dto.ApiResponse;
 import com.kh.demo.brokerage.dto.*;
 import com.kh.demo.brokerage.service.AccountService;
 import com.kh.demo.brokerage.service.BrokerageService;
+import com.kh.demo.brokerage.service.FinancialProductService;
 import com.kh.demo.brokerage.service.TradeService;
 import com.kh.demo.member.dto.MemberDto;
 import jakarta.servlet.http.HttpSession;
@@ -35,6 +36,9 @@ public class BrokerageController {
     @Autowired
     private TradeService tradeService;
 
+    @Autowired
+    private FinancialProductService financialProductService;
+
     // ------------------- 증권사 / 상품 조회 (로그인 불필요, 공개 정보)
 
     // 가상 증권사 목록
@@ -57,6 +61,14 @@ public class BrokerageController {
             return ApiResponse.fail("존재하지 않는 종목입니다.");
         }
         return ApiResponse.success(stock);
+    }
+
+    // 증권사별 상품(펀드/채권/ELS) 모아보기 (F-BNK-01-01) - 필터 없이 부르면 전체, brokerageId/productType으로 좁혀서 비교
+    @GetMapping("/products")
+    public ApiResponse<List<FinancialProductDto>> getProducts(
+            @RequestParam(required = false) Long brokerageId,
+            @RequestParam(required = false) String productType) {
+        return ApiResponse.success(financialProductService.getProducts(brokerageId, productType));
     }
 
     // ------------------- 계좌 (로그인 필요)

@@ -31,6 +31,7 @@ public class StockController {
     }
 
     // jhk측에서 작업 중 쓰던 경로도 그대로 유지 (같은 화면)
+
     @GetMapping("/hub/chart")
     public String chart(@RequestParam(required = false) String code, Model model) {
         // code가 없으면 기본 종목으로 대체

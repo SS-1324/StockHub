@@ -1,30 +1,45 @@
 package com.kh.demo.hub.service;
 
+import com.kh.demo.hub.dto.BrokerLinkDto;
 import com.kh.demo.hub.dto.CandleDto;
 import com.kh.demo.hub.dto.StockRankingDto;
 import com.kh.demo.hub.dto.TossCandleResponseDto;
 import com.kh.demo.hub.dto.TossRankingResponseDto;
+import com.kh.demo.hub.dto.TossStockInfoResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 public class StockServiceImpl implements StockService {
 
-    // 토스 랭킹 응답에는 종목명이 없어서 화면 표시용으로 알고 있는 종목만 이름을 붙여줌
-    private static final Map<String, String> KNOWN_NAMES = Map.of(
-            "005930", "삼성전자",
-            "000660", "SK하이닉스",
-            "035420", "NAVER",
-            "035720", "카카오",
-            "005380", "현대차",
-            "373220", "LG에너지솔루션",
-            "005490", "POSCO홀딩스"
+    // 화면에서 매수/매도 버튼으로 연결할 실제 증권사 목록 (feeRate는 참고용 예시 수치)
+    private static final List<BrokerLinkDto> BROKERS = List.of(
+            new BrokerLinkDto("키움증권", 0.015, "https://www.kiwoom.com"),
+            new BrokerLinkDto("NH투자증권", 0.018, "https://www.nhqv.com"),
+            new BrokerLinkDto("KB증권", 0.025, "https://www.kbsec.com"),
+            new BrokerLinkDto("삼성증권", 0.020, "https://www.samsungpop.com"),
+            new BrokerLinkDto("미래에셋증권", 0.014, "https://securities.miraeasset.com"),
+            new BrokerLinkDto("토스증권", 0.000, "https://tossinvest.com"),
+            new BrokerLinkDto("한국투자증권", 0.015, "https://www.truefriend.com")
     );
+
+    private static final int BROKERS_PER_STOCK = 3;
+
+    // 종목 코드마다 항상 같은 조합이 보이도록 코드값을 시드로 고정 셔플
+    private static List<BrokerLinkDto> pickBrokers(String code) {
+        List<BrokerLinkDto> shuffled = new ArrayList<>(BROKERS);
+        Collections.shuffle(shuffled, new Random(code.hashCode()));
+        return shuffled.subList(0, BROKERS_PER_STOCK);
+    }
 
     private final RestClient restClient;
 
@@ -64,13 +79,31 @@ public class StockServiceImpl implements StockService {
                 .retrieve()
                 .body(TossRankingResponseDto.class);
 
-        return response.result().rankings().stream()
+        List<TossRankingResponseDto.Item> rankings = response.result().rankings();
+        Map<String, String> namesBySymbol = getStockNames(rankings.stream()
+                .map(TossRankingResponseDto.Item::symbol)
+                .toList());
+
+        return rankings.stream()
                 .map(item -> new StockRankingDto(
                         item.rank(),
                         item.symbol(),
-                        KNOWN_NAMES.getOrDefault(item.symbol(), item.symbol()),
+                        namesBySymbol.getOrDefault(item.symbol(), item.symbol()),
                         Double.parseDouble(item.price().lastPrice()),
-                        Double.parseDouble(item.price().changeRate()) * 100))
+                        Double.parseDouble(item.price().changeRate()) * 100,
+                        pickBrokers(item.symbol())))
                 .toList();
+    }
+
+    // 종목 코드로 실제 종목명을 조회 (랭킹 API 응답에는 이름이 없어서 별도 조회 필요)
+    private Map<String, String> getStockNames(List<String> symbols) {
+        TossStockInfoResponseDto response = restClient.get()
+                .uri("/api/v1/stocks?symbols={symbols}", String.join(",", symbols))
+                .retrieve()
+                .body(TossStockInfoResponseDto.class);
+
+        return response.result().stream()
+                .collect(Collectors.toMap(TossStockInfoResponseDto.Item::symbol,
+                        TossStockInfoResponseDto.Item::name));
     }
 }

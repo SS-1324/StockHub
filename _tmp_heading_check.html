@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>heading position compare</title>
+<link rel="stylesheet" href="/src/main/resources/static/css/common.css">
+<link rel="stylesheet" href="/src/main/resources/static/css/board.css">
+<style>
+  body{ background:#ddd; }
+  .demo-block{ background:#fff; margin-bottom:24px; border:2px dashed red; }
+  .demo-label{ background:#222; color:#fff; font-size:12px; padding:4px 8px; }
+</style>
+</head>
+<body>
+
+<div class="demo-label">1. boardList.jsp 상단</div>
+<div class="demo-block">
+<main class="container">
+  <div class="board-list-header">
+    <h2 class="page-title">커뮤니티 게시판</h2>
+    <form class="search-form">
+      <div class="search-box"><input type="text" placeholder="검색"></div>
+    </form>
+  </div>
+  <a class="btn-pill" href="#">글쓰기</a>
+</main>
+</div>
+
+<div class="demo-label">2. boardWrite.jsp 상단</div>
+<div class="demo-block">
+<main class="container">
+  <h2 class="page-title">게시글 작성</h2>
+  <form class="form form-flex">
+    <div class="form-row"><label>카테고리</label><select><option>자유</option></select></div>
+  </form>
+</main>
+</div>
+
+<div class="demo-label">3. boardEdit.jsp 상단</div>
+<div class="demo-block">
+<main class="container">
+  <h2 class="page-title">게시글 수정</h2>
+  <form class="form form-flex">
+    <div class="form-row"><label>카테고리</label><select><option>자유</option></select></div>
+  </form>
+</main>
+</div>
+
+<div class="demo-label">4. boardDetail.jsp 상단 (본인 글, 제목 있음)</div>
+<div class="demo-block">
+<main class="container">
+  <div class="board-actions">
+    <a class="btn btn-outline" href="#">수정</a>
+    <button class="btn btn-danger">삭제</button>
+  </div>
+  <h2 class="board-title">이것은 게시글 제목입니다</h2>
+  <div class="board-header-meta">
+    <img class="board-header-avatar" src="" alt="">
+    <span>닉네임</span><span>2026-08-01 12:00</span>
+  </div>
+</main>
+</div>
+
+<div class="demo-label">5. boardDetail.jsp 상단 (타인 글, 제목 있음 - 수정/삭제 버튼 없음)</div>
+<div class="demo-block">
+<main class="container">
+  <h2 class="board-title">이것은 게시글 제목입니다</h2>
+  <div class="board-header-meta">
+    <img class="board-header-avatar" src="" alt="">
+    <span>닉네임</span><span>2026-08-01 12:00</span>
+  </div>
+</main>
+</div>
+
+</body>
+</html>
