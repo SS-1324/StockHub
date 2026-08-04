@@ -72,7 +72,7 @@
     </select>
 
     <!-- 카테고리 내부 검색 -->
-    <select id = "selectGlossaryByCategoryAndKeyword"
+    <select id = "selectGlossaryByCategoryKeyword"
             resultMap = "glossaryResultMap">
         SELECT term_id, term, definition, category
         FROM glossary
