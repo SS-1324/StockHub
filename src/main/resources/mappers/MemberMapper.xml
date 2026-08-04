@@ -154,14 +154,14 @@
         AND member_id != #{memberId}
     </select>
 
-    <!-- 닉네임·비밀번호·프로필 이미지·증권사·계좌번호를 수정 -->
+    <!-- 닉네임·프로필 이미지와 입력된 경우 새 비밀번호를 수정 -->
     <update id="updateMemberProfile" parameterType="MemberDto">
         UPDATE member
         SET nickname = #{nickname},
             profile = #{profile}
-        <if test="memberPwd != null and memberPwd != ''">
-            , member_pwd = #{memberPwd}
-        </if>
+            <if test="memberPwd != null and memberPwd != ''">
+                , member_pwd = #{memberPwd}
+            </if>
         WHERE member_id = #{memberId}
     </update>
 

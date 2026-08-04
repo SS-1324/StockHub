@@ -62,6 +62,9 @@ public class MemberServiceImpl implements MemberService {
             "image/jpeg", "image/png", "image/webp"
     );
 
+    // 프로필 이미지 한 개의 최대 크기: 3MB
+    private static final long MAX_PROFILE_IMAGE_SIZE = 3L * 1024 * 1024;
+
     // 프로필 이미지가 없을 때 사용할 공통 이미지 경로
     private static final String DEFAULT_PROFILE_PATH = "/images/common_member.png";
 
@@ -238,6 +241,22 @@ public class MemberServiceImpl implements MemberService {
         return member;
     }
 
+    // 프로필 수정 전에 현재 비밀번호가 일치하는지 확인
+    @Override
+    public void verifyCurrentPassword(String memberId, String currentPassword) {
+        MemberDto member = memberMapper.selectByMemberId(memberId);
+
+        if (member == null) {
+            throw new IllegalStateException("회원 정보를 찾을 수 없습니다.");
+        }
+
+        if (currentPassword == null
+                || currentPassword.isBlank()
+                || !passwordEncoder.matches(currentPassword, member.getMemberPwd())) {
+            throw new IllegalStateException("현재 비밀번호가 일치하지 않습니다.");
+        }
+    }
+
     // 마이페이지에 필요한 회원·설정·계좌 정보를 조회
     @Override
     public MemberDto getMemberProfile(String memberId) {
@@ -283,21 +302,28 @@ public class MemberServiceImpl implements MemberService {
             throw new IllegalStateException("이미 사용 중인 닉네임입니다.");
         }
 
-        // 비밀번호를 입력한 경우에만 규칙과 일치 여부를 검사
+        // 새 비밀번호를 입력한 경우에만 규칙과 일치 여부를 검사
         String newPassword = updateDto.getNewPassword();
-        String passwordConfirm = updateDto.getNewPasswordConfirm();
-        if (newPassword != null && !newPassword.isBlank()) {
-            if (!PASSWORD_PATTERN.matcher(newPassword).matches()) {
+        String newPasswordConfirm = updateDto.getNewPasswordConfirm();
+        boolean passwordChangeRequested =
+                (newPassword != null && !newPassword.isBlank())
+                        || (newPasswordConfirm != null && !newPasswordConfirm.isBlank());
+
+        if (passwordChangeRequested) {
+            if (newPassword == null || !PASSWORD_PATTERN.matcher(newPassword).matches()) {
                 throw new IllegalStateException(
-                        "비밀번호는 대문자·소문자·숫자·특수문자를 포함하여 10자 이상이어야 합니다."
+                        "비밀번호는 한글 없이 대문자·소문자·숫자·특수문자를 포함하여 10자 이상이어야 합니다."
                 );
             }
-            if (!newPassword.equals(passwordConfirm)) {
+            if (!newPassword.equals(newPasswordConfirm)) {
                 throw new IllegalStateException("변경할 비밀번호가 서로 일치하지 않습니다.");
+            }
+            if (passwordEncoder.matches(newPassword, member.getMemberPwd())) {
+                throw new IllegalStateException("현재 비밀번호와 다른 비밀번호를 입력해주세요.");
             }
             member.setMemberPwd(passwordEncoder.encode(newPassword));
         } else {
-            // 비밀번호를 비우면 기존 비밀번호를 유지
+            // 두 칸을 모두 비우면 기존 비밀번호를 유지
             member.setMemberPwd(null);
         }
 
@@ -437,8 +463,14 @@ public class MemberServiceImpl implements MemberService {
         }
     }
 
-    // 파일 형식과 확장자를 검사하고 GIF 파일을 차단
+    // 프로필 이미지의 크기와 파일 형식을 검사하고 GIF 파일을 차단
     private void validateProfileImage(MultipartFile profileImage) throws IOException {
+        if (profileImage.getSize() > MAX_PROFILE_IMAGE_SIZE) {
+            throw new IllegalStateException(
+                    "프로필 이미지는 3MB 이하의 파일만 업로드할 수 있습니다."
+            );
+        }
+
         String contentType = profileImage.getContentType();
         String originalName = profileImage.getOriginalFilename();
 

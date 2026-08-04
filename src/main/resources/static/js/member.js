@@ -38,6 +38,7 @@ const allowedProfileContentTypes = new Set([
     "image/png",
     "image/webp"
 ]);
+const maxProfileImageSize = 3 * 1024 * 1024;
 
 // 중복확인과 비밀번호 검사 상태
 let checkedId = null;
@@ -52,6 +53,14 @@ profileInput.addEventListener("change", function (e) {
     // 선택한 첫 번째 파일을 가져옴
     const file = e.target.files[0];
     if (!file) {
+        return;
+    }
+
+    // 3MB를 초과하는 파일은 선택을 취소
+    if (file.size > maxProfileImageSize) {
+        alert("프로필 이미지는 3MB 이하의 파일만 선택할 수 있습니다.");
+        profileInput.value = "";
+        resetProfilePreview();
         return;
     }
 
@@ -318,6 +327,13 @@ emailVerifyButton.addEventListener("click", async function () {
 joinForm.addEventListener("submit", function (e) {
     // 프로필 이미지가 선택된 경우 허용된 형식인지 다시 확인
     const profileFile = profileInput.files[0];
+    if (profileFile && profileFile.size > maxProfileImageSize) {
+        e.preventDefault();
+        alert("프로필 이미지는 3MB 이하의 파일만 선택할 수 있습니다.");
+        profileInput.focus();
+        return;
+    }
+
     if (profileFile && !isAllowedProfileImage(profileFile)) {
         e.preventDefault();
         alert("프로필 이미지 형식을 다시 확인해주세요.");

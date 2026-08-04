@@ -35,7 +35,7 @@
                    type="file"
                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
         </label>
-        <p class="form-tip">JPG, PNG, WEBP 파일만 선택할 수 있습니다. GIF 파일은 업로드할 수 없습니다.</p>
+        <p class="form-tip">3MB 이하의 JPG, PNG, WEBP 파일만 선택할 수 있습니다. GIF 파일은 업로드할 수 없습니다.</p>
     </div>
 
     <%-- 아이디 입력과 중복확인 영역 --%>
@@ -151,7 +151,7 @@
 </form>
 
 <%-- 회원가입 화면의 검사와 미리보기 기능을 불러옴 --%>
-<script src="${pageContext.request.contextPath}/js/member.js"></script>
+<script src="${pageContext.request.contextPath}/js/member.js?v=2"></script>
 
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

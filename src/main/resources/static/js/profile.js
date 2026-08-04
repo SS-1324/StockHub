@@ -13,7 +13,7 @@ const accountResult = document.querySelector("#account-result");
 const deleteProfileForm = document.querySelector("#delete-profile-image-form");
 const currentProfileUrl = profileForm.dataset.currentProfileUrl;
 
-// 비밀번호 필수 조합을 검사하는 규칙
+// 닉네임과 프로필 이미지 입력 규칙
 const nicknamePattern = /^[가-힣A-Za-z0-9]{2,10}$/;
 const passwordPattern =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])[\x21-\x7E]{10,100}$/;
@@ -23,12 +23,21 @@ const allowedProfileContentTypes = new Set([
     "image/png",
     "image/webp"
 ]);
+const maxProfileImageSize = 3 * 1024 * 1024;
 
 // 선택한 프로필 이미지를 화면에 미리 표시
 profileInput.addEventListener("change", function (e) {
     // 선택한 첫 번째 파일을 가져옴
     const file = e.target.files[0];
     if (!file) {
+        return;
+    }
+
+    // 3MB를 초과하는 파일은 선택을 취소
+    if (file.size > maxProfileImageSize) {
+        alert("프로필 이미지는 3MB 이하의 파일만 선택할 수 있습니다.");
+        profileInput.value = "";
+        resetProfilePreview();
         return;
     }
 
@@ -113,10 +122,17 @@ accountInput.addEventListener("input", function () {
     accountInput.value = onlyNumber;
 });
 
-// 전송 전에 비밀번호와 계좌 입력값을 다시 확인
+// 전송 전에 프로필 이미지·닉네임·계좌 입력값을 다시 확인
 profileForm.addEventListener("submit", function (e) {
     // 프로필 이미지가 선택된 경우 허용된 형식인지 다시 확인
     const profileFile = profileInput.files[0];
+    if (profileFile && profileFile.size > maxProfileImageSize) {
+        e.preventDefault();
+        alert("프로필 이미지는 3MB 이하의 파일만 선택할 수 있습니다.");
+        profileInput.focus();
+        return;
+    }
+
     if (profileFile && !isAllowedProfileImage(profileFile)) {
         e.preventDefault();
         alert("프로필 이미지 형식을 다시 확인해주세요.");
@@ -201,3 +217,4 @@ function checkPassword() {
         ? "form-tip form-tip-ok"
         : "form-tip form-tip-error";
 }
+

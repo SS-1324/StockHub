@@ -285,6 +285,10 @@ html[data-theme="dark"] .theme-dark-icon{
     color: var(--header-muted);
 }
 
+.header-login-required{
+    white-space: nowrap;
+}
+
 .header-login-link:hover{
     border-color: #93c5fd;
     background: var(--header-blue-soft);
@@ -451,9 +455,16 @@ html[data-theme="dark"] .theme-dark-icon{
     min-height: 60vh;
 }
 
-/* 회원가입·로그인 화면 제목 */
+/* 회원가입·로그인·비밀번호 재설정 화면 제목을 폼의 왼쪽 선에 맞춤 */
 .page-title{
-    margin-bottom: 20px;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto 20px;
+}
+
+/* 프로필 수정 제목은 더 넓은 프로필 폼의 왼쪽 선에 맞춤 */
+.profile-page-title{
+    max-width: 560px;
 }
 
 /* 페이지 아래쪽 공통 푸터 */
@@ -814,7 +825,90 @@ body.modal-open{
 
 /* 로그인 안내 메시지와 로그인 폼 사이 간격 */
 .login-alert{
+    margin-bottom: 18px;
+}
+
+/* 로그인 화면 내용을 한 열로 정돈 */
+.login-panel{
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 10px 0 24px;
+}
+
+.login-title{
     margin-bottom: 28px;
+}
+
+/* 화면에는 숨기고 보조기기에는 입력창 이름을 전달 */
+.sr-only{
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+}
+
+/* 로그인 입력창 사이의 간격과 크기 */
+.login-field + .login-field{
+    margin-top: 14px;
+}
+
+.login-form .login-field input{
+    min-height: 50px;
+    padding: 11px 15px;
+    border-radius: 10px;
+    font-size: 15px;
+}
+
+/* 로그인 실행 버튼 */
+.login-submit{
+    width: 100%;
+    min-height: 48px;
+    margin-top: 18px;
+    border-color: #0874f7;
+    border-radius: 10px;
+    background: #0874f7;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    box-shadow: 0 10px 24px rgba(8, 116, 247, 0.2);
+}
+
+.login-submit:hover{
+    border-color: #0565da;
+    background: #0565da;
+}
+
+/* 로그인 아래 회원가입·비밀번호 재설정 링크 */
+.login-member-links{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+    color: #7b8498;
+    font-size: 14px;
+}
+
+.login-member-links a:hover{
+    color: #0874f7;
+}
+
+/* 로그인 화면 아래 홈 이동 로고 */
+.login-home-logo{
+    display: block;
+    width: fit-content;
+    margin: 36px auto 0;
+    line-height: 0;
+}
+
+.login-home-logo img{
+    display: block;
+    width: 150px;
+    height: auto;
 }
 
 /* 회원가입·로그인 폼의 최대 너비 */
@@ -832,6 +926,23 @@ body.modal-open{
 .profile-alert{
     max-width: 560px;
     margin: 0 auto 20px;
+}
+
+/* 비밀번호 재설정 결과 메시지를 폼 너비에 맞춤 */
+.password-reset-alert{
+    max-width: 480px;
+    margin: 0 auto 20px;
+}
+
+/* 이메일 인증 후 표시되는 새 비밀번호 입력 영역 */
+.password-reset-fields{
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.password-reset-fields[hidden]{
+    display: none;
 }
 
 /* 폼 항목을 세로로 배치 */
@@ -1328,6 +1439,22 @@ html[data-theme="dark"] .login-form input[type="password"]:focus{
 .login-form input:-webkit-autofill:focus{
     box-shadow: 0 0 0 1000px #ffffff inset;
     -webkit-text-fill-color: #222222;
+}
+
+/* 다크 모드에서도 로그인 전용 버튼과 링크 색상을 유지 */
+html[data-theme="dark"] .login-submit{
+    border-color: #0874f7;
+    background: #0874f7;
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .login-submit:hover{
+    border-color: #0565da;
+    background: #0565da;
+}
+
+html[data-theme="dark"] .login-member-links{
+    color: #94a3b8;
 }
 
 /* 좁은 화면에서는 도메인 선택 목록을 다음 줄로 내림 */
