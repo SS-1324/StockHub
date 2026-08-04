@@ -5,13 +5,18 @@ import com.kh.demo.common.dto.ApiResponse;
 import com.kh.demo.brokerage.dto.*;
 import com.kh.demo.brokerage.service.AccountService;
 import com.kh.demo.brokerage.service.BrokerageService;
+import com.kh.demo.brokerage.service.CashTransactionService;
 import com.kh.demo.brokerage.service.FinancialProductService;
+import com.kh.demo.brokerage.service.ProductHoldingService;
+import com.kh.demo.brokerage.service.ProductTransactionService;
 import com.kh.demo.brokerage.service.TradeService;
 import com.kh.demo.member.dto.MemberDto;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /*
@@ -38,6 +43,15 @@ public class BrokerageController {
 
     @Autowired
     private FinancialProductService financialProductService;
+
+    @Autowired
+    private ProductHoldingService productHoldingService;
+
+    @Autowired
+    private ProductTransactionService productTransactionService;
+
+    @Autowired
+    private CashTransactionService cashTransactionService;
 
     // ------------------- 증권사 / 상품 조회 (로그인 불필요, 공개 정보)
 
@@ -124,6 +138,17 @@ public class BrokerageController {
         }
     }
 
+    // 특정 계좌의 금융상품(펀드/채권/ELS) 보유내역 - 파트너사(가상 증권사) API를 호출한다는 전제로 조회
+    @GetMapping("/accounts/{accountId}/product-holdings")
+    public ApiResponse<List<ProductHoldingDto>> getProductHoldings(@PathVariable Long accountId, HttpSession session) {
+        try {
+            String memberId = requireLoginMemberId(session);
+            return ApiResponse.success(productHoldingService.getHoldings(memberId, accountId));
+        } catch (IllegalStateException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
+    }
+
     // ------------------- 거래(매수/매도) (로그인 필요)
 
     // 매수/매도 체결 -> 잔고, 보유내역, 거래이력이 한번에 갱신됨
@@ -156,6 +181,38 @@ public class BrokerageController {
         try {
             String memberId = requireLoginMemberId(session);
             return ApiResponse.success(tradeService.getMyTrades(memberId));
+        } catch (IllegalStateException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
+    }
+
+    // ------------------- 상품 가입/환매 · 입출금 이력 (로그인 필요, 파트너사 API 호출 전제)
+
+    // 특정 계좌의 금융상품 가입/환매 이력. from/to(yyyy-MM-dd)는 선택 필터
+    @GetMapping("/accounts/{accountId}/product-transactions")
+    public ApiResponse<List<ProductTransactionDto>> getProductTransactions(
+            @PathVariable Long accountId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            HttpSession session) {
+        try {
+            String memberId = requireLoginMemberId(session);
+            return ApiResponse.success(productTransactionService.getTransactions(memberId, accountId, from, to));
+        } catch (IllegalStateException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
+    }
+
+    // 특정 계좌의 입출금 이력. from/to(yyyy-MM-dd)는 선택 필터
+    @GetMapping("/accounts/{accountId}/cash-transactions")
+    public ApiResponse<List<CashTransactionDto>> getCashTransactions(
+            @PathVariable Long accountId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            HttpSession session) {
+        try {
+            String memberId = requireLoginMemberId(session);
+            return ApiResponse.success(cashTransactionService.getTransactions(memberId, accountId, from, to));
         } catch (IllegalStateException e) {
             return ApiResponse.fail(e.getMessage());
         }

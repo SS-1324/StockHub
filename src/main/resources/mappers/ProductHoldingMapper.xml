@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kh.demo.brokerage.mapper.ProductHoldingMapper">
+
+    <select id="selectHoldingsByAccount" parameterType="long" resultType="com.kh.demo.brokerage.dto.ProductHoldingDto">
+        SELECT ph.product_holding_id,
+               ph.account_id,
+               ph.product_id,
+               fp.product_name,
+               fp.product_type,
+               ph.quantity,
+               ph.avg_nav,
+               ph.purchase_amount,
+               ph.update_at
+        FROM product_holding ph
+        JOIN financial_product fp ON ph.product_id = fp.product_id
+        WHERE ph.account_id = #{accountId}
+        ORDER BY ph.update_at DESC
+    </select>
+
+</mapper>
