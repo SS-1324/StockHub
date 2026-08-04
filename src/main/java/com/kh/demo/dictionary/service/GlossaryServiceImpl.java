@@ -40,7 +40,7 @@ public class GlossaryServiceImpl implements GlossaryService {
             String category,
             String keyword
     ) {
-        return glossaryMapper.selectGlossaryByCategoryAndKeyword(
+        return glossaryMapper.selectGlossaryByCategoryKeyword(
                 category,
                 keyword.trim()
         );
