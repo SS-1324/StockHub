@@ -101,13 +101,6 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-
 		<!-- 게시글 내용(Quill 에디터가 만든 HTML)에서 위험한 태그/속성을 걸러내는 용도 -->
 		<dependency>
 			<groupId>org.jsoup</groupId>

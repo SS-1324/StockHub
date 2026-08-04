@@ -303,6 +303,66 @@ CREATE TABLE IF NOT EXISTS financial_product (
     INDEX IDX_FINANCIAL_PRODUCT_BROKERAGE_TYPE (brokerage_id, product_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='증권사별 금융상품';
 
+-- 계좌별 금융상품 보유내역 (holding의 상품 버전)
+CREATE TABLE IF NOT EXISTS product_holding (
+    product_holding_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '상품보유 번호(PK)',
+    account_id      BIGINT UNSIGNED NOT NULL COMMENT '가상 계좌(FK)',
+    product_id      BIGINT UNSIGNED NOT NULL COMMENT '금융상품(FK)',
+    quantity        DECIMAL(18, 4)  NOT NULL DEFAULT 0 COMMENT '보유 좌수(펀드/채권은 소수 단위 가능)',
+    avg_nav         DECIMAL(18, 2)  NOT NULL DEFAULT 0 COMMENT '평균 매입 기준가',
+    purchase_amount BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '누적 매입원금',
+    update_at       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '최종 갱신일시',
+
+    CONSTRAINT PK_PRODUCT_HOLDING PRIMARY KEY (product_holding_id),
+    CONSTRAINT UQ_PRODUCT_HOLDING_ACCOUNT_PRODUCT UNIQUE (account_id, product_id),
+    CONSTRAINT FK_ACCOUNT_TO_PRODUCT_HOLDING
+        FOREIGN KEY (account_id) REFERENCES account (account_id)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT FK_PRODUCT_TO_PRODUCT_HOLDING
+        FOREIGN KEY (product_id) REFERENCES financial_product (product_id)
+        ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='계좌별 금융상품 보유내역';
+
+-- 금융상품 가입·환매 원장 (trade의 상품 버전)
+CREATE TABLE IF NOT EXISTS product_transaction (
+    transaction_id   BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '상품거래내역 번호(PK)',
+    account_id       BIGINT UNSIGNED NOT NULL COMMENT '가상 계좌(FK)',
+    product_id       BIGINT UNSIGNED NOT NULL COMMENT '금융상품(FK)',
+    transaction_type ENUM('SUBSCRIBE', 'REDEEM') NOT NULL COMMENT '가입/환매 구분',
+    quantity         DECIMAL(18, 4)  NOT NULL COMMENT '거래 좌수',
+    nav              DECIMAL(18, 2)  NOT NULL COMMENT '거래 시점 기준가',
+    amount           BIGINT UNSIGNED NOT NULL COMMENT '거래금액',
+    transaction_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '거래일시',
+
+    CONSTRAINT PK_PRODUCT_TRANSACTION PRIMARY KEY (transaction_id),
+    CONSTRAINT CK_PRODUCT_TX_QUANTITY CHECK (quantity > 0),
+    CONSTRAINT FK_ACCOUNT_TO_PRODUCT_TRANSACTION
+        FOREIGN KEY (account_id) REFERENCES account (account_id)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT FK_PRODUCT_TO_PRODUCT_TRANSACTION
+        FOREIGN KEY (product_id) REFERENCES financial_product (product_id)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    INDEX IDX_PRODUCT_TX_ACCOUNT_DATE (account_id, transaction_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='금융상품 가입·환매 원장';
+
+-- 계좌 입출금 원장
+CREATE TABLE IF NOT EXISTS cash_transaction (
+    cash_transaction_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '입출금내역 번호(PK)',
+    account_id          BIGINT UNSIGNED NOT NULL COMMENT '가상 계좌(FK)',
+    transaction_type    ENUM('DEPOSIT', 'WITHDRAWAL') NOT NULL COMMENT '입금/출금 구분',
+    amount              BIGINT UNSIGNED NOT NULL COMMENT '입출금액',
+    balance_after       BIGINT UNSIGNED NOT NULL COMMENT '처리 후 잔고 스냅샷(명세서 조회용)',
+    memo                VARCHAR(200)    NULL COMMENT '메모(예: 초기 입금, 생활비 출금)',
+    transaction_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '입출금일시',
+
+    CONSTRAINT PK_CASH_TRANSACTION PRIMARY KEY (cash_transaction_id),
+    CONSTRAINT CK_CASH_TX_AMOUNT CHECK (amount > 0),
+    CONSTRAINT FK_ACCOUNT_TO_CASH_TRANSACTION
+        FOREIGN KEY (account_id) REFERENCES account (account_id)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    INDEX IDX_CASH_TX_ACCOUNT_DATE (account_id, transaction_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='계좌 입출금 원장';
+
 -- -------------------- 3. 게시판, 댓글 및 회원 관계 --------------------
 
 -- 게시판
