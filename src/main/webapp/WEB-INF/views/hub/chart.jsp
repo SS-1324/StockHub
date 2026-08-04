@@ -15,7 +15,7 @@
 </head>
 <body>
 
-<H3>주식 거래 허브</H3>
+<H2>주식 거래 허브</H2>
 <p>관심 종목의 실시간 차트를 확인하세요.</p>
 
 <div class="chart-wrapper">
