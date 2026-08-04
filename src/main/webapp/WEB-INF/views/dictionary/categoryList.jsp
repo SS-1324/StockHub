@@ -1,6 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/dictionary.css">
