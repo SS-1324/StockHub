@@ -8,8 +8,7 @@
 <c:url var="rankingUrl" value="/ranking" />
 <c:url var="dictionaryUrl" value="/dictionary" />
 <c:url var="loginUrl" value="/member/login" />
-<c:url var="joinUrl" value="/member/join" />
-<c:url var="mypageUrl" value="/member/mypage" />
+<c:url var="mypageUrl" value="/member/mypage/password-check" />
 <c:url var="myStocksUrl" value="/member/stocks" />
 <c:url var="adminUrl" value="/admin" />
 <c:url var="logoutUrl" value="/member/logout" />
@@ -47,7 +46,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap"
           rel="stylesheet">
 
-    <link rel="stylesheet" href="${commonCssUrl}?v=8">
+    <link rel="stylesheet" href="${commonCssUrl}?v=10">
     <%-- 현재 화면에서 요청한 전용 CSS를 head 안에서 불러옴 --%>
     <c:if test="${not empty requestScope.pageCssUrl}">
         <link rel="stylesheet" href="${requestScope.pageCssUrl}">
@@ -155,8 +154,8 @@
                     </div>
                 </c:when>
                 <c:otherwise>
-                    <a class="header-login-link" href="${loginUrl}">로그인</a>
-                    <a class="header-join-link" href="${joinUrl}">회원가입</a>
+                    <a class="header-login-link header-login-required"
+                       href="${loginUrl}">로그인이 필요합니다.</a>
                 </c:otherwise>
             </c:choose>
 

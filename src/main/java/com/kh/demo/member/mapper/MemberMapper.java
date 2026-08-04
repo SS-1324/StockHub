@@ -51,7 +51,7 @@ public interface MemberMapper {
     int countByNicknameExceptMember(@Param("nickname") String nickname,
                                     @Param("memberId") String memberId);
 
-    // 닉네임·비밀번호·프로필 이미지를 수정
+    // 닉네임과 프로필 이미지를 수정
     int updateMemberProfile(MemberDto memberDto);
 
     // 프로필 이미지 경로만 수정

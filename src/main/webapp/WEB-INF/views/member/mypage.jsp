@@ -7,7 +7,7 @@
 <c:url var="currentProfileUrl"
        value="${empty member.profile ? '/images/common_member.png' : member.profile}" />
 
-<h2 class="page-title">프로필 수정</h2>
+<h2 class="page-title profile-page-title">프로필 수정</h2>
 
 <%-- 프로필 수정 실패 메시지를 표시 --%>
 <c:if test="${not empty error}">
@@ -73,7 +73,7 @@
                     form="delete-profile-image-form">프로필 이미지 삭제</button>
         </div>
         <p class="form-tip">선택하지 않으면 현재 이미지가 유지됩니다.</p>
-        <p class="form-tip">JPG, PNG, WEBP 파일만 선택할 수 있습니다. GIF 파일은 업로드할 수 없습니다.</p>
+        <p class="form-tip">3MB 이하의 JPG, PNG, WEBP 파일만 선택할 수 있습니다. GIF 파일은 업로드할 수 없습니다.</p>
     </div>
 
     <%-- 로그인 아이디는 확인용으로만 표시 --%>
@@ -114,9 +114,12 @@
         <p id="password-confirm-result" class="form-tip"></p>
     </div>
 
-    <%-- 프로필 공개 여부 선택 영역 --%>
+    <%-- 내 주식 정보 공개 여부 선택 영역 --%>
     <fieldset class="form-row choice-group">
-        <legend>프로필 공개 여부</legend>
+        <legend>내 주식 정보 공개</legend>
+        <p class="form-tip">
+            N을 선택하면 다른 사람이 프로필 아이콘을 눌렀을 때 주식 정보가 표시되지 않습니다. 또한, 랭킹보드에도 올라가지 않습니다.
+        </p>
         <div class="radio-row">
             <label class="radio-label">
                 <input type="radio" name="stockPublic" value="true"
@@ -193,7 +196,7 @@
 </div>
 
 <%-- 프로필 이미지 미리보기와 입력 검사를 불러옴 --%>
-<script src="${pageContext.request.contextPath}/js/profile.js"></script>
+<script src="${pageContext.request.contextPath}/js/profile.js?v=4"></script>
 
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />
