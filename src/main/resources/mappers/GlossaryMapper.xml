@@ -84,15 +84,19 @@
         ORDER BY term ASC
     </select>
 
-    <!-- 검색창 자동 완성 -->
-    <select id = "selectAutocompleteTerms"
+    <select id = "AutoCompleteTerms"
             resultType="string">
         SELECT term
         FROM glossary
         WHERE term LIKE CONCAT('%', #{keyword}, '%')
 
-
-
+        ORDER BY
+        CASE
+        WHEN term LIKE CONCAT(#{keyword}, '%') THEN 0
+        ELSE 1
+        END,
+        term ASC
+        LIMIT 8
     </select>
 
 </mapper>

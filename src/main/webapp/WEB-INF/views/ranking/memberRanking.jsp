@@ -94,15 +94,13 @@
                                         </c:choose>
                                     </strong>
 
-                                    <span class="ranking-member-description">
-                                        <span class="ranking-member-id">
-                                            @<c:out value="${ranking.memberId}" />
-                                        </span>
-                                        <span aria-hidden="true">·</span>
-                                        보유 수량
-                                        <fmt:formatNumber value="${ranking.holdingQuantity}" pattern="#,##0"/>주
-                                    </span>
-                                </span>
+
+                              <span class="ranking-member-description">
+                                  <span class="ranking-member-id">
+                                      @<c:out value="${ranking.memberId}" />
+                                  </span>
+                              </span>
+
 
                                 <%-- 수익률/평가손익 요약 (카드 접혀있을 때도 보이는 부분) --%>
                                 <span class="ranking-profit ${ranking.returnRate lt 0 ? 'is-negative' : 'is-positive'}">
@@ -164,12 +162,7 @@
                                                         </strong>
                                                     </div>
 
-                                                    <div class="ranking-detail-stat">
-                                                        <span>보유 수량</span>
-                                                        <strong>
-                                                            <fmt:formatNumber value="${ranking.holdingQuantity}" pattern="#,##0"/>주
-                                                        </strong>
-                                                    </div>
+
 
                                                 </div>
 

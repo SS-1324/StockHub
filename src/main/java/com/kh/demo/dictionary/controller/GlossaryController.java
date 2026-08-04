@@ -7,8 +7,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class GlossaryController {
@@ -18,7 +22,51 @@ public class GlossaryController {
 
     // 용어사전 메인 페이지 (카테고리 목록)
     @GetMapping("/dictionary")
-    public String main() {
+    public String main(
+            @RequestParam(value = "keyword", defaultValue = "") String keyword,
+            Model model
+    ) {
+        String searchKeyword = keyword.trim();
+
+        // DB에 등록된 전체 카테고리 목록
+        List<String> categoryCodes =
+                glossaryService.selectCategoryList();
+
+        // 카테고리별 표시 여부
+        Map<String, Boolean> visibleCategories =
+                new LinkedHashMap<>();
+
+        if (searchKeyword.isBlank()) {
+            // 검색어가 없으면 전체 카테고리 표시
+            for (String category : categoryCodes) {
+                visibleCategories.put(category, true);
+            }
+
+            model.addAttribute("hasResult", true);
+
+        } else {
+            // 검색어가 포함된 카테고리 조회
+            List<String> matchedCategories =
+                    glossaryService.selectCategoryCodesByKeyword(
+                            searchKeyword
+                    );
+
+            for (String category : categoryCodes) {
+                visibleCategories.put(
+                        category,
+                        matchedCategories.contains(category)
+                );
+            }
+
+            model.addAttribute(
+                    "hasResult",
+                    !matchedCategories.isEmpty()
+            );
+        }
+
+        model.addAttribute("keyword", searchKeyword);
+        model.addAttribute("visible", visibleCategories);
+
         return "dictionary/glossary";
     }
 
@@ -26,12 +74,26 @@ public class GlossaryController {
     @GetMapping("/dictionary/category/{category}")
     public String getCategoryList(
             @PathVariable("category") String category,
+            @RequestParam(value = "keyword", defaultValue = "") String keyword,
             Model model
     ) {
-        List<GlossaryDto> glossaryList =
-                glossaryService.selectGlossaryByCategory(category);
+        String searchKeyword = keyword.trim();
 
-        model.addAttribute("categoryName", category);
+        List<GlossaryDto> glossaryList;
+
+        if (searchKeyword.isBlank()) {
+            // 검색어가 없으면 해당 카테고리 전체 조회
+            glossaryList =
+                    glossaryService.selectGlossaryByCategory(category);
+        } else {
+            // 검색어가 있으면 해당 카테고리 안에서 검색
+            glossaryList =
+                    glossaryService.selectGlossaryByCategoryAndKeyword(
+                            category,
+                            searchKeyword
+                    );
+        }
+
         String categoryName = switch (category) {
             case "trading" -> "매매와 투자 행동";
             case "risk-management" -> "투자자·자금·손익 관리";
@@ -42,9 +104,31 @@ public class GlossaryController {
             default -> "주식 용어 사전";
         };
 
+        model.addAttribute("category", category);
         model.addAttribute("categoryName", categoryName);
+        model.addAttribute("keyword", searchKeyword);
         model.addAttribute("glossaryList", glossaryList);
 
         return "dictionary/categoryList";
     }
+
+    //검색어 자동 완성
+    @GetMapping("/dictionary/autocomplete")
+    @ResponseBody
+    public List<String> autocomplete(
+            @RequestParam(
+                    value = "keyword",
+                    defaultValue = ""
+            ) String keyword
+    ){
+        String searchKeyword = keyword.trim();
+
+        if(searchKeyword.isBlank()){
+            return List.of();
+        }
+        return glossaryService.AutoCompleteTerms(
+                searchKeyword
+        );
+    }
+
 }
