@@ -1,0 +1,229 @@
+/* 관리자 문의 목록 전체 영역 */
+.admin-page{
+    width: 100%;
+    padding: 8px 0 50px;
+}
+
+/* 관리자 페이지 왼쪽 위 제목 */
+.admin-title{
+    margin-bottom: 20px;
+    color: #172033;
+    font-size: 30px;
+}
+
+.admin-alert{
+    width: 100%;
+    max-width: 760px;
+    margin-bottom: 14px;
+}
+
+/* 문의 목록의 가로 길이와 카드 사이 간격 */
+.admin-inquiry-list{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 760px;
+}
+
+/* 문의 한 건을 작고 누를 수 있는 카드로 표시 */
+.admin-inquiry-card{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #dbe4f0;
+    border-radius: 10px;
+    background: #ffffff;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.admin-inquiry-card:hover{
+    border-color: #93c5fd;
+    box-shadow: 0 5px 16px rgba(15, 23, 42, 0.06);
+}
+
+.admin-inquiry-summary{
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 2px 10px;
+    min-width: 0;
+}
+
+.admin-inquiry-number{
+    color: #64748b;
+    font-size: 11px;
+}
+
+.admin-inquiry-summary strong{
+    overflow: hidden;
+    color: #172033;
+    font-size: 14px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-inquiry-summary small{
+    grid-column: 1 / -1;
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+/* 문의가 없을 때 표시하는 영역 */
+.admin-empty{
+    width: 100%;
+    max-width: 760px;
+    padding: 40px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    color: #64748b;
+    text-align: center;
+}
+
+/* 관리자 문의 상세와 답장 입력 영역 */
+.admin-inquiry-modal{
+    max-width: 650px;
+}
+
+.admin-modal-title-row{
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.admin-modal-title-row h3{
+    color: #172033;
+    font-size: 18px;
+}
+
+.admin-modal-meta{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 14px;
+    margin-top: 7px;
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+.admin-question-box,
+.admin-answer-box{
+    margin-top: 18px;
+    padding: 14px;
+    border-radius: 9px;
+    background: #f8fafc;
+}
+
+.admin-question-box strong,
+.admin-answer-box strong{
+    color: #64748b;
+    font-size: 12px;
+}
+
+.admin-question-box p,
+.admin-answer-box p{
+    margin-top: 6px;
+    color: #334155;
+    font-size: 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.admin-answer-box{
+    background: #eff6ff;
+}
+
+.admin-answer-box small{
+    display: block;
+    margin-top: 8px;
+    color: #94a3b8;
+    font-size: 11px;
+    text-align: right;
+}
+
+.admin-reply-form{
+    display: flex;
+    flex-direction: column;
+    margin-top: 18px;
+}
+
+.admin-reply-form label{
+    margin-bottom: 7px;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.admin-reply-form textarea{
+    min-height: 140px;
+    padding: 11px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    color: #172033;
+    font: inherit;
+    resize: vertical;
+}
+
+.admin-reply-form textarea:focus{
+    border-color: #0874f7;
+    outline: 3px solid rgba(8, 116, 247, 0.14);
+}
+
+.admin-reply-count{
+    margin-top: 5px;
+    color: #94a3b8;
+    font-size: 11px;
+    text-align: right;
+}
+
+/* 삭제는 왼쪽, 답장 전송은 오른쪽에 배치 */
+.admin-modal-actions{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 24px 24px;
+}
+
+/* 다크 모드의 관리자 문의 목록과 상세 창 */
+html[data-theme="dark"] .admin-title{
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] .admin-inquiry-card{
+    border-color: #334155;
+    background: #111827;
+}
+
+html[data-theme="dark"] .admin-inquiry-summary strong,
+html[data-theme="dark"] .admin-modal-title-row h3,
+html[data-theme="dark"] .admin-question-box p,
+html[data-theme="dark"] .admin-answer-box p{
+    color: #e5e7eb;
+}
+
+html[data-theme="dark"] .admin-question-box,
+html[data-theme="dark"] .admin-answer-box{
+    background: #1e293b;
+}
+
+html[data-theme="dark"] .admin-reply-form textarea{
+    border-color: #475569;
+    background: #1e293b;
+    color: #f8fafc;
+}
+
+@media (max-width: 600px){
+    .admin-inquiry-card{
+        align-items: flex-start;
+    }
+
+    .admin-modal-actions{
+        padding: 0 20px 20px;
+    }
+}

@@ -1,10 +1,10 @@
 package com.kh.demo.community.controller;
 
-import com.kh.demo.common.SessionConst;
 import com.kh.demo.common.dto.ApiResponse;
+import com.kh.demo.common.util.SessionUtil;
+import com.kh.demo.community.CommunityUrls;
 import com.kh.demo.community.dto.BoardCommentDto;
 import com.kh.demo.community.service.BoardCommentService;
-import com.kh.demo.member.dto.MemberDto;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,7 +18,7 @@ import java.util.NoSuchElementException;
 * 진입 시점에는 항상 로그인 상태가 보장된다.
 * */
 @RestController
-@RequestMapping("/community/board")
+@RequestMapping(CommunityUrls.BASE)
 public class BoardCommentController {
 
     @Autowired
@@ -30,9 +30,29 @@ public class BoardCommentController {
                                                                HttpSession session) {
         try {
             boardCommentDto.setBoardId(boardId);
-            String memberId = loginMemberId(session);
+            String memberId = SessionUtil.requireLoginMemberId(session);
             BoardCommentDto saved = boardCommentService.write(boardCommentDto, memberId);
             return ResponseEntity.ok(ApiResponse.success(saved));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail(e.getMessage()));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.fail(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{boardId}/comment/{commentId}/edit")
+    public ResponseEntity<ApiResponse<Void>> editAsAdmin(@PathVariable Long boardId,
+                                                          @PathVariable Long commentId,
+                                                          @RequestBody BoardCommentDto boardCommentDto,
+                                                          HttpSession session) {
+        if (!SessionUtil.isAdmin(session)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.fail("관리자만 댓글을 수정할 수 있습니다."));
+        }
+
+        try {
+            boardCommentService.updateAsAdmin(boardId, commentId, boardCommentDto.getContent());
+            return ResponseEntity.ok(ApiResponse.success(null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail(e.getMessage()));
         } catch (NoSuchElementException e) {
@@ -45,18 +65,17 @@ public class BoardCommentController {
                                                      @PathVariable Long commentId,
                                                      HttpSession session) {
         try {
-            String memberId = loginMemberId(session);
-            boardCommentService.delete(commentId, memberId);
+            if (SessionUtil.isAdmin(session)) {
+                boardCommentService.deleteAsAdmin(boardId, commentId);
+            } else {
+                String memberId = SessionUtil.requireLoginMemberId(session);
+                boardCommentService.delete(boardId, commentId, memberId);
+            }
             return ResponseEntity.ok(ApiResponse.success(null));
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.fail(e.getMessage()));
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.fail(e.getMessage()));
         }
-    }
-
-    private String loginMemberId(HttpSession session) {
-        MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        return loginMember.getMemberId();
     }
 }

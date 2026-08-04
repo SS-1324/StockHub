@@ -4,7 +4,6 @@ import com.kh.demo.community.dto.ToggleResultDto;
 import com.kh.demo.community.mapper.BoardLikeMapper;
 import com.kh.demo.community.mapper.BoardMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,21 +21,21 @@ public class BoardLikeServiceImpl implements BoardLikeService {
     public ToggleResultDto toggleBoardLike(Long boardId, String memberId) {
         boolean alreadyLiked = boardLikeMapper.existsBoardLike(boardId, memberId);
 
-        if (!alreadyLiked) {
-            try {
-                boardLikeMapper.insertBoardLike(boardId, memberId);
-                boardMapper.increaseLikeCount(boardId);
-            } catch (DuplicateKeyException e) {
-                // 동시 클릭으로 인한 레이스 - 이미 등록된 것으로 간주(멱등 처리)
-            }
-            return new ToggleResultDto(true, boardMapper.selectLikeCount(boardId));
-        }
+        boolean active = ToggleSupport.toggle(
+                alreadyLiked,
+                () -> {
+                    boardLikeMapper.insertBoardLike(boardId, memberId);
+                    boardMapper.increaseLikeCount(boardId);
+                },
+                () -> {
+                    int deleted = boardLikeMapper.deleteBoardLike(boardId, memberId);
+                    if (deleted > 0) {
+                        boardMapper.decreaseLikeCount(boardId);
+                    }
+                }
+        );
 
-        int deleted = boardLikeMapper.deleteBoardLike(boardId, memberId);
-        if (deleted > 0) {
-            boardMapper.decreaseLikeCount(boardId);
-        }
-        return new ToggleResultDto(false, boardMapper.selectLikeCount(boardId));
+        return new ToggleResultDto(active, boardMapper.selectLikeCount(boardId));
     }
 
     @Override

@@ -16,6 +16,9 @@
                a.brokerage_id,
                b.brokerage_name,
                a.balance,
+               a.return_rate,
+               a.profit_amount,
+               a.holding_stock_quantity,
                a.create_at,
                a.linked_at
         FROM account a
@@ -30,11 +33,31 @@
                a.brokerage_id,
                b.brokerage_name,
                a.balance,
+               a.return_rate,
+               a.profit_amount,
+               a.holding_stock_quantity,
                a.create_at,
                a.linked_at
         FROM account a
         JOIN brokerage b ON a.brokerage_id = b.brokerage_id
         WHERE a.account_id = #{accountId}
+    </select>
+
+    <select id="selectAccountByAccountNo" resultType="com.kh.demo.brokerage.dto.AccountDto">
+        SELECT a.account_id, a.account_no, a.owner_name,
+               a.member_id,
+               a.brokerage_id,
+               b.brokerage_name,
+               a.balance,
+               a.return_rate,
+               a.profit_amount,
+               a.holding_stock_quantity,
+               a.create_at,
+               a.linked_at
+        FROM account a
+        JOIN brokerage b ON a.brokerage_id = b.brokerage_id
+        WHERE a.brokerage_id = #{brokerageId}
+          AND a.account_no = #{accountNo}
     </select>
 
     <select id="selectUnlinkedAccountsByBrokerage" parameterType="long" resultType="com.kh.demo.brokerage.dto.AccountDto">
@@ -43,6 +66,9 @@
                a.brokerage_id,
                b.brokerage_name,
                a.balance,
+               a.return_rate,
+               a.profit_amount,
+               a.holding_stock_quantity,
                a.create_at,
                a.linked_at
         FROM account a
@@ -57,6 +83,9 @@
                a.brokerage_id,
                b.brokerage_name,
                a.balance,
+               a.return_rate,
+               a.profit_amount,
+               a.holding_stock_quantity,
                a.create_at,
                a.linked_at
         FROM account a

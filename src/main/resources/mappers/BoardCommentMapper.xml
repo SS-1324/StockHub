@@ -18,7 +18,8 @@
         c.comment_id, c.board_id, c.member_id, c.parent_comment_id, c.content,
         COALESCE(lc.like_count, 0) AS like_count,
         c.create_at, DATE_FORMAT(c.create_at, '%Y-%m-%d %H:%i') AS create_at_str,
-        m.nickname, m.profile,
+        m.nickname,
+        COALESCE(NULLIF(m.profile, ''), '/images/common_member.png') AS profile,
         pm.nickname AS parent_nickname
     </sql>
 
@@ -55,7 +56,23 @@
         (comment_like도 마찬가지) 자신의 행 하나만 지우면 답글/좋아요는 DB가 알아서 정리해준다.
     -->
     <delete id="deleteById">
-        DELETE FROM board_comment WHERE comment_id = #{commentId} AND member_id = #{memberId}
+        DELETE FROM board_comment
+        WHERE board_id = #{boardId}
+          AND comment_id = #{commentId}
+          AND member_id = #{memberId}
+    </delete>
+
+    <update id="updateByIdAsAdmin">
+        UPDATE board_comment
+        SET content = #{content}
+        WHERE board_id = #{boardId}
+          AND comment_id = #{commentId}
+    </update>
+
+    <delete id="deleteByIdAsAdmin">
+        DELETE FROM board_comment
+        WHERE board_id = #{boardId}
+          AND comment_id = #{commentId}
     </delete>
 
     <select id="selectLikeCount" resultType="long">

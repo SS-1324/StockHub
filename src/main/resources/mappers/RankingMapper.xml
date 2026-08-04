@@ -1,12 +1,42 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
 <mapper namespace="com.kh.demo.ranking.mapper.RankingMapper">
 
-    <select id="selectRankingBoard" resultType="com.kh.demo.ranking.dto.RankingDto">
-        SELECT member_id, nickname
-        FROM member
-        ORDER BY member_id
-        LIMIT 10
-    </select>
+    <select id="selectRankingBoard"
+            resultType="com.kh.demo.ranking.dto.RankingDto">
 
+        SELECT
+        ROW_NUMBER() OVER (
+        ORDER BY COALESCE(SUM(a.return_rate), 0) DESC,
+        m.member_id ASC
+        ) AS rankPosition,
+
+        m.member_id AS memberId,
+        m.nickname AS nickname,
+        m.profile AS profile,
+
+        CASE WHEN COALESCE(s.is_stock_public, FALSE) = TRUE
+        THEN 'Y' ELSE 'N' END AS tradeHistoryPublicYn,
+
+        COALESCE(SUM(a.return_rate), 0) AS returnRate,
+        COALESCE(SUM(a.holding_stock_quantity), 0) AS holdingQuantity,
+        COALESCE(SUM(a.profit_amount), 0) AS profit
+
+        FROM member m
+        LEFT JOIN settings s
+        ON s.member_id = m.member_id
+        LEFT JOIN account a
+        ON a.member_id = m.member_id
+
+        WHERE m.member_role = 'USER'
+
+        GROUP BY m.member_id, m.nickname, m.profile, s.is_stock_public
+
+
+        ORDER BY rankPosition ASC
+
+    </select>
 </mapper>

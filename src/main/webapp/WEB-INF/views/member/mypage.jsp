@@ -3,8 +3,11 @@
 
 <%-- 공통 헤더를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
+<c:url var="defaultProfileUrl" value="/images/common_member.png" />
+<c:url var="currentProfileUrl"
+       value="${empty member.profile ? '/images/common_member.png' : member.profile}" />
 
-<h2 class="page-title">프로필 수정</h2>
+<h2 class="page-title profile-page-title">프로필 수정</h2>
 
 <%-- 프로필 수정 실패 메시지를 표시 --%>
 <c:if test="${not empty error}">
@@ -16,9 +19,22 @@
     <p class="alert alert-success profile-alert">프로필이 수정되었습니다.</p>
 </c:if>
 
+<%-- 프로필 이미지 삭제 버튼이 요청할 별도 폼 --%>
+<form id="delete-profile-image-form"
+      action="${pageContext.request.contextPath}/member/mypage/profile-image/delete"
+      method="post"></form>
+
+<c:if test="${not empty profileImageDeleted}">
+    <p class="alert alert-success profile-alert">
+        프로필 이미지가 삭제되어 기본 이미지로 변경되었습니다.
+    </p>
+</c:if>
+
 <%-- 변경할 프로필 정보를 서버로 전송 --%>
 <form id="profile-form" class="form form-flex profile-form"
       action="${pageContext.request.contextPath}/member/mypage"
+      data-current-profile-url="${currentProfileUrl}"
+      data-context-path="${pageContext.request.contextPath}"
       method="post" enctype="multipart/form-data">
 
     <%-- 현재 프로필 이미지와 새 이미지 선택 영역 --%>
@@ -28,7 +44,7 @@
                 <c:when test="${not empty member.profile}">
                     <img id="profile-preview" class="profile-preview"
                          src="${pageContext.request.contextPath}${member.profile}"
-                         onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/images/default-profile.svg';"
+                         onerror="this.onerror=null; this.src='${defaultProfileUrl}';"
                          alt="현재 프로필 이미지">
                     <div id="profile-preview-placeholder"
                          class="profile-preview profile-preview-placeholder"
@@ -36,19 +52,29 @@
                 </c:when>
                 <c:otherwise>
                     <img id="profile-preview" class="profile-preview"
-                         alt="프로필 미리보기" style="display:none;">
+                         src="${defaultProfileUrl}"
+                         alt="기본 프로필 이미지">
                     <div id="profile-preview-placeholder"
-                         class="profile-preview profile-preview-placeholder">사진없음</div>
+                         class="profile-preview profile-preview-placeholder"
+                         style="display:none;">사진없음</div>
                 </c:otherwise>
             </c:choose>
         </div>
 
-        <label class="file-label">
-            프로필 이미지 변경
-            <input id="profile-image" name="profileImage"
-                   type="file" accept=".jpg,.jpeg,.png,.gif,.webp,image/*">
-        </label>
+        <div class="profile-image-actions">
+            <label class="file-label">
+                프로필 이미지 변경
+                <input id="profile-image" name="profileImage"
+                       type="file"
+                       accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+            </label>
+            <button id="delete-profile-image-button"
+                    class="btn btn-danger btn-profile-image-delete"
+                    type="submit"
+                    form="delete-profile-image-form">프로필 이미지 삭제</button>
+        </div>
         <p class="form-tip">선택하지 않으면 현재 이미지가 유지됩니다.</p>
+        <p class="form-tip">3MB 이하의 JPG, PNG, WEBP 파일만 선택할 수 있습니다. GIF 파일은 업로드할 수 없습니다.</p>
     </div>
 
     <%-- 로그인 아이디는 확인용으로만 표시 --%>
@@ -89,18 +115,21 @@
         <p id="password-confirm-result" class="form-tip"></p>
     </div>
 
-    <%-- 프로필 공개 여부 선택 영역 --%>
+    <%-- 내 주식 정보 공개 여부 선택 영역 --%>
     <fieldset class="form-row choice-group">
-        <legend>프로필 공개 여부</legend>
+        <legend>내 주식 정보 공개</legend>
+        <p class="form-tip">
+            N을 선택하면 다른 사람이 프로필 아이콘을 눌렀을 때 주식 정보가 표시되지 않습니다. 또한, 랭킹보드에도 올라가지 않습니다.
+        </p>
         <div class="radio-row">
             <label class="radio-label">
-                <input type="radio" name="profilePublic" value="true"
-                       <c:if test="${member.profilePublic}">checked</c:if> required>
+                <input type="radio" name="stockPublic" value="true"
+                       <c:if test="${member.stockPublic}">checked</c:if> required>
                 Y
             </label>
             <label class="radio-label">
-                <input type="radio" name="profilePublic" value="false"
-                       <c:if test="${not member.profilePublic}">checked</c:if>>
+                <input type="radio" name="stockPublic" value="false"
+                       <c:if test="${not member.stockPublic}">checked</c:if>>
                 N
             </label>
         </div>
@@ -168,7 +197,7 @@
 </div>
 
 <%-- 프로필 이미지 미리보기와 입력 검사를 불러옴 --%>
-<script src="${pageContext.request.contextPath}/js/profile.js"></script>
+<script src="${pageContext.request.contextPath}/js/profile.js?v=5"></script>
 
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

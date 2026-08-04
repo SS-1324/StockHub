@@ -14,6 +14,9 @@ import java.util.NoSuchElementException;
 @Service
 public class BoardCommentServiceImpl implements BoardCommentService {
 
+    // board_comment.content 컬럼 크기(VARCHAR(1500))와 맞춘 길이 제한 - DB 예외로 새는 대신 명확한 메시지로 미리 검증
+    private static final int MAX_CONTENT_LENGTH = 1500;
+
     @Autowired
     private BoardCommentMapper boardCommentMapper;
 
@@ -29,7 +32,7 @@ public class BoardCommentServiceImpl implements BoardCommentService {
     @Override
     @Transactional
     public BoardCommentDto write(BoardCommentDto boardCommentDto, String loginMemberId) {
-        validateContent(boardCommentDto);
+        validateContent(boardCommentDto.getContent());
 
         if (!boardMapper.existsById(boardCommentDto.getBoardId())) {
             throw new NoSuchElementException("게시글을 찾을 수 없습니다.");
@@ -60,20 +63,39 @@ public class BoardCommentServiceImpl implements BoardCommentService {
 
     @Override
     @Transactional
-    public void delete(Long commentId, String loginMemberId) {
+    public void delete(Long boardId, Long commentId, String loginMemberId) {
         BoardCommentDto comment = boardCommentMapper.selectById(commentId);
-        if (comment == null) {
+        if (comment == null || !boardId.equals(comment.getBoardId())) {
             throw new NoSuchElementException("댓글을 찾을 수 없습니다.");
         }
-        if (!comment.getMemberId().equals(loginMemberId)) {
+        if (!loginMemberId.equals(comment.getMemberId())) {
             throw new IllegalStateException("댓글을 삭제할 권한이 없습니다.");
         }
 
         // parent_comment_id/comment_like 모두 board_comment에 ON DELETE CASCADE로 걸려있어서
         // 이 행 하나만 지우면 답글과 좋아요는 DB가 함께 정리해준다.
-        int deleted = boardCommentMapper.deleteById(commentId, loginMemberId);
+        int deleted = boardCommentMapper.deleteById(boardId, commentId, loginMemberId);
         if (deleted == 0) {
             throw new IllegalStateException("댓글이 존재하지 않거나 삭제 권한이 없습니다.");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateAsAdmin(Long boardId, Long commentId, String content) {
+        validateContent(content);
+        int updated = boardCommentMapper.updateByIdAsAdmin(boardId, commentId, content);
+        if (updated == 0) {
+            throw new NoSuchElementException("댓글을 찾을 수 없습니다.");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteAsAdmin(Long boardId, Long commentId) {
+        int deleted = boardCommentMapper.deleteByIdAsAdmin(boardId, commentId);
+        if (deleted == 0) {
+            throw new NoSuchElementException("댓글을 찾을 수 없습니다.");
         }
     }
 
@@ -82,9 +104,12 @@ public class BoardCommentServiceImpl implements BoardCommentService {
         return boardCommentMapper.selectById(commentId) != null;
     }
 
-    private void validateContent(BoardCommentDto boardCommentDto) {
-        if (boardCommentDto.getContent() == null || boardCommentDto.getContent().isBlank()) {
+    private void validateContent(String content) {
+        if (content == null || content.isBlank()) {
             throw new IllegalArgumentException("빈 댓글은 작성할 수 없습니다.");
+        }
+        if (content.length() > MAX_CONTENT_LENGTH) {
+            throw new IllegalArgumentException("댓글은 " + MAX_CONTENT_LENGTH + "자를 넘을 수 없습니다.");
         }
     }
 

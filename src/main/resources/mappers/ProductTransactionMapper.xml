@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kh.demo.brokerage.mapper.ProductTransactionMapper">
+
+    <select id="selectTransactionsByAccount" resultType="com.kh.demo.brokerage.dto.ProductTransactionDto">
+        SELECT pt.transaction_id,
+               pt.account_id,
+               pt.product_id,
+               fp.product_name,
+               pt.transaction_type,
+               pt.quantity,
+               pt.nav,
+               pt.amount,
+               pt.transaction_at
+        FROM product_transaction pt
+        JOIN financial_product fp ON pt.product_id = fp.product_id
+        <where>
+            pt.account_id = #{accountId}
+            <if test="from != null">
+                AND pt.transaction_at &gt;= #{from}
+            </if>
+            <if test="to != null">
+                AND pt.transaction_at &lt; DATE_ADD(#{to}, INTERVAL 1 DAY)
+            </if>
+        </where>
+        ORDER BY pt.transaction_at DESC
+    </select>
+
+</mapper>

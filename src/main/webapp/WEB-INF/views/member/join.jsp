@@ -3,6 +3,7 @@
 
 <%-- 공통 헤더를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
+<c:url var="defaultProfileUrl" value="/images/common_member.png" />
 
 <h2 class="page-title">회원가입</h2>
 
@@ -14,22 +15,27 @@
 <%-- 회원 정보와 이미지를 서버로 전송 --%>
 <form id="join-form" class="form form-flex"
       action="${pageContext.request.contextPath}/member/join"
+      data-context-path="${pageContext.request.contextPath}"
       method="post" enctype="multipart/form-data">
 
     <%-- 프로필 이미지 선택과 미리보기 영역 --%>
     <div class="form-row form-row-center">
         <div class="profile-preview-wrap">
             <div id="profile-preview-placeholder"
-                 class="profile-preview profile-preview-placeholder">사진없음</div>
+                 class="profile-preview profile-preview-placeholder"
+                 style="display:none;">사진없음</div>
             <img id="profile-preview" class="profile-preview"
-                 alt="프로필 미리보기" style="display:none;">
+                 src="${defaultProfileUrl}"
+                 alt="기본 프로필 이미지">
         </div>
 
         <label class="file-label">
             프로필 이미지 선택
             <input id="profile-image" name="profileImage"
-                   type="file" accept="image/*">
+                   type="file"
+                   accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
         </label>
+        <p class="form-tip">3MB 이하의 JPG, PNG, WEBP 파일만 선택할 수 있습니다. GIF 파일은 업로드할 수 없습니다.</p>
     </div>
 
     <%-- 아이디 입력과 중복확인 영역 --%>
@@ -71,7 +77,9 @@
     <div class="form-row">
         <label for="member-name">이름</label>
         <input id="member-name" name="memberName"
-               type="text" maxlength="50" required>
+               type="text" maxlength="50"
+               pattern="\S{1,50}" required autocomplete="off">
+        <p class="form-tip">띄어쓰기 없이 입력해주세요.</p>
     </div>
 
     <%-- 닉네임 입력과 중복확인 영역 --%>
@@ -95,34 +103,46 @@
         <%-- 화면에서 나눈 이메일 값을 전송 직전에 하나로 합쳐 담음 --%>
         <input id="email" name="email" type="hidden">
 
-        <div class="email-input-group">
-            <input id="email-local"
-                   type="text" minlength="6" maxlength="50"
-                   pattern="(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9]{6,50}"
-                   placeholder="영문+숫자 6자 이상"
-                   required autocomplete="off">
-            <span class="email-at" aria-hidden="true">@</span>
-            <input id="email-domain"
-                   type="text" maxlength="50"
-                   pattern="[A-Za-z]+(\.com|\.co\.kr|\.net)"
-                   placeholder="직접 입력"
-                   required autocomplete="off">
-            <select id="email-domain-select" class="email-domain-select"
-                    aria-label="이메일 도메인 선택">
-                <option value="">직접 입력</option>
-                <option value="naver.com">naver.com</option>
-                <option value="gmail.com">gmail.com</option>
-                <option value="kakao.com">kakao.com</option>
-                <option value="daum.net">daum.net</option>
-                <option value="nate.com">nate.com</option>
-            </select>
+        <div class="email-auth-row">
+            <div class="email-input-group">
+                <input id="email-local"
+                       type="text" minlength="1" maxlength="50"
+                       pattern="(?=.*[a-z])[a-z0-9]{1,50}"
+                       placeholder="이메일 아이디"
+                       required autocomplete="off">
+                <span class="email-at" aria-hidden="true">@</span>
+                <input id="email-domain"
+                       type="text" maxlength="50"
+                       pattern="[A-Za-z]+(\.com|\.co\.kr|\.net)"
+                       placeholder="직접 입력"
+                       required autocomplete="off">
+                <select id="email-domain-select" class="email-domain-select"
+                        aria-label="이메일 도메인 선택">
+                    <option value="">직접 입력</option>
+                    <option value="naver.com">naver.com</option>
+                    <option value="gmail.com">gmail.com</option>
+                    <option value="kakao.com">kakao.com</option>
+                    <option value="daum.net">daum.net</option>
+                    <option value="nate.com">nate.com</option>
+                </select>
+            </div>
+            <button id="send-email-code-btn" class="btn btn-outline"
+                    type="button">인증</button>
         </div>
 
         <p id="email-result" class="form-tip"></p>
-        <p class="form-tip">
-            앞부분은 영문과 숫자를 모두 포함해 6자 이상,
-            직접 입력 도메인은 영문 + .com, .co.kr 또는 .net 형식으로 입력해주세요.
-        </p>
+
+        <%-- 개발용 인증 코드 생성 후에만 입력 영역을 표시 --%>
+        <div id="email-code-area" class="email-code-area" hidden>
+            <div class="input-with-button">
+                <input id="email-code" type="text"
+                       inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+                       placeholder="인증코드 6자리" autocomplete="one-time-code">
+                <button id="verify-email-code-btn" class="btn btn-outline"
+                        type="button">확인</button>
+            </div>
+            <p id="email-code-result" class="form-tip"></p>
+        </div>
     </div>
 
     <div class="form-row">
@@ -131,7 +151,7 @@
 </form>
 
 <%-- 회원가입 화면의 검사와 미리보기 기능을 불러옴 --%>
-<script src="${pageContext.request.contextPath}/js/member.js"></script>
+<script src="${pageContext.request.contextPath}/js/member.js?v=2"></script>
 
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

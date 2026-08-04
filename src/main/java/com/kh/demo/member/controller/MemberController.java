@@ -4,7 +4,9 @@ import com.kh.demo.common.SessionConst;
 import com.kh.demo.common.dto.ApiResponse;
 import com.kh.demo.member.dto.MemberDto;
 import com.kh.demo.member.dto.ProfileUpdateDto;
+import com.kh.demo.member.service.EmailVerificationService;
 import com.kh.demo.member.service.MemberService;
+import com.kh.demo.member.service.PasswordResetService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
@@ -25,12 +27,31 @@ import java.io.IOException;
 @RequestMapping("/member")
 public class MemberController {
 
+    // 세션에 저장할 이메일 인증 완료 값의 이름
+    private static final String VERIFIED_EMAIL = "verifiedEmail";
+
+    // 프로필 수정 전 비밀번호 확인 정보를 저장할 세션 키
+    private static final String PROFILE_EDIT_VERIFIED_MEMBER_ID =
+            "profileEditVerifiedMemberId";
+    private static final String PROFILE_EDIT_VERIFIED_AT =
+            "profileEditVerifiedAt";
+
+    // 현재 비밀번호 확인 결과는 10분 동안만 사용
+    private static final long PROFILE_EDIT_VERIFICATION_VALID_MILLIS =
+            10L * 60 * 1000;
+
     // 회원 기능을 처리할 Service
     private final MemberService memberService;
+    private final EmailVerificationService emailVerificationService;
+    private final PasswordResetService passwordResetService;
 
-    // MemberService를 주입받는 생성자
-    public MemberController(MemberService memberService) {
+    // 회원 기능과 이메일 인증 기능을 주입받는 생성자
+    public MemberController(MemberService memberService,
+                            EmailVerificationService emailVerificationService,
+                            PasswordResetService passwordResetService) {
         this.memberService = memberService;
+        this.emailVerificationService = emailVerificationService;
+        this.passwordResetService = passwordResetService;
     }
 
     // 회원가입 화면을 반환
@@ -43,10 +64,21 @@ public class MemberController {
     @PostMapping("/join")
     public String join(@ModelAttribute MemberDto memberDto,
                        @RequestParam(required = false) MultipartFile profileImage,
+                       HttpSession session,
                        RedirectAttributes ra) {
         try {
+            // 현재 브라우저에서 인증한 이메일과 가입 이메일이 같은지 확인
+            String normalizedEmail =
+                    emailVerificationService.normalizeAndValidateEmail(memberDto.getEmail());
+            String verifiedEmail = (String) session.getAttribute(VERIFIED_EMAIL);
+            if (!normalizedEmail.equals(verifiedEmail)) {
+                throw new IllegalStateException("이메일 인증을 완료해주세요.");
+            }
+            memberDto.setEmail(normalizedEmail);
+
             // 회원가입 처리를 Service에 요청
             memberService.join(memberDto, profileImage);
+            session.removeAttribute(VERIFIED_EMAIL);
             // 이동 후 보여줄 가입 성공 값을 저장
             ra.addFlashAttribute("joinSuccess", true);
             return "redirect:/member/login";
@@ -87,6 +119,105 @@ public class MemberController {
         return ApiResponse.success(message, duplicate);
     }
 
+    // 외부 메일 없이 테스트할 수 있는 개발용 인증 코드를 생성
+    @PostMapping("/email/send")
+    @ResponseBody
+    public ApiResponse<String> createEmailVerificationCode(@RequestParam String email,
+                                                           HttpSession session) {
+        try {
+            String code = emailVerificationService.createDevelopmentCode(email);
+            // 새 코드가 생성되면 이전 세션의 인증 완료 상태를 제거
+            session.removeAttribute(VERIFIED_EMAIL);
+            return ApiResponse.success("개발용 인증코드가 생성되었습니다.", code);
+        } catch (IllegalStateException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
+    }
+
+    // 이메일로 받은 6자리 인증 코드가 맞는지 확인
+    @PostMapping("/email/verify")
+    @ResponseBody
+    public ApiResponse<Boolean> verifyEmailCode(@RequestParam String email,
+                                                @RequestParam String code,
+                                                HttpSession session) {
+        try {
+            String normalizedEmail =
+                    emailVerificationService.normalizeAndValidateEmail(email);
+            boolean verified =
+                    emailVerificationService.verifyCode(normalizedEmail, code);
+
+            if (verified) {
+                // 가입 요청에서도 같은 이메일인지 확인할 수 있도록 세션에 저장
+                session.setAttribute(VERIFIED_EMAIL, normalizedEmail);
+                return ApiResponse.success("인증되었습니다.", true);
+            }
+
+            session.removeAttribute(VERIFIED_EMAIL);
+            return ApiResponse.success("코드를 다시 확인해주세요.", false);
+        } catch (IllegalStateException e) {
+            session.removeAttribute(VERIFIED_EMAIL);
+            return ApiResponse.fail(e.getMessage());
+        }
+    }
+
+    // 비밀번호 찾기 화면을 반환
+    @GetMapping("/password-reset")
+    public String passwordResetForm() {
+        return "member/passwordReset";
+    }
+
+    // 가입된 이메일에 비밀번호 찾기용 개발 코드 생성
+    @PostMapping("/password-reset/email/send")
+    @ResponseBody
+    public ApiResponse<String> createPasswordResetCode(@RequestParam String email) {
+        try {
+            String code = passwordResetService.createDevelopmentCode(email);
+            return ApiResponse.success("개발용 인증코드가 생성되었습니다.", code);
+        } catch (IllegalStateException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
+    }
+
+    // 이메일 인증 코드가 맞으면 일회성 비밀번호 변경 토큰 발급
+    @PostMapping("/password-reset/email/verify")
+    @ResponseBody
+    public ApiResponse<String> verifyPasswordResetCode(@RequestParam String email,
+                                                       @RequestParam String code) {
+        try {
+            String token = passwordResetService.verifyCodeAndCreateToken(email, code);
+            return ApiResponse.success("인증되었습니다.", token);
+        } catch (IllegalStateException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
+    }
+
+    // 일회성 토큰을 확인한 뒤 새 비밀번호로 변경
+    @PostMapping("/password-reset")
+    public String resetPassword(@RequestParam String resetToken,
+                                @RequestParam String newPassword,
+                                @RequestParam String newPasswordConfirm,
+                                HttpSession session,
+                                RedirectAttributes ra) {
+        try {
+            passwordResetService.resetPassword(
+                    resetToken,
+                    newPassword,
+                    newPasswordConfirm
+            );
+            // 로그인 중 비밀번호 찾기를 사용한 경우 새 비밀번호로 다시 로그인
+            session.removeAttribute(SessionConst.LOGIN_MEMBER);
+            clearProfileEditVerification(session);
+            ra.addFlashAttribute("passwordResetSuccess", true);
+            return "redirect:/member/login";
+        } catch (IllegalStateException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+            return "redirect:/member/password-reset";
+        } catch (RuntimeException e) {
+            ra.addFlashAttribute("error", "비밀번호 찾기 처리 중 오류가 발생했습니다.");
+            return "redirect:/member/password-reset";
+        }
+    }
+
     // 로그인 화면을 반환
     @GetMapping("/login")
     public String loginForm() {
@@ -105,6 +236,7 @@ public class MemberController {
             MemberDto member = memberService.login(memberId, memberPwd);
             // 로그인 회원 정보를 세션에 저장
             session.setAttribute(SessionConst.LOGIN_MEMBER, member);
+            clearProfileEditVerification(session);
         } catch (IllegalStateException e) {
             // 로그인 실패 메시지를 전달
             ra.addFlashAttribute("error", e.getMessage());
@@ -135,13 +267,70 @@ public class MemberController {
         return "redirect:/";
     }
 
-    // 로그인 회원의 마이페이지 화면을 반환
+    // 프로필 수정 전에 현재 비밀번호 확인 화면을 반환
+    @GetMapping("/mypage/password-check")
+    public String profilePasswordCheckForm(HttpSession session) {
+        MemberDto loginMember =
+                (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+
+        // ADMIN 계정은 프로필 수정 기능을 사용하지 않음
+        if (isAdmin(loginMember)) {
+            clearProfileEditVerification(session);
+            return "redirect:/admin";
+        }
+
+        // 화면에 다시 들어올 때는 이전 확인 상태를 제거하고 새로 확인
+        clearProfileEditVerification(session);
+        return "member/profilePasswordCheck";
+    }
+
+    // 현재 비밀번호가 일치하면 프로필 수정 화면 접근을 허용
+    @PostMapping("/mypage/password-check")
+    public String verifyProfilePassword(@RequestParam String currentPassword,
+                                        HttpSession session,
+                                        RedirectAttributes ra) {
+        MemberDto loginMember =
+                (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+
+        if (isAdmin(loginMember)) {
+            clearProfileEditVerification(session);
+            return "redirect:/admin";
+        }
+
+        try {
+            memberService.verifyCurrentPassword(
+                    loginMember.getMemberId(),
+                    currentPassword
+            );
+            session.setAttribute(
+                    PROFILE_EDIT_VERIFIED_MEMBER_ID,
+                    loginMember.getMemberId()
+            );
+            session.setAttribute(
+                    PROFILE_EDIT_VERIFIED_AT,
+                    System.currentTimeMillis()
+            );
+            return "redirect:/member/mypage";
+        } catch (IllegalStateException e) {
+            clearProfileEditVerification(session);
+            ra.addFlashAttribute("error", e.getMessage());
+            return "redirect:/member/mypage/password-check";
+        }
+    }
+
+    // 현재 비밀번호 확인을 마친 로그인 회원의 프로필 수정 화면을 반환
     @GetMapping("/mypage")
     public String mypage(HttpSession session, Model model) {
         // 세션에서 로그인 회원을 확인
         MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        if (loginMember == null) {
-            return "redirect:/member/login?redirectURL=/member/mypage";
+
+        if (isAdmin(loginMember)) {
+            clearProfileEditVerification(session);
+            return "redirect:/admin";
+        }
+
+        if (!isProfileEditVerified(session, loginMember.getMemberId())) {
+            return "redirect:/member/mypage/password-check";
         }
 
         try {
@@ -165,8 +354,14 @@ public class MemberController {
                                 RedirectAttributes ra) {
         // 로그인하지 않은 요청은 로그인 화면으로 이동
         MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        if (loginMember == null) {
-            return "redirect:/member/login?redirectURL=/member/mypage";
+
+        if (isAdmin(loginMember)) {
+            clearProfileEditVerification(session);
+            return "redirect:/admin";
+        }
+
+        if (!isProfileEditVerified(session, loginMember.getMemberId())) {
+            return "redirect:/member/mypage/password-check";
         }
 
         // 화면에서 전달된 아이디 대신 세션 아이디를 사용
@@ -188,15 +383,68 @@ public class MemberController {
         return "redirect:/member/mypage";
     }
 
-    // 회원 탈퇴 확인 화면을 반환
-    @GetMapping("/withdraw")
-    public String withdrawForm(HttpSession session) {
-        // 로그인하지 않은 요청은 로그인 화면으로 이동
-        MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        if (loginMember == null) {
-            return "redirect:/member/login?redirectURL=/member/withdraw";
+    // 새 비밀번호가 현재 비밀번호와 같은지 프로필 화면에 JSON으로 반환
+    @PostMapping("/mypage/password/current-check")
+    @ResponseBody
+    public ApiResponse<Boolean> checkCurrentPasswordForProfile(
+            @RequestParam String newPassword,
+            HttpSession session) {
+        MemberDto loginMember =
+                (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+
+        if (isAdmin(loginMember)) {
+            return ApiResponse.fail("관리자는 프로필 수정 기능을 사용할 수 없습니다.");
+        }
+        if (!isProfileEditVerified(session, loginMember.getMemberId())) {
+            return ApiResponse.fail("현재 비밀번호 확인이 필요합니다.");
         }
 
+        try {
+            boolean sameAsCurrentPassword = memberService.isCurrentPassword(
+                    loginMember.getMemberId(),
+                    newPassword
+            );
+            String message = sameAsCurrentPassword
+                    ? "현재 비밀번호와 동일한 비밀번호는 사용 불가합니다."
+                    : "사용 가능한 비밀번호입니다.";
+            return ApiResponse.success(message, sameAsCurrentPassword);
+        } catch (IllegalStateException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
+    }
+
+    // 로그인 회원의 프로필 이미지를 삭제하고 기본 이미지로 변경
+    @PostMapping("/mypage/profile-image/delete")
+    public String deleteProfileImage(HttpSession session,
+                                     RedirectAttributes ra) {
+        MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+
+        if (isAdmin(loginMember)) {
+            clearProfileEditVerification(session);
+            return "redirect:/admin";
+        }
+
+        if (!isProfileEditVerified(session, loginMember.getMemberId())) {
+            return "redirect:/member/mypage/password-check";
+        }
+
+        try {
+            MemberDto updatedMember =
+                    memberService.deleteProfileImage(loginMember.getMemberId());
+            session.setAttribute(SessionConst.LOGIN_MEMBER, updatedMember);
+            ra.addFlashAttribute("profileImageDeleted", true);
+        } catch (IllegalStateException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        } catch (RuntimeException e) {
+            ra.addFlashAttribute("error", "프로필 이미지 삭제 중 오류가 발생했습니다.");
+        }
+
+        return "redirect:/member/mypage";
+    }
+
+    // 회원 탈퇴 확인 화면을 반환
+    @GetMapping("/withdraw")
+    public String withdrawForm() {
         return "member/withdraw";
     }
 
@@ -208,9 +456,6 @@ public class MemberController {
                            RedirectAttributes ra) {
         // 로그인하지 않은 요청은 로그인 화면으로 이동
         MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        if (loginMember == null) {
-            return "redirect:/member/login?redirectURL=/member/withdraw";
-        }
 
         // 탈퇴 동의를 선택하지 않으면 요청을 중단
         if (!Boolean.TRUE.equals(confirmWithdraw)) {
@@ -234,6 +479,40 @@ public class MemberController {
             ra.addFlashAttribute("error", "회원 탈퇴 처리 중 오류가 발생했습니다.");
             return "redirect:/member/withdraw";
         }
+    }
+
+    // 세션의 프로필 수정 비밀번호 확인 상태가 현재 로그인 회원에게 유효한지 확인
+    private boolean isProfileEditVerified(HttpSession session, String memberId) {
+        Object verifiedMemberId =
+                session.getAttribute(PROFILE_EDIT_VERIFIED_MEMBER_ID);
+        Object verifiedAtValue =
+                session.getAttribute(PROFILE_EDIT_VERIFIED_AT);
+
+        if (!memberId.equals(verifiedMemberId)
+                || !(verifiedAtValue instanceof Long verifiedAt)) {
+            clearProfileEditVerification(session);
+            return false;
+        }
+
+        long elapsed = System.currentTimeMillis() - verifiedAt;
+        if (elapsed < 0 || elapsed > PROFILE_EDIT_VERIFICATION_VALID_MILLIS) {
+            clearProfileEditVerification(session);
+            return false;
+        }
+
+        return true;
+    }
+
+    // 프로필 수정 비밀번호 확인 상태를 세션에서 제거
+    private void clearProfileEditVerification(HttpSession session) {
+        session.removeAttribute(PROFILE_EDIT_VERIFIED_MEMBER_ID);
+        session.removeAttribute(PROFILE_EDIT_VERIFIED_AT);
+    }
+
+    // 현재 로그인 회원이 ADMIN 권한인지 확인
+    private boolean isAdmin(MemberDto loginMember) {
+        return loginMember != null
+                && "ADMIN".equalsIgnoreCase(loginMember.getMemberRole());
     }
 
 }

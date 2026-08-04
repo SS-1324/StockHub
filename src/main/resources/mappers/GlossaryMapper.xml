@@ -4,7 +4,7 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kh.demo.dictionary.mapper.GlossaryMapper">
 
-    <select id="selectAllTerms" resultType="com.kh.demo.dictionary.dto.GlossaryDto">
+    <select id="selectAllTerms" resultMap="glossaryResultMap">
         SELECT term_id, term, definition, category FROM glossary
     </select>
 
@@ -60,4 +60,43 @@
         FROM glossary
         ORDER BY category ASC
     </select>
+
+    <!-- 메인 페이지 검색 -->
+    <select id = "selectCategoryCodesByKeyword"
+        resultType = "string">
+        SELECT DISTINCT category
+        FROM glossary
+        WHERE term LIKE CONCAT('%', #{keyword}, '%')
+        OR definition LIKE CONCAT ('%', #{keyword}, '%')
+        ORDER BY category ASC
+    </select>
+
+    <!-- 카테고리 내부 검색 -->
+    <select id = "selectGlossaryByCategoryKeyword"
+            resultMap = "glossaryResultMap">
+        SELECT term_id, term, definition, category
+        FROM glossary
+        WHERE category = #{category}
+        AND (
+        term LIKE CONCAT('%', #{keyword}, '%')
+        OR definition LIKE CONCAT('%', #{keyword}, '%')
+        )
+        ORDER BY term ASC
+    </select>
+
+    <select id = "AutoCompleteTerms"
+            resultType="string">
+        SELECT term
+        FROM glossary
+        WHERE term LIKE CONCAT('%', #{keyword}, '%')
+
+        ORDER BY
+        CASE
+        WHEN term LIKE CONCAT(#{keyword}, '%') THEN 0
+        ELSE 1
+        END,
+        term ASC
+        LIMIT 8
+    </select>
+
 </mapper>

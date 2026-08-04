@@ -17,4 +17,13 @@
         DELETE FROM board_bookmark WHERE board_id = #{boardId} AND member_id = #{memberId}
     </delete>
 
+    <select id="selectBookmarkedBoardIds" resultType="long">
+        SELECT board_id FROM board_bookmark
+        WHERE member_id = #{memberId}
+          AND board_id IN
+        <foreach collection="boardIds" item="boardId" open="(" separator="," close=")">
+            #{boardId}
+        </foreach>
+    </select>
+
 </mapper>

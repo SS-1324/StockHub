@@ -18,6 +18,10 @@ public interface AccountMapper {
     // 계좌 단건 조회
     AccountDto selectAccountById(Long accountId);
 
+    // 증권사+계좌번호로 단건 조회 (연동 여부 무관) - 파트너 API 클라이언트가 외부 식별자(accountNo)를 내부 PK로 되짚을 때 사용
+    AccountDto selectAccountByAccountNo(@Param("brokerageId") Long brokerageId,
+                                         @Param("accountNo") String accountNo);
+
     // 특정 증권사의 "아직 연동되지 않은" 계좌 목록 (연동 후보 선택 화면용)
     List<AccountDto> selectUnlinkedAccountsByBrokerage(Long brokerageId);
 

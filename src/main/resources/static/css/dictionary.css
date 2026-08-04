@@ -1,0 +1,338 @@
+.glossary {
+    width: min(100%, 720px);
+    margin: 6px auto 64px;
+}
+
+/* 제목 영역 */
+.glossary-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.glossary-title-area{
+    min-width: 0;
+}
+
+.glossary-search{
+    flex-shrink: 0;
+}
+
+.autocomplete-search{
+    position: relative;
+    width: 320px;
+}
+
+.glossary-header h2 {
+    margin: 0 0 2px;
+    color: #111827;
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+}
+
+.glossary-info {
+    margin: auto 0;
+    padding: 0;
+    color: #61759a;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+/*검색란*/
+#glossary-keyword{
+    box-sizing: border-box;
+    width: 320px;
+    padding: 10px 40px 10px 16px;
+    border: 1px solid #ddd;
+    border-radius: 999px;
+    background: #fff;
+    font-size: 13px;
+    outline: none;
+    }
+
+.glossary-search-icon-btn {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #999;
+    cursor: pointer;
+    transform: translateY(-50%);
+}
+
+.glossary-search-icon-btn:hover {
+    color: #5281fb;
+}
+
+/*검색어 자동 완성*/
+
+.autocomplete-search{
+    position: relative;
+    width: 320px;
+}
+
+.autocomplete-list{
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 100;
+
+    display: none;
+    width: 100%;
+    max-height: 240px;
+    padding: 6px;
+    overflow-y: auto;
+
+    border: 1px solid #dbe4f0;
+    border-radius: 14px;
+    background: #fff;
+
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.14);
+}
+
+/* JS에서 show 클래스가 붙으면 표시 */
+.autocomplete-list.show {
+    display: block;
+}
+
+/* 자동완성 항목 */
+.autocomplete-item {
+    display: block;
+    width: 100%;
+    padding: 11px 12px;
+
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+
+    color: #334155;
+    font-family: inherit;
+    font-size: 14px;
+    text-align: left;
+
+    cursor: pointer;
+    transition:
+            background-color 0.15s ease,
+            color 0.15s ease;
+}
+
+/* 항목에 마우스를 올렸을 때 */
+.autocomplete-item:hover,
+.autocomplete-item:focus {
+    outline: none;
+    background: #eef6ff;
+    color: #0874f7;
+}
+
+/* 카테고리 카드 배치 */
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+/* 카테고리 링크 */
+.category {
+    position: relative;
+    display: flex;
+    padding: 16px 0 0 0;
+    min-height: 118px;
+    overflow: hidden;
+    border: 1px solid #dbe4f0;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 5px 18px rgba(15, 23, 42, 0.05);
+    transition:
+            transform 0.2s ease,
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+}
+
+.category-preview {
+    width: 360px;
+    height: 240px;
+    margin: 34px auto 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#category-preview-image {
+    margin-top: 70px;
+    max-width: 150%;
+    max-height: 150%;
+    object-fit: contain;
+
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#category-preview-image.show {
+    opacity: 1;
+}
+
+/* 카드 상단 강조선 */
+.category::before {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #7667ff, #0874f7);
+    content: "";
+}
+
+/* 번호 */
+.category-number {
+    position: absolute;
+    top: 17px;
+    left: 19px;
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+/* 카테고리 이름 */
+.category-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 24px 18px 24px;
+    color: #273449;
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+    word-break: keep-all;
+}
+
+/* 마우스를 올렸을 때 */
+.category:hover {
+    border-color: #8bbcff;
+    box-shadow: 0 13px 30px rgba(8, 116, 247, 0.13);
+    transform: translateY(-4px);
+}
+
+/*용어 사전 카테고리 내부 설정*/
+
+/*제목*/
+.category-name {
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+/*용어 카드 박스*/
+.glossary-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 18px;
+    max-width: 960px;
+    margin: 0 auto;
+    align-items: stretch;
+}
+
+.glossary-item {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 145px;
+    padding: 20px 22px;
+
+    display: flex;
+    flex-direction: column;
+
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+    background: #fff;
+
+    text-align: left;
+
+    transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease,
+            background-color 0.2s ease;
+}
+
+.glossary-item:hover {
+    border-color: #a8c9f5;
+    background: #fbfdff;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.glossary-term {
+    margin: 0;
+    color: #172033;
+    font-size: 17px;
+    font-weight: 750;
+    line-height: 1.4;
+}
+
+.glossary-definition {
+    margin: 12px 0 0;
+    padding-top: 12px;
+
+    border-top: 1px solid #edf1f6;
+
+    color: #60708a;
+    font-size: 14px;
+    line-height: 1.7;
+    text-align: left;
+}
+
+.category:hover .category-box {
+    color: #0565da;
+}
+
+.category:hover .category-number {
+    color: #0874f7;
+}
+
+/* 태블릿 */
+@media (max-width: 850px) {
+    .category-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* 모바일 */
+@media (max-width: 560px) {
+    .glossary-page {
+        padding: 48px 18px 70px;
+    }
+
+    .glossary-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+        margin-bottom: 32px;
+    }
+
+    .glossary-search,
+    .autocomplete-search,
+    #glossary-keyword {
+        width: 100%;
+    }
+
+    .glossary-info br {
+        display: none;
+    }
+
+    .category-grid {
+        grid-template-columns: 1fr;
+        gap: 13px;
+    }
+
+    .category {
+        min-height: 100px;
+    }
+}

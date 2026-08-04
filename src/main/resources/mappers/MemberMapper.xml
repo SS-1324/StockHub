@@ -9,12 +9,12 @@
     <!-- 회원가입 정보를 member 테이블에 저장 -->
     <insert id="insertMember" parameterType="MemberDto">
         INSERT INTO member (
-        member_id,
-        member_pwd,
-        member_name,
-        nickname,
-        email,
-        profile
+            member_id,
+            member_pwd,
+            member_name,
+            nickname,
+            email,
+            profile
         ) VALUES (
         #{memberId},
         #{memberPwd},
@@ -29,11 +29,11 @@
     <insert id="insertDefaultSettings">
         INSERT INTO settings (
         member_id,
-        is_profile_public,
+        is_stock_public,
         is_word_tooltip
         ) VALUES (
         #{memberId},
-        TRUE,
+        FALSE,
         TRUE
         )
     </insert>
@@ -59,33 +59,90 @@
         WHERE email = #{email}
     </select>
 
+    <!-- 새 코드를 발급하기 전에 가입에 연결되지 않은 이전 인증 기록을 모두 무효화 -->
+    <update id="expireEmailVerificationCodes">
+        UPDATE email_verification
+        SET is_verified = FALSE,
+            verified_at = NULL,
+            expired_at = CURRENT_TIMESTAMP
+        WHERE email = #{email}
+          AND member_id IS NULL
+    </update>
+
+    <!-- 6자리 이메일 인증 코드를 5분 동안 유효하게 저장 -->
+    <insert id="insertEmailVerification">
+        INSERT INTO email_verification (
+            email,
+            code,
+            expired_at
+        ) VALUES (
+            #{email},
+            #{code},
+            DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 5 MINUTE)
+        )
+    </insert>
+
+    <!-- 유효한 이메일 인증 코드와 일치하면 인증 완료로 변경 -->
+    <update id="verifyEmailCode">
+        UPDATE email_verification
+        SET is_verified = TRUE,
+            verified_at = CURRENT_TIMESTAMP
+        WHERE email = #{email}
+          AND code = #{code}
+          AND is_verified = FALSE
+          AND expired_at &gt; CURRENT_TIMESTAMP
+        ORDER BY verification_id DESC
+        LIMIT 1
+    </update>
+
+    <!-- 아직 회원과 연결되지 않은 인증 완료 기록을 조회 -->
+    <select id="countVerifiedEmail" resultType="int">
+        SELECT COUNT(*)
+        FROM email_verification
+        WHERE email = #{email}
+          AND is_verified = TRUE
+          AND member_id IS NULL
+    </select>
+
+    <!-- 가장 최근 인증 완료 기록을 가입한 회원과 연결 -->
+    <update id="linkVerifiedEmailToMember">
+        UPDATE email_verification
+        SET member_id = #{memberId}
+        WHERE email = #{email}
+          AND is_verified = TRUE
+          AND member_id IS NULL
+        ORDER BY verification_id DESC
+        LIMIT 1
+    </update>
+
     <!-- 로그인에 사용할 회원 정보를 아이디로 조회 -->
     <select id="selectByMemberId" resultType="MemberDto">
         SELECT m.member_id,
-        m.member_pwd,
-        m.member_name,
-        m.nickname,
-        m.email,
-        m.profile,
-        m.create_at,
-        DATE_FORMAT(m.create_at, '%Y-%m-%d %H:%i') AS create_at_str,
-        COALESCE(s.is_profile_public, TRUE) AS profile_public,
-        COALESCE(s.is_word_tooltip, TRUE) AS word_tooltip,
-        a.account_id,
-        a.account_no,
-        a.brokerage_id,
-        b.brokerage_name
+               m.member_pwd,
+               m.member_name,
+               m.nickname,
+               m.email,
+               COALESCE(NULLIF(m.profile, ''), '/images/common_member.png') AS profile,
+               m.member_role,
+               m.create_at,
+               DATE_FORMAT(m.create_at, '%Y-%m-%d %H:%i') AS create_at_str,
+               COALESCE(s.is_stock_public, FALSE) AS stock_public,
+               COALESCE(s.is_word_tooltip, TRUE) AS word_tooltip,
+               a.account_id,
+               a.account_no,
+               a.brokerage_id,
+               b.brokerage_name
         FROM member m
         LEFT JOIN settings s
-        ON s.member_id = m.member_id
+               ON s.member_id = m.member_id
         LEFT JOIN account a
-        ON a.account_id = (
-        SELECT MIN(a2.account_id)
-        FROM account a2
-        WHERE a2.member_id = m.member_id
-        )
+               ON a.account_id = (
+                   SELECT MIN(a2.account_id)
+                   FROM account a2
+                   WHERE a2.member_id = m.member_id
+               )
         LEFT JOIN brokerage b
-        ON b.brokerage_id = a.brokerage_id
+               ON b.brokerage_id = a.brokerage_id
         WHERE m.member_id = #{memberId}
     </select>
 
@@ -97,14 +154,21 @@
         AND member_id != #{memberId}
     </select>
 
-    <!-- 닉네임·비밀번호·프로필 이미지를 수정 -->
+    <!-- 닉네임·프로필 이미지와 입력된 경우 새 비밀번호를 수정 -->
     <update id="updateMemberProfile" parameterType="MemberDto">
         UPDATE member
         SET nickname = #{nickname},
-        profile = #{profile}
-        <if test="memberPwd != null and memberPwd != ''">
-            , member_pwd = #{memberPwd}
-        </if>
+            profile = #{profile}
+            <if test="memberPwd != null and memberPwd != ''">
+                , member_pwd = #{memberPwd}
+            </if>
+        WHERE member_id = #{memberId}
+    </update>
+
+    <!-- 프로필 이미지 삭제 시 기본 이미지 경로로 변경 -->
+    <update id="updateProfileImage">
+        UPDATE member
+        SET profile = #{profile}
         WHERE member_id = #{memberId}
     </update>
 
@@ -112,15 +176,15 @@
     <insert id="upsertSettings" parameterType="MemberDto">
         INSERT INTO settings (
         member_id,
-        is_profile_public,
+        is_stock_public,
         is_word_tooltip
         ) VALUES (
         #{memberId},
-        #{profilePublic},
+        #{stockPublic},
         #{wordTooltip}
         )
         ON DUPLICATE KEY UPDATE
-        is_profile_public = VALUES(is_profile_public),
+        is_stock_public = VALUES(is_stock_public),
         is_word_tooltip = VALUES(is_word_tooltip)
     </insert>
 
@@ -195,7 +259,6 @@
         DELETE FROM account
         WHERE member_id = #{memberId}
     </delete>
-
     <!-- 회원 기본 정보를 삭제 -->
     <delete id="deleteMemberById">
         DELETE FROM member
