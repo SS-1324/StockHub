@@ -230,16 +230,26 @@
 
 .board-card{
     display: block;
-    padding: 16px 18px;
-    border: 1px solid #eee;
-    border-radius: 8px;
-}
+    padding: 20px 22px;
 
+    /* 게시글 카드와 페이지 배경 구분 */
+    background: #ffffff;
+    color: #222222;
+    border: 1px solid #d9e2f1;
+    border-radius: 14px;
+
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.04);
+    transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease,
+            transform 0.2s ease;
+}
+/* 마찬가지로 색 구분! */
 .board-card:hover{
-    border-color: #ccc;
-    scale: calc(1);
+    border-color: #bccbe2;
+    box-shadow: 0 8px 20px rgba(30, 64, 175, 0.10);
+    transform: translateY(-2px);
 }
-
 /* 카드 상단 - 작성자 프로필 사진 + 닉네임 + 작성일 */
 .board-card-header{
     display: flex;
@@ -556,14 +566,19 @@
 }
 
 /*
-    상세 화면 - 글 본문이 페이지 배경(#f0f4ff)과 똑같아서 구분이 안 되던 문제.
-    본문 전체를 흰 카드로 감싸서 페이지 배경과 명확히 분리한다.
+    상세 화면 - 글 본문이 페이지 배경(#f0f4ff)과 똑같아서 구분이 안되니까, 약간 색을 다르게 구분
+    할 수 있도록 차이를 준다
+
 */
 .board-detail-card{
-    background: #fff;
-    border-radius: 12px;
     padding: 24px 26px;
     margin-bottom: 20px;
+
+    background: #ffffff;
+    color: #222222;
+    border: 1px solid #d9e2f1;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.05);
 }
 
 /* 이전글/다음글 네비게이션 - 같은 카테고리 안에서만 이동 */
