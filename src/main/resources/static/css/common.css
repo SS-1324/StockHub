@@ -48,10 +48,7 @@ a{
     color: inherit;
 }
 
-/* 마우스를 올린 모든 링크 */
-a:hover{
-    scale: calc(1.02);
-}
+
 
 /* 성공·실패 안내 메시지의 공통 모양 */
 .alert{
