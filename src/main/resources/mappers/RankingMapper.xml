@@ -10,7 +10,7 @@
 
         SELECT
         ROW_NUMBER() OVER (
-        ORDER BY COALESCE(rb.return_rate_snapshot, 0) DESC,
+        ORDER BY COALESCE(SUM(a.return_rate), 0) DESC,
         m.member_id ASC
         ) AS rankPosition,
 
@@ -18,70 +18,25 @@
         m.nickname AS nickname,
         m.profile AS profile,
 
-
         CASE WHEN COALESCE(s.is_stock_public, FALSE) = TRUE
         THEN 'Y' ELSE 'N' END AS tradeHistoryPublicYn,
 
-        COALESCE(rb.return_rate_snapshot, 0) AS returnRate,
-        COALESCE(hq.holding_quantity, 0) AS holdingQuantity,
-        COALESCE(pp.profit, 0) AS profit
+        COALESCE(SUM(a.return_rate), 0) AS returnRate,
+        COALESCE(SUM(a.holding_stock_quantity), 0) AS holdingQuantity,
+        COALESCE(SUM(a.profit_amount), 0) AS profit
 
         FROM member m
-        <!-- 회원별 공개 설정 (db랑 연결해서 비공개해놓은 회원은 랭킹에서 주식공개가 안되도록함 ) -->
         LEFT JOIN settings s
         ON s.member_id = m.member_id
-        <!-- 가장 최근 날짜의 회원별 수익률 -->
-        LEFT JOIN (
-        SELECT
-        member_id,
-        MAX(return_rate_snapshot) AS return_rate_snapshot
-        FROM ranking_board
-        WHERE stock_code IS NULL
-        AND rank_date = (
-        SELECT MAX(rank_date)
-        FROM ranking_board
-        WHERE stock_code IS NULL
-        )
-        GROUP BY member_id
-        ) rb
-        ON rb.member_id = m.member_id
-
-        <!-- 회원이 현재 보유한 전체 주식 수량 -->
-        LEFT JOIN (
-        SELECT
-        a.member_id,
-        SUM(h.quantity) AS holding_quantity
-        FROM account a
-        JOIN holding h
-        ON h.account_id = a.account_id
-        WHERE h.quantity > 0
-        GROUP BY a.member_id
-        ) hq
-        ON hq.member_id = m.member_id
-
-        <!-- 회원별 현재 평가손익 -->
-        LEFT JOIN (
-        SELECT
-        a.member_id,
-        SUM(
-        (CAST(s.current_price AS SIGNED)
-        - CAST(h.avg_price AS SIGNED))
-        * CAST(h.quantity AS SIGNED)
-        ) AS profit
-        FROM account a
-        JOIN holding h
-        ON h.account_id = a.account_id
-        JOIN stock s
-        ON s.stock_code = h.stock_code
-        GROUP BY a.member_id
-        ) pp
-        ON pp.member_id = m.member_id
+        LEFT JOIN account a
+        ON a.member_id = m.member_id
 
         WHERE m.member_role = 'USER'
 
+        GROUP BY m.member_id, m.nickname, m.profile, s.is_stock_public
+
+
         ORDER BY rankPosition ASC
 
-
     </select>
-
 </mapper>
