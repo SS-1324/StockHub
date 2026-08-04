@@ -1,5 +1,7 @@
 package com.kh.demo.community.service;
 
+
+import org.jsoup.nodes.Document;
 import com.kh.demo.community.dto.BoardDto;
 import com.kh.demo.community.dto.BoardImageDto;
 import com.kh.demo.community.mapper.BoardBookmarkMapper;
@@ -206,21 +208,31 @@ public class BoardServiceImpl implements BoardService {
         );
     }
 
-    // 목록에서는 HTML 태그를 제거하고 순수한 글자만 표시
-    private void stripHtmlForPreview(
-            List<BoardDto> boardList
-    ) {
+    private void stripHtmlForPreview(List<BoardDto> boardList) {
         for (BoardDto board : boardList) {
-            String content = board.getContent() == null
-                    ? ""
-                    : board.getContent();
-
-            board.setContent(
-                    Jsoup.parse(content).text()
-            );
+            String content = board.getContent() == null ? "" : board.getContent();
+            board.setContent(htmlToPlainTextPreservingLineBreaks(content));
         }
     }
 
+    private String htmlToPlainTextPreservingLineBreaks(String html) {
+        // 옛날 데이터: <p>/<br> 태그 없이 순수 텍스트 안에 \n만 들어있는 경우도 있어서,
+        // 파싱하기 전에 원본 문자열의 실제 개행 문자도 먼저 마커로 바꿔둔다.
+        String prepared = (html == null ? "" : html)
+                .replace("\r\n", "\n")
+                .replace("\n", "\u2424");
+
+        Document document = Jsoup.parse(prepared);
+        document.select("br").append("\u2424");   // br 자리에 마커 삽입
+        document.select("p").prepend("\u2424");   // p 시작 지점에 마커 삽입
+
+        String text = document.text()
+                .replace("\u2424", "\n")
+                .replaceAll("\n{3,}", "\n\n")
+                .trim();
+
+        return text;
+    }
     // 게시글 목록에 이미지 정보 추가
     private void attachImages(
             List<BoardDto> boardList,
