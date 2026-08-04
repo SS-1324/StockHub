@@ -212,6 +212,7 @@
     const searchForm = document.getElementById("glossary-search-form");
     const keywordInput = document.getElementById("glossary-keyword");
     const autocompleteBox = document.getElementById("autocomplete");
+    const autocompleteSearch = document.querySelector(".autocomplete-search");
     const contextPath = "${pageContext.request.contextPath}";
 
     //자동 검색에 입력 지연을 넣기 위한 변수
@@ -295,9 +296,29 @@
                    console.error(error);
                    closeAutocomplete();
                });
+    }, 200);
+    });
 
-       }, 200);
-   });
+
+        // 자동완성 검색 영역 바깥을 클릭하면 목록 닫기
+        document.addEventListener("click", function (event) {
+
+            if (!autocompleteSearch.contains(event.target)) {
+                clearTimeout(searchTimer);
+                closeAutocomplete();
+            }
+        });
+
+
+        // ESC 키를 누르면 자동완성 목록 닫기
+        keywordInput.addEventListener("keydown", function (event) {
+
+            if (event.key === "Escape") {
+                clearTimeout(searchTimer);
+                closeAutocomplete();
+                keywordInput.blur();
+            }
+        });
 </script>
 
 <%-- 공용 footer 불러오기 --%>
