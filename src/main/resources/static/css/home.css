@@ -1,138 +1,632 @@
-/* 메인 문구와 최신 게시글을 가운데에 배치 */
+/* 메인 홈 전체 영역: 공통 배경색은 건드리지 않고 콘텐츠만 배치 */
 .home-main{
     width: 100%;
-    max-width: 760px;
-    margin: 0 auto;
-    padding: 54px 0 70px;
+    padding: 24px 0 72px;
 }
 
-/* 메인 문구 두 줄의 간격과 크기 */
+.home-hero{
+    padding: 12px 0 52px;
+}
+
+/* 메인 소개 문구 */
 .home-headline{
     display: flex;
     flex-direction: column;
     gap: 4px;
-    margin-bottom: 42px;
-    font-size: clamp(32px, 5vw, 54px);
-    line-height: 1.25;
-    letter-spacing: -0.045em;
+    margin: 0;
+    font-size: clamp(34px, 5vw, 56px);
+    line-height: 1.22;
+    letter-spacing: -0.05em;
     text-align: center;
 }
 
-/* 메인 문구의 검정색 첫 번째 줄 */
 .home-headline-main{
     color: #111827;
 }
 
-/* 메인 문구의 파란색 두 번째 줄 */
 .home-headline-accent{
     color: #0874f7;
 }
 
-/* 최신 게시글 세 개를 세로로 배치 */
-.home-latest-list{
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+/* 용어사전으로 이동하는 한 줄 안내 카드 */
+.home-dictionary-card{
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 18px;
     width: 100%;
-    max-width: 680px;
-    margin: 0 auto;
-}
-
-/* 메인 화면에 표시하는 게시글 한 개 */
-.home-latest-card{
-    display: block;
-    padding: 18px 20px;
+    margin-bottom: 72px;
+    padding: 24px 28px;
     border: 1px solid #dbe4f0;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.88);
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
-    transition: border-color 0.2s ease, transform 0.2s ease;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-/* 최신 게시글 카드에 마우스를 올린 상태 */
-.home-latest-card:hover{
+.home-dictionary-card:hover{
     border-color: #93c5fd;
+    box-shadow: 0 14px 30px rgba(8, 116, 247, 0.12);
     transform: translateY(-2px);
     scale: 1;
 }
 
-/* 게시글 카테고리 이름 */
-.home-latest-category{
-    margin-bottom: 4px;
+.home-dictionary-text{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.home-dictionary-text strong{
+    color: #111827;
+    font-size: 23px;
+    letter-spacing: -0.035em;
+}
+
+.home-dictionary-text > span{
+    color: #718096;
+    font-size: 15px;
+}
+
+.home-card-arrow{
     color: #0874f7;
-    font-size: 12px;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+/* 차트·랭킹·커뮤니티 공통 제목 */
+.home-section{
+    margin-bottom: 76px;
+}
+
+.home-section:last-child{
+    margin-bottom: 0;
+}
+
+.home-section-heading{
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.home-section-heading h2{
+    margin: 0 0 6px;
+    color: #111827;
+    font-size: 30px;
+    line-height: 1.3;
+    letter-spacing: -0.045em;
+}
+
+.home-section-heading p{
+    margin: 0;
+    color: #718096;
+    font-size: 16px;
+}
+
+.home-section-heading > a{
+    flex: 0 0 auto;
+    padding-bottom: 2px;
+    color: #0874f7;
+    font-size: 14px;
+    font-weight: 750;
+}
+
+.home-section-heading > a:hover{
+    color: #055fcf;
+    scale: 1;
+}
+
+/* 거래 허브와 같은 TradingView 차트 */
+.home-chart-wrapper{
+    width: 100%;
+    padding: 20px;
+    border-radius: 12px;
+    background: #131722;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
+}
+
+#tv-chart-container{
+    width: 100%;
+    height: 500px;
+}
+
+/* 홈 투자 랭킹 */
+.home-ranking-card{
+    overflow: hidden;
+    border: 1px solid #dbe4f0;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+}
+
+.home-ranking-list{
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.home-ranking-list > li{
+    border-bottom: 1px solid #e8eef6;
+}
+
+.home-ranking-list > li:last-child{
+    border-bottom: 0;
+}
+
+.home-ranking-row{
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 18px;
+    min-height: 92px;
+    padding: 16px 24px;
+    transition: background-color 0.18s ease;
+}
+
+.home-ranking-row:hover{
+    background: #f6f9fe;
+    scale: 1;
+}
+
+.home-ranking-position{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 38px;
+}
+
+.home-ranking-number{
+    color: #9aaac6;
+    font-size: 14px;
     font-weight: 700;
 }
 
-/* 게시글 제목을 한 줄까지만 표시 */
-.home-latest-title{
+.home-ranking-member{
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-width: 0;
+}
+
+.home-ranking-avatar-frame{
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 46px;
+    height: 46px;
+    padding: 2px;
+    border-radius: 50%;
+    background: #d9e2ef;
+    box-sizing: border-box;
+}
+
+.home-ranking-avatar{
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    max-width: none;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    background: #f1f5f9;
+    box-sizing: border-box;
+    object-fit: cover;
+}
+
+/* ranking.css와 동일한 1위 황금색 원형 테두리와 순위 글자 색 */
+.home-ranking-list .rank-first .home-ranking-avatar-frame{
+    padding: 3px;
+    background:
+            linear-gradient(
+                    135deg,
+                    #8f6200 0%,
+                    #f4c64f 24%,
+                    #fff2aa 45%,
+                    #d89d13 68%,
+                    #fff0a0 82%,
+                    #9a6800 100%
+            );
+    box-shadow:
+            0 0 0 2px rgba(232, 180, 44, 0.18),
+            0 4px 13px rgba(211, 151, 20, 0.3);
+    animation: home-ranking-gold-glow 2.6s ease-in-out infinite;
+}
+
+.home-ranking-list .rank-first .home-ranking-number{
+    color: #bb8207;
+}
+
+/* ranking.css와 동일한 2위 은색 원형 테두리와 순위 글자 색 */
+.home-ranking-list .rank-second .home-ranking-avatar-frame{
+    padding: 3px;
+    background:
+            linear-gradient(
+                    135deg,
+                    #778292 0%,
+                    #dce3ec 25%,
+                    #ffffff 45%,
+                    #a9b5c4 68%,
+                    #edf2f7 82%,
+                    #7c8797 100%
+            );
+    box-shadow:
+            0 0 0 2px rgba(159, 172, 190, 0.17),
+            0 4px 12px rgba(111, 128, 151, 0.22);
+}
+
+.home-ranking-list .rank-second .home-ranking-number{
+    color: #8390a4;
+}
+
+/* ranking.css와 동일한 3위 동색 원형 테두리와 순위 글자 색 */
+.home-ranking-list .rank-third .home-ranking-avatar-frame{
+    padding: 3px;
+    background:
+            linear-gradient(
+                    135deg,
+                    #7f4325 0%,
+                    #d8915c 26%,
+                    #f2c09a 45%,
+                    #a95f37 68%,
+                    #e9a775 84%,
+                    #754026 100%
+            );
+    box-shadow:
+            0 0 0 2px rgba(188, 111, 64, 0.15),
+            0 4px 12px rgba(156, 82, 43, 0.23);
+}
+
+.home-ranking-list .rank-third .home-ranking-number{
+    color: #b06c45;
+}
+
+@keyframes home-ranking-gold-glow{
+    0%,
+    100%{
+        box-shadow:
+                0 0 0 2px rgba(232, 180, 44, 0.16),
+                0 4px 11px rgba(211, 151, 20, 0.24);
+    }
+
+    50%{
+        box-shadow:
+                0 0 0 3px rgba(244, 198, 79, 0.25),
+                0 4px 17px rgba(211, 151, 20, 0.38);
+    }
+}
+
+.home-ranking-copy{
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.home-ranking-member strong{
     overflow: hidden;
-    margin-bottom: 6px;
     color: #172033;
-    font-size: 18px;
+    font-size: 17px;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-/* 게시글 내용을 두 줄까지만 표시 */
-.home-latest-content{
-    display: -webkit-box;
+.home-ranking-member small{
     overflow: hidden;
-    color: #64748b;
-    font-size: 14px;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    margin-top: 2px;
+    color: #91a0ba;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-/* 작성자와 작성일을 오른쪽에 표시 */
-.home-latest-meta{
+.home-ranking-result{
     display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 12px;
-    color: #94a3b8;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 138px;
+}
+
+.home-ranking-result strong{
+    font-size: 20px;
+}
+
+.home-ranking-result small{
+    margin-top: 3px;
+    font-size: 13px;
+}
+
+.home-ranking-result.is-positive{
+    color: #ff3344;
+}
+
+.home-ranking-result.is-negative{
+    color: #1685ff;
+}
+
+/* 최신 게시글을 이미지 높이에 따라 자연스럽게 이어 붙이는 2열 레이아웃 */
+.home-community-grid{
+    column-count: 2;
+    column-gap: 20px;
+}
+
+.home-community-card{
+    display: inline-block;
+    overflow: hidden;
+    width: 100%;
+    margin: 0 0 20px;
+    border: 1px solid #dbe4f0;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 9px 24px rgba(15, 23, 42, 0.06);
+    break-inside: avoid;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.home-community-card:hover{
+    border-color: #93c5fd;
+    box-shadow: 0 13px 28px rgba(8, 116, 247, 0.11);
+    transform: translateY(-2px);
+    scale: 1;
+}
+
+.home-community-author{
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 18px 18px 0;
+}
+
+.home-community-author > img{
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.home-community-author > span{
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.home-community-author strong{
+    overflow: hidden;
+    color: #172033;
+    font-size: 15px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.home-community-author small{
+    margin-top: 2px;
+    color: #91a0ba;
     font-size: 12px;
 }
 
-/* 게시글이 없을 때 표시하는 안내 문구 */
-.home-empty-message{
-    padding: 30px;
-    border: 1px dashed #cbd5e1;
+.home-community-title{
+    overflow: hidden;
+    margin: 15px 18px 7px;
+    color: #172033;
+    font-size: 18px;
+    line-height: 1.45;
+    letter-spacing: -0.025em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.home-community-content{
+    display: -webkit-box;
+    overflow: hidden;
+    margin: 0 18px 16px;
+    color: #53627a;
+    font-size: 14px;
+    line-height: 1.7;
+    white-space: pre-line;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+}
+
+/* 제목이 없으면 제목 자리를 만들지 않고 본문을 바로 위로 올림 */
+.home-community-card.has-no-title .home-community-content{
+    margin-top: 15px;
+}
+
+.home-community-image{
+    position: relative;
+    overflow: hidden;
+    width: calc(100% - 36px);
+    margin: 0 18px 17px;
+    border: 1px solid #e1e8f1;
     border-radius: 12px;
+    background: #eef3f9;
+}
+
+.home-community-image img{
+    display: block;
+    width: 100%;
+    max-height: 340px;
+    object-fit: cover;
+}
+
+.home-community-image > span{
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.78);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.home-community-meta{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px 12px;
+    padding: 13px 18px 15px;
+    border-top: 1px solid #e8eef6;
+    color: #91a0ba;
+    font-size: 12px;
+}
+
+.home-community-meta span:first-child{
+    margin-right: auto;
+    color: #0874f7;
+    font-weight: 700;
+}
+
+.home-empty-message{
+    margin: 0;
+    padding: 36px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 16px;
     color: #64748b;
     text-align: center;
 }
 
-/* 다크 모드의 홈 문구와 게시글 카드 */
-html[data-theme="dark"] .home-headline-main{
+/* 다크 모드 */
+html[data-theme="dark"] .home-headline-main,
+html[data-theme="dark"] .home-section-heading h2,
+html[data-theme="dark"] .home-dictionary-text strong,
+html[data-theme="dark"] .home-ranking-member strong,
+html[data-theme="dark"] .home-community-author strong,
+html[data-theme="dark"] .home-community-title{
     color: #f8fafc;
 }
 
-html[data-theme="dark"] .home-latest-card{
+html[data-theme="dark"] .home-dictionary-card,
+html[data-theme="dark"] .home-ranking-card,
+html[data-theme="dark"] .home-community-card{
     border-color: #334155;
     background: #111827;
 }
 
-html[data-theme="dark"] .home-latest-title{
-    color: #f8fafc;
-}
-
-html[data-theme="dark"] .home-latest-content,
+html[data-theme="dark"] .home-dictionary-text > span,
+html[data-theme="dark"] .home-section-heading p,
+html[data-theme="dark"] .home-community-content,
 html[data-theme="dark"] .home-empty-message{
     color: #94a3b8;
 }
 
-/* 작은 화면에서는 메인 문구와 카드 간격을 줄임 */
-@media (max-width: 600px){
+html[data-theme="dark"] .home-ranking-list > li,
+html[data-theme="dark"] .home-community-meta{
+    border-color: #263447;
+}
+
+html[data-theme="dark"] .home-ranking-row:hover{
+    background: #172233;
+}
+
+html[data-theme="dark"] .home-community-image{
+    border-color: #334155;
+    background: #0d1117;
+}
+
+/* 태블릿과 모바일 */
+@media (max-width: 720px){
     .home-main{
-        padding: 30px 0 50px;
+        padding-top: 8px;
+        padding-bottom: 48px;
     }
 
-    .home-headline{
-        margin-bottom: 30px;
+    .home-hero{
+        padding: 12px 0 38px;
     }
 
-    .home-latest-card{
-        padding: 16px;
+    .home-dictionary-card{
+        margin-bottom: 54px;
+        padding: 20px;
+    }
+
+    .home-dictionary-text strong{
+        font-size: 20px;
+    }
+
+    .home-dictionary-text > span{
+        font-size: 14px;
+    }
+
+    .home-section{
+        margin-bottom: 58px;
+    }
+
+    .home-section-heading{
+        align-items: flex-start;
+    }
+
+    .home-section-heading h2{
+        font-size: 26px;
+    }
+
+    .home-section-heading p{
+        font-size: 14px;
+    }
+
+    .home-chart-wrapper{
+        padding: 12px;
+    }
+
+    #tv-chart-container{
+        height: 420px;
+    }
+
+    .home-ranking-row{
+        grid-template-columns: 38px minmax(0, 1fr) auto;
+        gap: 10px;
+        min-height: 82px;
+        padding: 13px 14px;
+    }
+
+    .home-ranking-avatar-frame{
+        width: 44px;
+        height: 44px;
+    }
+
+    .home-ranking-result{
+        min-width: 98px;
+    }
+
+    .home-ranking-result strong{
+        font-size: 16px;
+    }
+
+    .home-community-grid{
+        column-count: 1;
+    }
+}
+
+@media (max-width: 480px){
+    .home-card-arrow{
+        display: none;
+    }
+
+    .home-section-heading > a{
+        display: none;
+    }
+
+    #tv-chart-container{
+        height: 360px;
+    }
+
+    .home-ranking-row{
+        grid-template-columns: 30px minmax(0, 1fr);
+    }
+
+    .home-ranking-result{
+        grid-column: 2;
+        align-items: flex-start;
+        min-width: 0;
+        margin-top: -8px;
+    }
+
+    .home-ranking-result small{
+        display: none;
     }
 }

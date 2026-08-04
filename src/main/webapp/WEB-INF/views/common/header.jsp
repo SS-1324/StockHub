@@ -139,7 +139,10 @@
                         <div id="header-profile-dropdown"
                              class="header-profile-dropdown"
                             hidden>
-                            <a href="${mypageUrl}">프로필 수정</a>
+                            <%-- 일반 회원에게만 프로필 수정 메뉴를 표시 --%>
+                            <c:if test="${fn:toUpperCase(sessionScope.loginMember.memberRole) ne 'ADMIN'}">
+                                <a href="${mypageUrl}">프로필 수정</a>
+                            </c:if>
                             <a href="${myStocksUrl}">내 주식</a>
                             <%-- 로그인 회원의 문의 목록을 페이지 이동 없이 표시 --%>
                             <button type="button"

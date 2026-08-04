@@ -34,6 +34,7 @@
 <form id="profile-form" class="form form-flex profile-form"
       action="${pageContext.request.contextPath}/member/mypage"
       data-current-profile-url="${currentProfileUrl}"
+      data-context-path="${pageContext.request.contextPath}"
       method="post" enctype="multipart/form-data">
 
     <%-- 현재 프로필 이미지와 새 이미지 선택 영역 --%>
@@ -196,7 +197,7 @@
 </div>
 
 <%-- 프로필 이미지 미리보기와 입력 검사를 불러옴 --%>
-<script src="${pageContext.request.contextPath}/js/profile.js?v=4"></script>
+<script src="${pageContext.request.contextPath}/js/profile.js?v=5"></script>
 
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

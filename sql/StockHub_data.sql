@@ -147,7 +147,7 @@ CREATE TABLE IF NOT EXISTS account (
     member_id     VARCHAR(50)     NOT NULL COMMENT '계좌 소유 회원(FK)',
     brokerage_id  BIGINT UNSIGNED NOT NULL COMMENT '계좌를 개설한 증권사(FK)',
     owner_name    VARCHAR(50)     NOT NULL COMMENT '예금주명',
-    balance       BIGINT UNSIGNED NOT NULL DEFAULT 10000000 COMMENT '현금 잔고(기본 1천만 원)',
+	balance BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '현금 잔고(기본 0원)',
     create_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '계좌 개설일시',
     linked_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '회원과 연결된 일시',
 	return_rate             DECIMAL(9, 4)   NOT NULL DEFAULT 0.0000 COMMENT '현재 수익률(%)',
