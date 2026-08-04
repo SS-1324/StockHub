@@ -12,46 +12,74 @@
 <main class="glossary-page">
     <section class="glossary">
 
-        <header class="glossary-header">
-            <div class="glossary-title-area">
-                <h2>주식 용어 사전</h2>
+       <header class="glossary-header">
 
-                <p class="glossary-info">
-                    주식이 낯설게만 느껴지는 여러분을 위해 준비한
-                    직관적이고 쉬운 설명으로 구성된 알짜배기 주식 용어 사전입니다.
-                </p>
-            </div>
+           <div class="glossary-title-area">
+               <h2>주식 용어 사전</h2>
 
-            <%-- 메인 용어 검색창 --%>
-            <form class="glossary-search"
-                  id="glossary-search-form"
-                  action="${pageContext.request.contextPath}/dictionary"
-                  method="get">
+               <p class="glossary-info">
+                   직관적인 설명으로 구성된 알짜배기 주식 용어 사전입니다.
+               </p>
+           </div>
 
-                <div class = "autocomplete-search">
+           <%-- 메인 용어 검색창 --%>
+           <form class="glossary-search"
+                 id="glossary-search-form"
+                 action="${pageContext.request.contextPath}/dictionary"
+                 method="get">
 
-                <input type="search"
-                       id="glossary-keyword"
-                       name="keyword"
-                       value="${fn:escapeXml(keyword)}"
-                       placeholder="용어를 검색하세요"
-                       autocomplete="off">
+               <div class="autocomplete-search">
 
-                <div id="autocomplete"
-                     class="autocomplete-list">
-                </div>
-            </div>
+                   <input type="text"
+                          id="glossary-keyword"
+                          name="keyword"
+                          value="${fn:escapeXml(keyword)}"
+                          placeholder="용어를 검색하세요"
+                          autocomplete="off">
 
-                <button type="submit">검색</button>
+                   <%-- 돋보기 검색 버튼 --%>
+                   <button type="submit"
+                           class="glossary-search-icon-btn"
+                           aria-label="검색">
 
-                <c:if test="${not empty keyword}">
-                    <a href="${pageContext.request.contextPath}/dictionary"
-                       class="search-reset">
-                        초기화
-                    </a>
-                </c:if>
-            </form>
-        </header>
+                       <svg width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+
+                           <circle cx="11"
+                                   cy="11"
+                                   r="7"
+                                   stroke="currentColor"
+                                   stroke-width="2"/>
+
+                           <line x1="21"
+                                 y1="21"
+                                 x2="16.65"
+                                 y2="16.65"
+                                 stroke="currentColor"
+                                 stroke-width="2"
+                                 stroke-linecap="round"/>
+                       </svg>
+                   </button>
+
+                   <div id="autocomplete"
+                        class="autocomplete-list">
+                   </div>
+
+               </div>
+
+               <c:if test="${not empty keyword}">
+                   <a href="${pageContext.request.contextPath}/dictionary"
+                      class="search-reset">
+                       초기화
+                   </a>
+               </c:if>
+
+           </form>
+
+       </header>
 
         <%-- 검색 중인 키워드 안내 --%>
         <c:if test="${not empty keyword and hasResult}">

@@ -1,45 +1,76 @@
 .glossary {
-    width: 100%;
-    max-width: 1050px;
-    margin: 0 auto;
+    width: min(100%, 720px);
+    margin: 6px auto 64px;
 }
 
 /* 제목 영역 */
 .glossary-header {
-    margin-bottom: 46px;
-    text-align: center;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.glossary-title-area{
+    min-width: 0;
+}
+
+.glossary-search{
+    flex-shrink: 0;
+}
+
+.autocomplete-search{
+    position: relative;
+    width: 320px;
 }
 
 .glossary-header h2 {
-    display: block;
-    font-size: 1.5em;
-    : 0.83em;
-    margin-block-end: 0.83em;
-    margin-inline-start: 0px;
-    margin-inline-end: 0px;
-    font-weight: bold;
-    unicode-bidi: isolate;
-    text-align: left;
+    margin: 0 0 2px;
+    color: #111827;
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
 }
 
 .glossary-info {
-    margin: 16px auto 0;
+    margin: auto 0;
     padding: 0;
-    color: #64748b;
-    font-size: 15px;
-    line-height: 1.8;
+    color: #61759a;
+    font-size: 14px;
+    font-weight: 400;
 }
 
-.glossary-search-form{
-        padding: 10px 40px 10px 16px;
-        border: 1px solid #ddd;
-        border-radius: 999px;
-        background: #fff;
-        font-size: 13px;
-        width: 320px;
-        outline: none;
-        transition: border-color 0.15s;
+/*검색란*/
+#glossary-keyword{
+    box-sizing: border-box;
+    width: 320px;
+    padding: 10px 40px 10px 16px;
+    border: 1px solid #ddd;
+    border-radius: 999px;
+    background: #fff;
+    font-size: 13px;
+    outline: none;
     }
+
+.glossary-search-icon-btn {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #999;
+    cursor: pointer;
+    transform: translateY(-50%);
+}
+
+.glossary-search-icon-btn:hover {
+    color: #5281fb;
+}
 
 /* 카테고리 카드 배치 */
 .category-grid {
@@ -52,6 +83,7 @@
 .category {
     position: relative;
     display: flex;
+    padding: 16px 0 0 0;
     min-height: 118px;
     overflow: hidden;
     border: 1px solid #dbe4f0;
@@ -75,8 +107,9 @@
 }
 
 #category-preview-image {
-    max-width: 170%;
-    max-height: 170%;
+    margin-top: 70px;
+    max-width: 150%;
+    max-height: 150%;
     object-fit: contain;
 
     opacity: 0;
@@ -243,7 +276,16 @@
     }
 
     .glossary-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
         margin-bottom: 32px;
+    }
+
+    .glossary-search,
+    .autocomplete-search,
+    #glossary-keyword {
+        width: 100%;
     }
 
     .glossary-info br {
