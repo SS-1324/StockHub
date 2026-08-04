@@ -45,24 +45,27 @@
             </c:choose>
         </c:if>
 
-        <div class="board-card-actions">
-            <button type="button" class="board-card-action-btn board-card-like-btn ${board.liked ? 'active' : ''}"
-                    data-board-id="${board.boardId}">
-                좋아요 <span class="like-count">${board.likeCount}</span>
-            </button>
-            <button type="button" class="board-card-action-btn board-card-bookmark-btn ${board.bookmarked ? 'active' : ''}"
-                    data-board-id="${board.boardId}">
-                북마크
-            </button>
-            <span class="board-card-action-btn board-card-comment-link"
-                  data-href="${communityUrl}/${board.boardId}#comment-section">
-                댓글 ${board.commentCount}
-            </span>
-        </div>
+        <%-- 카테고리·조회수는 왼쪽, 사용자 액션은 오른쪽에 한 줄로 정렬한다. --%>
+        <div class="board-card-footer">
+            <div class="board-card-meta">
+                <span class="category-badge">${allowedCategories[board.category]}</span>
+                <span>조회 ${board.count}</span>
+            </div>
 
-        <div class="board-card-meta">
-            <span class="category-badge">${allowedCategories[board.category]}</span>
-            <span>조회 ${board.count}</span>
+            <div class="board-card-actions">
+                <button type="button" class="board-card-action-btn board-card-like-btn ${board.liked ? 'active' : ''}"
+                        data-board-id="${board.boardId}">
+                    좋아요 <span class="like-count">${board.likeCount}</span>
+                </button>
+                <button type="button" class="board-card-action-btn board-card-bookmark-btn ${board.bookmarked ? 'active' : ''}"
+                        data-board-id="${board.boardId}">
+                    북마크
+                </button>
+                <span class="board-card-action-btn board-card-comment-link"
+                      data-href="${communityUrl}/${board.boardId}#comment-section">
+                    댓글 ${board.commentCount}
+                </span>
+            </div>
         </div>
     </a>
 </c:forEach>
