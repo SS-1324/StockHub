@@ -1,15 +1,246 @@
 /* hub/chart.jsp 전용 스타일 */
 
+/* 공통 레이아웃(.container, common.css)은 960px로 좁게 잡혀 있어 카드가 그 안에 눌려버림.
+   이 CSS는 이 페이지에만 로드되므로 여기서만 컨테이너 폭을 넓혀도 다른 페이지에는 영향 없음 */
+.container {
+    max-width: 1300px;
+}
+
+/* 헤더와 차트+채팅을 한 장의 카드로 감싸는 배경. 사이트 다크/라이트 테마에 맞춰 같이 바뀜 */
 .chart-wrapper {
     width: 100%;
-    max-width: 960px;
+    max-width: 1300px;
     margin: 40px auto;
-    padding: 20px;
-    background: #131722;
-    border-radius: 8px;
+    padding: 24px;
+    border-radius: 12px;
+    background: #eef1fb;
+    transition: background-color 0.2s ease;
+}
+
+html[data-theme="dark"] .chart-wrapper {
+    background: #10151f;
+}
+
+.chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.chart-symbol-name {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.chart-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chart-symbol-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.chart-symbol-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid rgba(128, 128, 128, 0.35);
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.chart-symbol-btn:hover {
+    background: rgba(128, 128, 128, 0.15);
+    border-color: rgba(128, 128, 128, 0.6);
+}
+
+.chart-symbol-btn.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+}
+
+.chart-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    cursor: pointer;
+    border: 1px solid rgba(128, 128, 128, 0.35);
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.chart-icon-btn:hover {
+    background: rgba(128, 128, 128, 0.15);
+    border-color: rgba(128, 128, 128, 0.6);
+}
+
+/* 전체화면 버튼은 상태에 따라 확대/축소 아이콘 중 하나만 보여줌 */
+.chart-icon-btn .icon-collapse {
+    display: none;
+}
+
+.chart-icon-btn.is-fullscreen .icon-expand {
+    display: none;
+}
+
+.chart-icon-btn.is-fullscreen .icon-collapse {
+    display: block;
+}
+
+/* 차트와 채팅 패널을 한 줄에 나란히 배치. 채팅이 열리면 차트(flex:1)만 줄어들고
+   채팅은 고정 폭으로 그 옆 빈 공간에 나타남 */
+.chart-body {
+    display: flex;
+    gap: 16px;
+    height: 500px;
 }
 
 #tv-chart-container {
-    width: 100%;
-    height: 500px;
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+}
+
+/* 종목 채팅 패널: 카드 안, 차트 오른쪽 빈 공간에 표시 (UI 전용) */
+.chat-panel {
+    display: none;
+    flex-direction: column;
+    width: 300px;
+    flex-shrink: 0;
+    height: 100%;
+    border-radius: 8px;
+    border: 1px solid rgba(128, 128, 128, 0.2);
+    background: rgba(0, 0, 0, 0.03);
+}
+
+html[data-theme="dark"] .chat-panel {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.chat-panel.open {
+    display: flex;
+}
+
+.chat-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.25);
+    font-weight: 700;
+}
+
+.chat-panel-close-btn {
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.chat-panel-body {
+    flex: 1;
+    padding: 14px;
+    overflow-y: auto;
+}
+
+.chat-panel-placeholder {
+    margin-top: 40px;
+    color: rgba(128, 128, 128, 0.9);
+    font-size: 14px;
+    text-align: center;
+}
+
+.chat-message {
+    margin-bottom: 12px;
+}
+
+.chat-message-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+
+.chat-message-nickname {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.chat-message-time {
+    font-size: 11px;
+    color: rgba(128, 128, 128, 0.9);
+}
+
+.chat-message-content {
+    font-size: 13px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.chat-panel-footer {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    border-top: 1px solid rgba(128, 128, 128, 0.25);
+}
+
+.chat-panel-input {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 10px;
+    border: 1px solid rgba(128, 128, 128, 0.35);
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+}
+
+.chat-panel-send-btn {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    background: #2563eb;
+    color: #fff;
+    cursor: pointer;
+}
+
+.chat-panel-input:disabled,
+.chat-panel-send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 전체화면 진입 시 브라우저가 만든 여백 대신 카드가 뷰포트 전체를 채우도록 재정의.
+   헤더는 제 높이만 차지하고, 차트+채팅 줄이 나머지 공간을 전부 채우도록 flex로 배분 */
+.chart-wrapper:fullscreen,
+.chart-wrapper:-webkit-full-screen {
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 40px;
+}
+
+.chart-wrapper:fullscreen .chart-body,
+.chart-wrapper:-webkit-full-screen .chart-body {
+    flex: 1;
+    height: auto;
 }
