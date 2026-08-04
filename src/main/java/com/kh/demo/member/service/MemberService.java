@@ -29,6 +29,9 @@ public interface MemberService {
     // 프로필 수정 전에 현재 비밀번호가 일치하는지 확인
     void verifyCurrentPassword(String memberId, String currentPassword);
 
+    // 입력한 새 비밀번호가 현재 비밀번호와 같은지 확인
+    boolean isCurrentPassword(String memberId, String password);
+
     // 마이페이지에 표시할 회원 정보를 조회
     MemberDto getMemberProfile(String memberId);
 

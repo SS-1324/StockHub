@@ -270,6 +270,15 @@ public class MemberController {
     // 프로필 수정 전에 현재 비밀번호 확인 화면을 반환
     @GetMapping("/mypage/password-check")
     public String profilePasswordCheckForm(HttpSession session) {
+        MemberDto loginMember =
+                (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+
+        // ADMIN 계정은 프로필 수정 기능을 사용하지 않음
+        if (isAdmin(loginMember)) {
+            clearProfileEditVerification(session);
+            return "redirect:/admin";
+        }
+
         // 화면에 다시 들어올 때는 이전 확인 상태를 제거하고 새로 확인
         clearProfileEditVerification(session);
         return "member/profilePasswordCheck";
@@ -282,6 +291,11 @@ public class MemberController {
                                         RedirectAttributes ra) {
         MemberDto loginMember =
                 (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+
+        if (isAdmin(loginMember)) {
+            clearProfileEditVerification(session);
+            return "redirect:/admin";
+        }
 
         try {
             memberService.verifyCurrentPassword(
@@ -310,6 +324,11 @@ public class MemberController {
         // 세션에서 로그인 회원을 확인
         MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
 
+        if (isAdmin(loginMember)) {
+            clearProfileEditVerification(session);
+            return "redirect:/admin";
+        }
+
         if (!isProfileEditVerified(session, loginMember.getMemberId())) {
             return "redirect:/member/mypage/password-check";
         }
@@ -336,6 +355,11 @@ public class MemberController {
         // 로그인하지 않은 요청은 로그인 화면으로 이동
         MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
 
+        if (isAdmin(loginMember)) {
+            clearProfileEditVerification(session);
+            return "redirect:/admin";
+        }
+
         if (!isProfileEditVerified(session, loginMember.getMemberId())) {
             return "redirect:/member/mypage/password-check";
         }
@@ -359,11 +383,46 @@ public class MemberController {
         return "redirect:/member/mypage";
     }
 
+    // 새 비밀번호가 현재 비밀번호와 같은지 프로필 화면에 JSON으로 반환
+    @PostMapping("/mypage/password/current-check")
+    @ResponseBody
+    public ApiResponse<Boolean> checkCurrentPasswordForProfile(
+            @RequestParam String newPassword,
+            HttpSession session) {
+        MemberDto loginMember =
+                (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+
+        if (isAdmin(loginMember)) {
+            return ApiResponse.fail("관리자는 프로필 수정 기능을 사용할 수 없습니다.");
+        }
+        if (!isProfileEditVerified(session, loginMember.getMemberId())) {
+            return ApiResponse.fail("현재 비밀번호 확인이 필요합니다.");
+        }
+
+        try {
+            boolean sameAsCurrentPassword = memberService.isCurrentPassword(
+                    loginMember.getMemberId(),
+                    newPassword
+            );
+            String message = sameAsCurrentPassword
+                    ? "현재 비밀번호와 동일한 비밀번호는 사용 불가합니다."
+                    : "사용 가능한 비밀번호입니다.";
+            return ApiResponse.success(message, sameAsCurrentPassword);
+        } catch (IllegalStateException e) {
+            return ApiResponse.fail(e.getMessage());
+        }
+    }
+
     // 로그인 회원의 프로필 이미지를 삭제하고 기본 이미지로 변경
     @PostMapping("/mypage/profile-image/delete")
     public String deleteProfileImage(HttpSession session,
                                      RedirectAttributes ra) {
         MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+
+        if (isAdmin(loginMember)) {
+            clearProfileEditVerification(session);
+            return "redirect:/admin";
+        }
 
         if (!isProfileEditVerified(session, loginMember.getMemberId())) {
             return "redirect:/member/mypage/password-check";
@@ -448,6 +507,12 @@ public class MemberController {
     private void clearProfileEditVerification(HttpSession session) {
         session.removeAttribute(PROFILE_EDIT_VERIFIED_MEMBER_ID);
         session.removeAttribute(PROFILE_EDIT_VERIFIED_AT);
+    }
+
+    // 현재 로그인 회원이 ADMIN 권한인지 확인
+    private boolean isAdmin(MemberDto loginMember) {
+        return loginMember != null
+                && "ADMIN".equalsIgnoreCase(loginMember.getMemberRole());
     }
 
 }

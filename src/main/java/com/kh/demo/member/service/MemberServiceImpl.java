@@ -244,17 +244,23 @@ public class MemberServiceImpl implements MemberService {
     // 프로필 수정 전에 현재 비밀번호가 일치하는지 확인
     @Override
     public void verifyCurrentPassword(String memberId, String currentPassword) {
+        if (!isCurrentPassword(memberId, currentPassword)) {
+            throw new IllegalStateException("현재 비밀번호가 일치하지 않습니다.");
+        }
+    }
+
+    // 입력한 새 비밀번호가 현재 비밀번호와 같은지 확인
+    @Override
+    public boolean isCurrentPassword(String memberId, String password) {
         MemberDto member = memberMapper.selectByMemberId(memberId);
 
         if (member == null) {
             throw new IllegalStateException("회원 정보를 찾을 수 없습니다.");
         }
 
-        if (currentPassword == null
-                || currentPassword.isBlank()
-                || !passwordEncoder.matches(currentPassword, member.getMemberPwd())) {
-            throw new IllegalStateException("현재 비밀번호가 일치하지 않습니다.");
-        }
+        return password != null
+                && !password.isBlank()
+                && passwordEncoder.matches(password, member.getMemberPwd());
     }
 
     // 마이페이지에 필요한 회원·설정·계좌 정보를 조회
