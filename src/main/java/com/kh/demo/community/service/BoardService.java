@@ -34,6 +34,9 @@ public interface BoardService {
     // 게시글 상세 조회 (조회수 증가 + 로그인 회원의 좋아요/북마크 여부 + 용어 하이라이트까지 채워서 반환)
     BoardDto getDetail(Long boardId, String loginMemberId);
 
+    // 관리자 상세 조회 (숨김 처리된 게시글도 관리자 페이지 링크에서 확인 가능)
+    BoardDto getDetailAsAdmin(Long boardId, String loginMemberId);
+
     // 게시글 수정 (작성자 본인 확인 + 이미지 선택 삭제/추가까지 함께 처리)
     void update(Long boardId, BoardDto boardDto, String loginMemberId,
                List<Long> deleteImageIds, List<MultipartFile> newImages);

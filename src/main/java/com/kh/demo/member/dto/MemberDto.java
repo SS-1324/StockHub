@@ -24,6 +24,7 @@ public class MemberDto {
     private String email; // 회원 이메일
     private String profile; // 프로필 이미지 웹 경로
     private String memberRole; // 회원 권한(USER/ADMIN)
+    private String memberStatus; // 회원 이용 상태(ACTIVE/RESTRICTED)
     private Boolean stockPublic; // 프로필 공개 여부
     private Boolean wordTooltip; // 주식 용어 툴팁 사용 여부
     private LocalDateTime createAt; // 가입 일시

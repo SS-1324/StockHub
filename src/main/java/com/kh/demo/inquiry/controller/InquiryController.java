@@ -6,6 +6,8 @@ import com.kh.demo.inquiry.dto.InquiryDto;
 import com.kh.demo.inquiry.service.InquiryService;
 import com.kh.demo.member.dto.MemberDto;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,17 +30,25 @@ public class InquiryController {
     // 로그인 회원이 작성한 문의를 모달에 JSON으로 전달
     @GetMapping("/inquiry/my")
     @ResponseBody
-    public ApiResponse<List<InquiryDto>> getMyInquiries(
+    public ResponseEntity<ApiResponse<List<InquiryDto>>> getMyInquiries(
             HttpSession session
     ) {
         MemberDto loginMember =
                 (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
         if (loginMember == null) {
-            return ApiResponse.fail("로그인이 필요합니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.<List<InquiryDto>>fail("로그인이 필요합니다."));
         }
 
-        return ApiResponse.success(
-                inquiryService.getMemberInquiries(loginMember.getMemberId())
+        if ("ADMIN".equalsIgnoreCase(loginMember.getMemberRole())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.<List<InquiryDto>>fail("관리자 계정에서는 내 문의를 이용할 수 없습니다."));
+        }
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        inquiryService.getMemberInquiries(loginMember.getMemberId())
+                )
         );
     }
 

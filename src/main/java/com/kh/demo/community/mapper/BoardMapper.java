@@ -28,6 +28,11 @@ public interface BoardMapper {
             @Param("boardId") Long boardId
     );
 
+    // 관리자 전용 상세 조회 (숨김 게시글 포함)
+    BoardDto selectBoardDetailAsAdmin(
+            @Param("boardId") Long boardId
+    );
+
     // 조회수 증가
     int increaseCount(
             @Param("boardId") Long boardId

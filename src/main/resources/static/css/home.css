@@ -1,11 +1,37 @@
 /* 메인 홈 전체 영역: 공통 배경색은 건드리지 않고 콘텐츠만 배치 */
 .home-main{
     width: 100%;
-    padding: 24px 0 72px;
+    margin-top: -20px;
+    padding: 0 0 72px;
 }
 
 .home-hero{
-    padding: 12px 0 52px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 0 30px;
+}
+
+/* 메인 문구 위의 실시간 시세 연결 상태 */
+.home-live-status{
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 8px;
+    padding: 8px 18px;
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    background: rgba(239, 246, 255, 0.78);
+    color: #1265f4;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.home-live-status-dot{
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #60a5fa;
 }
 
 /* 메인 소개 문구 */
@@ -15,7 +41,7 @@
     gap: 4px;
     margin: 0;
     font-size: clamp(34px, 5vw, 56px);
-    line-height: 1.22;
+    line-height: 1.28;
     letter-spacing: -0.05em;
     text-align: center;
 }
@@ -26,6 +52,25 @@
 
 .home-headline-accent{
     color: #0874f7;
+}
+
+/* 메인 문구 아래의 서비스 소개 */
+.home-hero-description{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-width: 760px;
+    margin: 10px auto 0;
+    color: #64748b;
+    font-size: 18px;
+    line-height: 1.55;
+    letter-spacing: -0.025em;
+    text-align: center;
+    word-break: keep-all;
+}
+
+.home-hero-description-line{
+    display: block;
 }
 
 /* 용어사전으로 이동하는 한 줄 안내 카드 */
@@ -42,6 +87,10 @@
     background: rgba(255, 255, 255, 0.9);
     box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.home-main > .home-dictionary-card:last-child{
+    margin-bottom: 0;
 }
 
 .home-dictionary-card:hover{
@@ -90,6 +139,10 @@
     justify-content: space-between;
     gap: 24px;
     margin-bottom: 24px;
+}
+
+.home-chart-section .home-section-heading{
+    margin-bottom: 16px;
 }
 
 .home-section-heading h2{
@@ -348,23 +401,43 @@
     color: #1685ff;
 }
 
-/* 최신 게시글을 이미지 높이에 따라 자연스럽게 이어 붙이는 2열 레이아웃 */
+/* 최신글을 왼쪽 열 위→아래, 오른쪽 열 위→아래 순서로 보여주는 2열 레이아웃 */
 .home-community-grid{
-    column-count: 2;
-    column-gap: 20px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 20px;
+}
+
+.home-community-grid.is-single-column{
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.home-community-column{
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 20px;
 }
 
 .home-community-card{
-    display: inline-block;
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
     overflow: hidden;
     width: 100%;
-    margin: 0 0 20px;
+    margin: 0;
     border: 1px solid #dbe4f0;
     border-radius: 18px;
     background: rgba(255, 255, 255, 0.94);
     box-shadow: 0 9px 24px rgba(15, 23, 42, 0.06);
     break-inside: avoid;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+/* 처음 배치처럼 짧은 열의 마지막 카드만 늘려 두 열의 아래쪽을 맞춘다. */
+.home-community-column .home-community-card:last-child{
+    flex-grow: 1;
 }
 
 .home-community-card:hover{
@@ -421,20 +494,105 @@
 }
 
 .home-community-content{
-    display: -webkit-box;
+    display: block;
     overflow: hidden;
     margin: 0 18px 16px;
     color: #53627a;
     font-size: 14px;
     line-height: 1.7;
-    white-space: pre-line;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 4;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* JS 실행 전에도 이미지 글 1줄, 이미지 없는 글 5줄 범위를 유지한다. */
+.home-community-card.has-image .home-community-content{
+    max-height: 1.7em;
+}
+
+.home-community-card.has-no-image .home-community-content{
+    max-height: 8.5em;
+}
+
+.home-community-content p{
+    display: inline;
+    margin: 0;
+    white-space: normal;
+}
+
+.home-community-content p:not(:last-child)::after{
+    content: "\A";
+    white-space: pre;
+}
+
+.home-community-content ol,
+.home-community-content ul{
+    display: inline;
+    margin: 0;
+    padding: 0;
+}
+
+.home-community-content li{
+    display: inline;
+    white-space: normal;
+}
+
+/* 공통 CSS와 관계없이 Quill 글쓰기 서식을 홈 카드에서도 명확히 유지 */
+.home-community-content strong{
+    font-weight: 700;
+}
+
+.home-community-content em{
+    font-style: italic;
+}
+
+.home-community-content s{
+    text-decoration: line-through;
+}
+
+.home-community-content a{
+    color: #0874f7;
+    text-decoration: underline;
+}
+
+/* Quill 글쓰기에서 저장되는 글자 크기 서식을 홈 미리보기에도 적용 */
+.home-community-content .ql-size-small{
+    font-size: 0.75em;
+}
+
+.home-community-content .ql-size-large{
+    font-size: 1.5em;
+}
+
+.home-community-content .ql-size-huge{
+    font-size: 2.5em;
+}
+
+.home-community-empty-content{
+    color: #94a3b8;
 }
 
 /* 제목이 없으면 제목 자리를 만들지 않고 본문을 바로 위로 올림 */
 .home-community-card.has-no-title .home-community-content{
     margin-top: 15px;
+}
+
+/* 본문이 제한 줄 수를 넘을 때만 다음 줄에 말줄임표를 따로 표시 */
+.home-community-ellipsis{
+    display: none;
+    margin: -16px 18px 16px;
+    color: #53627a;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.home-community-card.is-content-truncated .home-community-content{
+    margin-bottom: 0;
+}
+
+.home-community-card.is-content-truncated .home-community-ellipsis{
+    display: block;
+    margin-top: 0;
 }
 
 .home-community-image{
@@ -470,6 +628,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 7px 12px;
+    margin-top: auto;
     padding: 13px 18px 15px;
     border-top: 1px solid #e8eef6;
     color: #91a0ba;
@@ -510,7 +669,9 @@ html[data-theme="dark"] .home-community-card{
 
 html[data-theme="dark"] .home-dictionary-text > span,
 html[data-theme="dark"] .home-section-heading p,
+html[data-theme="dark"] .home-hero-description,
 html[data-theme="dark"] .home-community-content,
+html[data-theme="dark"] .home-community-ellipsis,
 html[data-theme="dark"] .home-empty-message{
     color: #94a3b8;
 }
@@ -532,12 +693,26 @@ html[data-theme="dark"] .home-community-image{
 /* 태블릿과 모바일 */
 @media (max-width: 720px){
     .home-main{
-        padding-top: 8px;
+        margin-top: -16px;
+        padding-top: 0;
         padding-bottom: 48px;
     }
 
     .home-hero{
-        padding: 12px 0 38px;
+        padding: 0 0 26px;
+    }
+
+    .home-live-status{
+        margin-bottom: 10px;
+        padding: 7px 15px;
+        font-size: 14px;
+    }
+
+    .home-hero-description{
+        gap: 3px;
+        margin-top: 12px;
+        font-size: 15px;
+        line-height: 1.6;
     }
 
     .home-dictionary-card{
@@ -598,7 +773,7 @@ html[data-theme="dark"] .home-community-image{
     }
 
     .home-community-grid{
-        column-count: 1;
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 

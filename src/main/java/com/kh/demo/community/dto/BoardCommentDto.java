@@ -22,6 +22,7 @@ public class BoardCommentDto {
     private Long parentCommentId;
     private String content;
     private Long likeCount;
+    private Boolean hidden; // 관리자가 숨긴 댓글인지 여부
     private LocalDateTime createAt;
 
     // jsp 화면표시용 포맷 문자열

@@ -588,6 +588,19 @@ html[data-theme="dark"]{
     margin-bottom: 20px;
 }
 
+/* Quill에서 저장한 글자 크기 서식을 상세 화면에서도 동일하게 표시 */
+.board-content .ql-size-small{
+    font-size: 0.75em;
+}
+
+.board-content .ql-size-large{
+    font-size: 1.5em;
+}
+
+.board-content .ql-size-huge{
+    font-size: 2.5em;
+}
+
 .board-meta-bottom{
     display: flex;
     align-items: center;

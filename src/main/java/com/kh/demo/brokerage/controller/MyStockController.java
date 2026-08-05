@@ -23,6 +23,10 @@ public class MyStockController {
 
     @GetMapping("/member/stocks")
     public String myStocks(HttpSession session, Model model) {
+        if (SessionUtil.isAdmin(session)) {
+            return "redirect:/admin";
+        }
+
         String memberId = SessionUtil.requireLoginMemberId(session);
 
         model.addAttribute("member", memberService.getMemberProfile(memberId));

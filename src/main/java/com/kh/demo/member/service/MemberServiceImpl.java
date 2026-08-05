@@ -234,6 +234,11 @@ public class MemberServiceImpl implements MemberService {
             throw new IllegalStateException("아이디 또는 비밀번호가 일치하지 않습니다.");
         }
 
+        // 관리자가 이용을 제한한 회원은 새 로그인을 차단
+        if ("RESTRICTED".equalsIgnoreCase(member.getMemberStatus())) {
+            throw new IllegalStateException("관리자에 의해 이용이 제한된 계정입니다.");
+        }
+
         // 세션에 비밀번호가 저장되지 않도록 제거
         member.setMemberPwd(null);
         return member;

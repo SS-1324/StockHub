@@ -15,6 +15,38 @@ const period = new URLSearchParams(window.location.search).get('period')
     || (typeof resolvedPeriod !== 'undefined' ? resolvedPeriod : 'day');
 
 document.addEventListener('DOMContentLoaded', function () {
+    // 최신글 5개를 왼쪽 열부터 채우고, 나머지를 오른쪽 열에 배치한다.
+    const communityGrid = document.querySelector('.home-community-grid');
+    if (communityGrid && !communityGrid.querySelector('.home-community-column')) {
+        const cards = Array.from(
+            communityGrid.querySelectorAll(':scope > .home-community-card')
+        );
+
+        if (cards.length > 0) {
+            cards.forEach(prepareCommunityCardPreview);
+
+            const leftColumn = document.createElement('div');
+            const rightColumn = document.createElement('div');
+            leftColumn.className = 'home-community-column';
+            rightColumn.className = 'home-community-column';
+
+            const leftColumnCount = Math.ceil(cards.length / 2);
+            cards.forEach(function (card, index) {
+                const targetColumn = index < leftColumnCount
+                    ? leftColumn
+                    : rightColumn;
+                targetColumn.appendChild(card);
+            });
+
+            communityGrid.replaceChildren(leftColumn);
+            if (rightColumn.children.length > 0) {
+                communityGrid.appendChild(rightColumn);
+            } else {
+                communityGrid.classList.add('is-single-column');
+            }
+        }
+    }
+
     const container = document.getElementById('tv-chart-container');
     if (!container) return;
     if (!code) {
@@ -301,3 +333,121 @@ function setupFullscreenToggle() {
         btn.setAttribute('aria-label', isFullscreen ? '전체화면 종료' : '전체화면');
     });
 }
+// 이미지 글의 본문은 1줄, 이미지 없는 글의 본문은 5줄까지만 남긴다.
+// 넘친 글은 글자 서식을 보존한 채 줄 경계 안으로 줄이고 다음 줄에 ...을 표시한다.
+function prepareCommunityCardPreview(card) {
+    const content = card.querySelector('.home-community-content');
+    if (!content) return;
+
+    const hasImage = card.classList.contains('has-image');
+    const bodyLineLimit = hasImage ? 1 : 5;
+    const originalHtml = content.innerHTML;
+    const computedStyle = window.getComputedStyle(content);
+    const lineHeight = parseFloat(computedStyle.lineHeight)
+        || parseFloat(computedStyle.fontSize) * 1.7;
+    const maxBodyHeight = lineHeight * bodyLineLimit;
+
+    // CSS의 초기 안전 높이를 잠시 해제해 실제 전체 줄 수를 계산한다.
+    content.style.maxHeight = 'none';
+    content.style.overflow = 'visible';
+    const fullHeight = content.scrollHeight;
+    const isTruncated = fullHeight > maxBodyHeight + 1;
+
+    if (isTruncated) {
+        content.innerHTML = findFittingPreviewHtml(
+            content,
+            originalHtml,
+            maxBodyHeight
+        );
+    }
+
+    content.style.maxHeight = `${maxBodyHeight}px`;
+    content.style.overflow = 'hidden';
+    card.classList.toggle('is-content-truncated', isTruncated);
+
+}
+
+function findFittingPreviewHtml(content, originalHtml, maxHeight) {
+    const totalCharacters = content.textContent.length;
+    let low = 0;
+    let high = totalCharacters;
+    let bestHtml = '';
+
+    while (low <= high) {
+        const middle = Math.floor((low + high) / 2);
+        content.innerHTML = originalHtml;
+        truncateRichContent(content, middle);
+
+        if (content.scrollHeight <= maxHeight + 1) {
+            bestHtml = content.innerHTML;
+            low = middle + 1;
+        } else {
+            high = middle - 1;
+        }
+    }
+
+    return bestHtml;
+}
+
+// 텍스트 노드만 줄이고 뒤쪽 노드는 제거하므로 strong/em/s/span 서식은 그대로 남는다.
+function truncateRichContent(root, characterLimit) {
+    let usedCharacters = 0;
+    let reachedLimit = false;
+
+    function trimNode(parent) {
+        Array.from(parent.childNodes).forEach(function (node) {
+            if (reachedLimit) {
+                node.remove();
+                return;
+            }
+
+            if (node.nodeType === Node.TEXT_NODE) {
+                const textLength = node.nodeValue.length;
+                const remaining = characterLimit - usedCharacters;
+
+                if (textLength > remaining) {
+                    node.nodeValue = node.nodeValue.slice(0, Math.max(0, remaining));
+                    reachedLimit = true;
+                } else {
+                    usedCharacters += textLength;
+                }
+                return;
+            }
+
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                trimNode(node);
+            }
+        });
+    }
+
+    trimNode(root);
+
+    // 잘린 지점 뒤에 남은 공백과 줄바꿈 태그를 정리한다.
+    const textNodes = [];
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+    const lastTextNode = textNodes[textNodes.length - 1];
+    if (lastTextNode) {
+        lastTextNode.nodeValue = lastTextNode.nodeValue.replace(/\s+$/, '');
+    }
+
+    // 글자가 제거되며 비게 된 인라인 서식 태그도 정리한다.
+    root.querySelectorAll('span, strong, em, s').forEach(function (element) {
+        if (!element.textContent.trim() && !element.querySelector('br')) {
+            element.remove();
+        }
+    });
+
+    // 말줄임 줄 앞에 불필요한 빈 줄이 생기지 않도록 마지막 공백과 br을 제거한다.
+    while (root.lastChild) {
+        const lastNode = root.lastChild;
+        const isWhitespaceText = lastNode.nodeType === Node.TEXT_NODE
+            && !lastNode.nodeValue.trim();
+        const isTrailingBreak = lastNode.nodeType === Node.ELEMENT_NODE
+            && lastNode.tagName === 'BR';
+
+        if (!isWhitespaceText && !isTrailingBreak) break;
+        lastNode.remove();
+    }
+}
+

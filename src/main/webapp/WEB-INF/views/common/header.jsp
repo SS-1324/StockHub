@@ -46,7 +46,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap"
           rel="stylesheet">
 
-    <link rel="stylesheet" href="${commonCssUrl}?v=10">
+    <link rel="stylesheet" href="${commonCssUrl}?v=15">
     <%-- 현재 화면에서 요청한 전용 CSS를 head 안에서 불러옴 --%>
     <c:if test="${not empty requestScope.pageCssUrl}">
         <link rel="stylesheet" href="${requestScope.pageCssUrl}">
@@ -139,19 +139,20 @@
                         <div id="header-profile-dropdown"
                              class="header-profile-dropdown"
                             hidden>
-                            <%-- 일반 회원에게만 프로필 수정 메뉴를 표시 --%>
-                            <c:if test="${fn:toUpperCase(sessionScope.loginMember.memberRole) ne 'ADMIN'}">
-                                <a href="${mypageUrl}">프로필 수정</a>
-                            </c:if>
-                            <a href="${myStocksUrl}">내 주식</a>
-                            <%-- 로그인 회원의 문의 목록을 페이지 이동 없이 표시 --%>
-                            <button type="button"
-                                    data-modal-target="my-inquiries-modal"
-                                    data-load-my-inquiries="true">내 문의</button>
-                            <%-- ADMIN 권한 회원에게만 관리자 페이지 링크를 표시 --%>
-                            <c:if test="${fn:toUpperCase(sessionScope.loginMember.memberRole) eq 'ADMIN'}">
-                                <a href="${adminUrl}">관리자 페이지</a>
-                            </c:if>
+                            <c:choose>
+                                <%-- 관리자는 관리자 페이지 외 회원 전용 메뉴를 사용하지 않음 --%>
+                                <c:when test="${fn:toUpperCase(sessionScope.loginMember.memberRole) eq 'ADMIN'}">
+                                    <a href="${adminUrl}">관리자 페이지</a>
+                                </c:when>
+                                <c:otherwise>
+                                    <a href="${mypageUrl}">프로필 수정</a>
+                                    <a href="${myStocksUrl}">내 주식</a>
+                                    <%-- 로그인 회원의 문의 목록을 페이지 이동 없이 표시 --%>
+                                    <button type="button"
+                                            data-modal-target="my-inquiries-modal"
+                                            data-load-my-inquiries="true">내 문의</button>
+                                </c:otherwise>
+                            </c:choose>
                             <a class="header-logout-link" href="${logoutUrl}">로그아웃</a>
                         </div>
                     </div>

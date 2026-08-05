@@ -4,7 +4,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css?v=2">
 
 <c:if test="${not empty error}">
     <p class="alert alert-error">${error}</p>

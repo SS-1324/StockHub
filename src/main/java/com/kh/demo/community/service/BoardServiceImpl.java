@@ -2,6 +2,7 @@ package com.kh.demo.community.service;
 
 
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import com.kh.demo.community.dto.BoardDto;
 import com.kh.demo.community.dto.BoardImageDto;
 import com.kh.demo.community.mapper.BoardBookmarkMapper;
@@ -211,8 +212,87 @@ public class BoardServiceImpl implements BoardService {
     private void stripHtmlForPreview(List<BoardDto> boardList) {
         for (BoardDto board : boardList) {
             String content = board.getContent() == null ? "" : board.getContent();
-            board.setContent(htmlToPlainTextPreservingLineBreaks(content));
+            String safeContent = sanitizeContent(content);
+            String formattedPreview = buildCompactPreviewHtml(safeContent);
+            String plainPreview = htmlToPlainTextPreservingLineBreaks(formattedPreview);
+
+            String visiblePreview = plainPreview
+                    .replace('\u00A0', ' ')
+                    .replace("\u200B", "")
+                    .replace("\uFEFF", "")
+                    .trim();
+
+            if (visiblePreview.isBlank()) {
+                board.setFormattedPreviewContent(null);
+                board.setContent("");
+            } else {
+                board.setFormattedPreviewContent(formattedPreview);
+                board.setContent(plainPreview);
+            }
         }
+    }
+
+    // 홈 카드용 HTML은 글쓰기 서식을 유지하면서 문단과 목록을 한 줄 단위의 <br>로 바꾼다.
+    // 이렇게 만들어야 여러 줄 말줄임이 문단 태그 중간에서도 끊기지 않고 정상적으로 적용된다.
+    private String buildCompactPreviewHtml(String safeContent) {
+        String normalizedContent = (safeContent == null ? "" : safeContent)
+                .replace("\r\n", "\n");
+
+        // 예전 게시글처럼 HTML 태그 없이 실제 개행만 저장된 본문도 줄바꿈을 유지한다.
+        if (!normalizedContent.contains("<")) {
+            normalizedContent = normalizedContent.replace("\n", "<br>");
+        }
+
+        Document previewDocument = Jsoup.parseBodyFragment(normalizedContent);
+        previewDocument.outputSettings().prettyPrint(false);
+
+        // 홈 카드는 카드 전체가 상세 링크이므로 본문 안의 링크 태그만 벗긴다.
+        previewDocument.select("a").forEach(Element::unwrap);
+
+        // 목록은 번호·불릿과 줄바꿈은 유지하고, 여러 줄 말줄임을 방해하는 블록 구조만 없앤다.
+        for (Element list : previewDocument.select("ol, ul")) {
+            boolean ordered = list.tagName().equals("ol");
+            int itemNumber = 1;
+
+            for (Element item : list.children()) {
+                if (!item.tagName().equals("li")) {
+                    continue;
+                }
+
+                item.prependText(ordered ? itemNumber++ + ". " : "• ");
+                item.tagName("span");
+                item.after("<br>");
+            }
+
+            list.unwrap();
+        }
+
+        // Quill의 각 문단을 인라인 서식 + 줄바꿈 형태로 바꾼다.
+        for (Element paragraph : previewDocument.select("p")) {
+            String paragraphText = paragraph.text()
+                    .replace('\u00A0', ' ')
+                    .replace("\u200B", "")
+                    .replace("\uFEFF", "")
+                    .trim();
+
+            if (paragraphText.isBlank()) {
+                paragraph.empty();
+            }
+
+            paragraph.tagName("span");
+            paragraph.after("<br>");
+        }
+
+        String previewHtml = previewDocument.body().html()
+                // 비어 있는 문단 래퍼는 제거하고 줄바꿈만 남긴다.
+                .replaceAll("(?i)<span(?:\\s+[^>]*)?>\\s*</span>", "")
+                // 연속된 빈 줄은 한 줄까지만 남겨 카드 내용이 아래로 밀리지 않게 한다.
+                .replaceAll("(?i)(?:\\s*<br\\s*/?>\\s*){3,}", "<br><br>")
+                .replaceAll("(?i)^(?:\\s*<br\\s*/?>\\s*)+", "")
+                .replaceAll("(?i)(?:\\s*<br\\s*/?>\\s*)+$", "")
+                .trim();
+
+        return previewHtml;
     }
 
     private String htmlToPlainTextPreservingLineBreaks(String html) {
@@ -296,10 +376,28 @@ public class BoardServiceImpl implements BoardService {
             Long boardId,
             String loginMemberId
     ) {
+        return getDetailInternal(boardId, loginMemberId, false);
+    }
+
+    @Override
+    public BoardDto getDetailAsAdmin(
+            Long boardId,
+            String loginMemberId
+    ) {
+        return getDetailInternal(boardId, loginMemberId, true);
+    }
+
+    private BoardDto getDetailInternal(
+            Long boardId,
+            String loginMemberId,
+            boolean includeHidden
+    ) {
         boardMapper.increaseCount(boardId);
 
         BoardDto board
-                = boardMapper.selectBoardDetail(boardId);
+                = includeHidden
+                ? boardMapper.selectBoardDetailAsAdmin(boardId)
+                : boardMapper.selectBoardDetail(boardId);
 
         if (board == null) {
             throw new NoSuchElementException(
@@ -525,8 +623,16 @@ public class BoardServiceImpl implements BoardService {
             );
         }
 
-        if (boardDto.getContent() == null
-                || boardDto.getContent().isBlank()) {
+        String visibleContent = Jsoup.parseBodyFragment(
+                        sanitizeContent(boardDto.getContent())
+                )
+                .text()
+                .replace('\u00A0', ' ')
+                .replace("\u200B", "")
+                .replace("\uFEFF", "")
+                .trim();
+
+        if (visibleContent.isBlank()) {
 
             throw new IllegalArgumentException(
                     "내용을 입력해주세요."

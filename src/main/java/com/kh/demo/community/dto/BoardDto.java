@@ -24,6 +24,7 @@ public class BoardDto {
     private Long count;
     private Long likeCount;
     private Long commentCount;
+    private Boolean hidden; // 관리자가 숨긴 게시글인지 여부
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
 
@@ -42,6 +43,9 @@ public class BoardDto {
 
     // 용어 하이라이트가 적용된 본문 (컨트롤러에서 TermHighlightService로 채워주는 표시용 필드, DB 매핑 대상 아님)
     private String highlightedContent;
+
+    // 메인 홈 카드에서 글쓰기 서식을 유지해 보여줄 안전한 미리보기 HTML (DB 매핑 대상 아님)
+    private String formattedPreviewContent;
 
     // 목록(피드) 카드에 썸네일로 보여줄 이미지 목록 (서비스에서 채워주는 표시용 필드, DB 매핑 대상 아님).
     // 이름을 "images"로 하면 안 됨 - 글쓰기/수정 폼의 파일 input이 name="images"라서, @ModelAttribute 바인딩 시

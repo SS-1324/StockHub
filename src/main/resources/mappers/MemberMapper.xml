@@ -124,6 +124,7 @@
                m.email,
                COALESCE(NULLIF(m.profile, ''), '/images/common_member.png') AS profile,
                m.member_role,
+               m.member_status,
                m.create_at,
                DATE_FORMAT(m.create_at, '%Y-%m-%d %H:%i') AS create_at_str,
                COALESCE(s.is_stock_public, FALSE) AS stock_public,

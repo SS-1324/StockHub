@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kh.demo.admin.mapper.AdminMapper">
+
+    <!-- 대시보드에서 필요한 세 가지 핵심 집계 -->
+    <select id="selectDashboard"
+            resultType="com.kh.demo.admin.dto.AdminDashboardDto">
+        SELECT (SELECT COUNT(*) FROM member) AS member_count,
+               (SELECT COUNT(*) FROM board) AS board_count,
+               (SELECT COUNT(*) FROM inquiry WHERE status = 'PENDING')
+                   AS pending_inquiry_count
+    </select>
+
+    <!-- 회원 관리 목록 -->
+    <select id="selectMembers" resultType="com.kh.demo.member.dto.MemberDto">
+        SELECT member_id,
+               nickname,
+               email,
+               member_role,
+               member_status,
+               create_at,
+               DATE_FORMAT(create_at, '%Y-%m-%d %H:%i') AS create_at_str
+        FROM member
+        ORDER BY create_at DESC, member_id ASC
+        LIMIT 200
+    </select>
+
+    <select id="selectMember" resultType="com.kh.demo.member.dto.MemberDto">
+        SELECT member_id, nickname, email, member_role, member_status
+        FROM member
+        WHERE member_id = #{memberId}
+    </select>
+
+    <update id="updateMemberStatus">
+        UPDATE member
+        SET member_status = #{memberStatus}
+        WHERE member_id = #{memberId}
+    </update>
+
+    <update id="updateMemberRole">
+        UPDATE member
+        SET member_role = #{memberRole}
+        WHERE member_id = #{memberId}
+    </update>
+
+    <!-- 숨김 여부와 관계없이 관리자가 확인하는 게시글 목록 -->
+    <select id="selectBoards" resultType="com.kh.demo.community.dto.BoardDto">
+        SELECT b.board_id,
+               b.member_id,
+               COALESCE(m.nickname, '탈퇴한 회원') AS nickname,
+               b.category,
+               b.title,
+               b.content,
+               b.is_hidden AS hidden,
+               b.create_at,
+               DATE_FORMAT(b.create_at, '%Y-%m-%d %H:%i') AS create_at_str
+        FROM board b
+        LEFT JOIN member m ON m.member_id = b.member_id
+        ORDER BY b.create_at DESC, b.board_id DESC
+        LIMIT 200
+    </select>
+
+    <update id="updateBoardHidden">
+        UPDATE board
+        SET is_hidden = #{hidden}
+        WHERE board_id = #{boardId}
+    </update>
+
+    <!-- 숨김 여부와 관계없이 관리자가 확인하는 댓글 목록 -->
+    <select id="selectComments"
+            resultType="com.kh.demo.community.dto.BoardCommentDto">
+        SELECT c.comment_id,
+               c.board_id,
+               c.member_id,
+               COALESCE(m.nickname, '탈퇴한 회원') AS nickname,
+               c.content,
+               c.is_hidden AS hidden,
+               c.create_at,
+               DATE_FORMAT(c.create_at, '%Y-%m-%d %H:%i') AS create_at_str
+        FROM board_comment c
+        LEFT JOIN member m ON m.member_id = c.member_id
+        ORDER BY c.create_at DESC, c.comment_id DESC
+        LIMIT 200
+    </select>
+
+    <update id="updateCommentHidden">
+        UPDATE board_comment
+        SET is_hidden = #{hidden}
+        WHERE comment_id = #{commentId}
+    </update>
+
+    <!-- 답변 완료된 문의를 최종 처리 완료 상태로 변경 -->
+    <update id="completeInquiry">
+        UPDATE inquiry
+        SET status = 'COMPLETED',
+            answered_by = COALESCE(answered_by, #{adminId}),
+            answered_at = COALESCE(answered_at, CURRENT_TIMESTAMP)
+        WHERE inquiry_id = #{inquiryId}
+          AND status = 'ANSWERED'
+    </update>
+
+    <!-- 종목 관리 목록과 추가·수정·삭제 -->
+    <select id="selectStocks" resultType="com.kh.demo.brokerage.dto.StockDto">
+        SELECT stock_code, stock_name, current_price
+        FROM stock
+        ORDER BY stock_name ASC, stock_code ASC
+        LIMIT 300
+    </select>
+
+    <select id="countStockCodeExceptCurrent" resultType="int">
+        SELECT COUNT(*)
+        FROM stock
+        WHERE stock_code = #{stockCode}
+          AND stock_code != #{currentStockCode}
+    </select>
+
+    <select id="countStockCode" resultType="int">
+        SELECT COUNT(*)
+        FROM stock
+        WHERE stock_code = #{stockCode}
+    </select>
+
+    <insert id="insertStock">
+        INSERT INTO stock (stock_code, stock_name, current_price)
+        VALUES (#{stockCode}, #{stockName}, #{currentPrice})
+    </insert>
+
+    <update id="updateStock">
+        UPDATE stock
+        SET stock_code = #{stockCode},
+            stock_name = #{stockName},
+            current_price = #{currentPrice}
+        WHERE stock_code = #{currentStockCode}
+    </update>
+
+    <select id="countStockReferences" resultType="int">
+        SELECT (SELECT COUNT(*) FROM holding WHERE stock_code = #{stockCode})
+             + (SELECT COUNT(*) FROM trade WHERE stock_code = #{stockCode})
+    </select>
+
+    <delete id="deleteStock">
+        DELETE FROM stock
+        WHERE stock_code = #{stockCode}
+    </delete>
+
+    <!-- 용어사전 관리 -->
+    <select id="selectGlossaryTerms"
+            resultType="com.kh.demo.dictionary.dto.GlossaryDto">
+        SELECT term_id, term, definition, category
+        FROM glossary
+        ORDER BY category ASC, term ASC
+        LIMIT 500
+    </select>
+
+    <select id="countGlossaryTermExceptCurrent" resultType="int">
+        SELECT COUNT(*)
+        FROM glossary
+        WHERE term = #{term}
+        <if test="termId != null">
+            AND term_id != #{termId}
+        </if>
+    </select>
+
+    <insert id="insertGlossary"
+            parameterType="com.kh.demo.dictionary.dto.GlossaryDto"
+            useGeneratedKeys="true"
+            keyProperty="termId"
+            keyColumn="term_id">
+        INSERT INTO glossary (term, definition, category)
+        VALUES (#{term}, #{definition}, #{category})
+    </insert>
+
+    <update id="updateGlossary"
+            parameterType="com.kh.demo.dictionary.dto.GlossaryDto">
+        UPDATE glossary
+        SET term = #{term},
+            definition = #{definition},
+            category = #{category}
+        WHERE term_id = #{termId}
+    </update>
+
+    <delete id="deleteGlossary">
+        DELETE FROM glossary
+        WHERE term_id = #{termId}
+    </delete>
+
+    <!-- 최신 관리자 작업 이력 -->
+    <select id="selectAdminLogs"
+            resultType="com.kh.demo.admin.dto.AdminLogDto">
+        SELECT l.log_id,
+               l.admin_id,
+               COALESCE(m.nickname, '탈퇴한 관리자') AS admin_nickname,
+               l.action_type,
+               l.target_type,
+               l.target_id,
+               l.detail,
+               l.create_at,
+               DATE_FORMAT(l.create_at, '%Y-%m-%d %H:%i:%s') AS create_at_str
+        FROM admin_log l
+        LEFT JOIN member m ON m.member_id = l.admin_id
+        ORDER BY l.create_at DESC, l.log_id DESC
+        LIMIT 200
+    </select>
+
+    <insert id="insertAdminLog"
+            parameterType="com.kh.demo.admin.dto.AdminLogDto"
+            useGeneratedKeys="true"
+            keyProperty="logId"
+            keyColumn="log_id">
+        INSERT INTO admin_log (
+            admin_id,
+            action_type,
+            target_type,
+            target_id,
+            detail
+        ) VALUES (
+            #{adminId},
+            #{actionType},
+            #{targetType},
+            #{targetId},
+            #{detail}
+        )
+    </insert>
+
+</mapper>

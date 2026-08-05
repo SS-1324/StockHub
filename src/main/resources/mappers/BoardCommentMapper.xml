@@ -37,6 +37,7 @@
         FROM board_comment c
         <include refid="commentJoins"/>
         WHERE c.comment_id = #{commentId}
+          AND c.is_hidden = FALSE
     </select>
 
     <!--
@@ -48,6 +49,7 @@
         FROM board_comment c
         <include refid="commentJoins"/>
         WHERE c.board_id = #{boardId}
+          AND c.is_hidden = FALSE
         ORDER BY COALESCE(c.parent_comment_id, c.comment_id) ASC, c.create_at ASC
     </select>
 

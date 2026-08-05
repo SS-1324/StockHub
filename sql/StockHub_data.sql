@@ -9,6 +9,9 @@ USE stockhub;
 -- MySQL과 데이터를 주고 받는 인코딩 설정
 SET NAMES utf8mb4;
 
+-- 안전 업데이트 모드 비활성화
+SET SQL_SAFE_UPDATES = 0;
+
 -- -------------------- 1. 회원 및 인증 --------------------
 
 -- 회원
@@ -21,6 +24,7 @@ CREATE TABLE IF NOT EXISTS member (
     profile       VARCHAR(300) NOT NULL DEFAULT '/images/common_member.png'
         COMMENT '프로필 이미지 저장 경로',
     member_role   VARCHAR(20)  NOT NULL DEFAULT 'USER' COMMENT '회원 권한(USER/ADMIN)',
+    member_status VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE' COMMENT '회원 상태(ACTIVE/RESTRICTED)',
     create_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입일시',
 
     CONSTRAINT PK_MEMBER PRIMARY KEY (member_id),
@@ -43,6 +47,22 @@ SET @add_member_role_sql = (
 PREPARE add_member_role_stmt FROM @add_member_role_sql;
 EXECUTE add_member_role_stmt;
 DEALLOCATE PREPARE add_member_role_stmt;
+
+-- 기존 member 테이블에도 이용 상태 컬럼이 없을 때만 추가
+SET @add_member_status_sql = (
+    SELECT IF(
+        COUNT(*) = 0,
+        'ALTER TABLE member ADD COLUMN member_status VARCHAR(20) NOT NULL DEFAULT ''ACTIVE'' COMMENT ''회원 상태(ACTIVE/RESTRICTED)'' AFTER member_role',
+        'SELECT 1'
+    )
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'member'
+      AND column_name = 'member_status'
+);
+PREPARE add_member_status_stmt FROM @add_member_status_sql;
+EXECUTE add_member_status_stmt;
+DEALLOCATE PREPARE add_member_status_stmt;
 
 -- 기존 회원의 빈 프로필도 공통 기본 이미지로 변경
 UPDATE member
@@ -390,6 +410,7 @@ CREATE TABLE IF NOT EXISTS board (
     content     TEXT            NOT NULL COMMENT '내용',
     count       BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '조회수',
     like_count  BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '좋아요 수 캐시',
+    is_hidden   BOOLEAN         NOT NULL DEFAULT FALSE COMMENT '관리자 숨김 여부',
     create_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '작성일시',
     update_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
@@ -401,6 +422,22 @@ CREATE TABLE IF NOT EXISTS board (
     INDEX IDX_BOARD_CATEGORY_DATE (category, create_at),
     INDEX IDX_BOARD_MEMBER_DATE (member_id, create_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='게시글';
+
+-- 기존 board 테이블에도 관리자 숨김 컬럼이 없을 때만 추가
+SET @add_board_hidden_sql = (
+    SELECT IF(
+        COUNT(*) = 0,
+        'ALTER TABLE board ADD COLUMN is_hidden BOOLEAN NOT NULL DEFAULT FALSE COMMENT ''관리자 숨김 여부'' AFTER like_count',
+        'SELECT 1'
+    )
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'board'
+      AND column_name = 'is_hidden'
+);
+PREPARE add_board_hidden_stmt FROM @add_board_hidden_sql;
+EXECUTE add_board_hidden_stmt;
+DEALLOCATE PREPARE add_board_hidden_stmt;
 
 -- 회원 문의
 CREATE TABLE IF NOT EXISTS inquiry (
@@ -513,6 +550,7 @@ CREATE TABLE IF NOT EXISTS board_comment (
     member_id          VARCHAR(50)     NULL COMMENT '작성자(FK, 회원 탈퇴 시 NULL)',
     parent_comment_id  BIGINT UNSIGNED NULL COMMENT '부모 댓글 번호(FK), 최상위 댓글이면 NULL',
     content            VARCHAR(1500)   NOT NULL COMMENT '댓글 내용',
+    is_hidden          BOOLEAN         NOT NULL DEFAULT FALSE COMMENT '관리자 숨김 여부',
     create_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '댓글 작성일시',
     update_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP COMMENT '댓글 수정일시',
@@ -531,6 +569,22 @@ CREATE TABLE IF NOT EXISTS board_comment (
     INDEX IDX_BOARD_COMMENT_MEMBER (member_id),
     INDEX IDX_BOARD_COMMENT_PARENT (parent_comment_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='게시글 댓글 및 대댓글';
+
+-- 기존 board_comment 테이블에도 관리자 숨김 컬럼이 없을 때만 추가
+SET @add_comment_hidden_sql = (
+    SELECT IF(
+        COUNT(*) = 0,
+        'ALTER TABLE board_comment ADD COLUMN is_hidden BOOLEAN NOT NULL DEFAULT FALSE COMMENT ''관리자 숨김 여부'' AFTER content',
+        'SELECT 1'
+    )
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'board_comment'
+      AND column_name = 'is_hidden'
+);
+PREPARE add_comment_hidden_stmt FROM @add_comment_hidden_sql;
+EXECUTE add_comment_hidden_stmt;
+DEALLOCATE PREPARE add_comment_hidden_stmt;
 
 -- 게시글 이미지
 CREATE TABLE IF NOT EXISTS board_image (
@@ -619,6 +673,24 @@ CREATE TABLE IF NOT EXISTS follow (
         ON UPDATE CASCADE ON DELETE CASCADE,
     INDEX IDX_FOLLOW_FOLLOWEE (followee_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='회원 팔로우 관계';
+
+-- 관리자 작업 이력
+CREATE TABLE IF NOT EXISTS admin_log (
+    log_id       BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '관리 이력 번호(PK)',
+    admin_id     VARCHAR(50)     NULL COMMENT '작업 관리자(FK, 탈퇴 시 NULL)',
+    action_type  VARCHAR(30)     NOT NULL COMMENT '작업 유형',
+    target_type  VARCHAR(30)     NOT NULL COMMENT '대상 유형',
+    target_id    VARCHAR(100)    NULL COMMENT '대상 식별값',
+    detail       VARCHAR(500)    NULL COMMENT '작업 상세 내용',
+    create_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '작업 일시',
+
+    CONSTRAINT PK_ADMIN_LOG PRIMARY KEY (log_id),
+    CONSTRAINT FK_MEMBER_TO_ADMIN_LOG
+        FOREIGN KEY (admin_id) REFERENCES member (member_id)
+        ON UPDATE CASCADE ON DELETE SET NULL,
+    INDEX IDX_ADMIN_LOG_DATE (create_at),
+    INDEX IDX_ADMIN_LOG_ADMIN_DATE (admin_id, create_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='관리자 작업 이력';
 
 -- -------------------- 4. 주식 용어 사전 --------------------
 

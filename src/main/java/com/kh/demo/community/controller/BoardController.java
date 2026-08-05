@@ -124,7 +124,9 @@ public class BoardController {
         BoardDto board;
         List<BoardCommentDto> comments;
         try {
-            board = boardService.getDetail(boardId, loginMemberId);
+            board = SessionUtil.isAdmin(session)
+                    ? boardService.getDetailAsAdmin(boardId, loginMemberId)
+                    : boardService.getDetail(boardId, loginMemberId);
         } catch (NoSuchElementException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/community";
@@ -148,7 +150,9 @@ public class BoardController {
 
         BoardDto board;
         try {
-            board = boardService.getDetail(boardId, loginMemberId);
+            board = SessionUtil.isAdmin(session)
+                    ? boardService.getDetailAsAdmin(boardId, loginMemberId)
+                    : boardService.getDetail(boardId, loginMemberId);
         } catch (NoSuchElementException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/community";
