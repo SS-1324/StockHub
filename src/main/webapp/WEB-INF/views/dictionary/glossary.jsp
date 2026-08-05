@@ -81,113 +81,136 @@
 
        </header>
 
-        <%-- 검색 중인 키워드 안내 --%>
-        <c:if test="${not empty keyword and hasResult}">
-            <div class="search-result-info">
-                <strong>‘<c:out value="${keyword}"/>’</strong>
-                용어가 포함된 카테고리입니다.
-            </div>
-        </c:if>
+        <c:choose>
 
-        <div class="category-grid">
+            <%-- 검색어가 없을 때: 기존 카테고리 화면 --%>
+            <c:when test="${empty keyword}">
 
-            <%-- 매매와 투자 행동 --%>
-            <c:if test="${visible['trading']}">
-                <c:url var="tradingUrl" value="/dictionary/category/trading">
-                    <c:param name="keyword" value="${keyword}"/>
-                </c:url>
+                <div class="category-grid">
 
-                <a href="${tradingUrl}"
-                   class="category"
-                   data-image="<c:url value='/images/dictionary/trading.png'/>"
-                   data-alt="trading-image">
-                    <span class="category-box">매매와 투자 행동</span>
-                </a>
-            </c:if>
+                    <%-- 매매와 투자 행동 --%>
+                    <c:if test="${visible['trading']}">
+                        <c:url var="tradingUrl" value="/dictionary/category/trading"/>
 
-            <%-- 투자자·자금·손익 관리 --%>
-            <c:if test="${visible['risk-management']}">
-                <c:url var="riskManagementUrl" value="/dictionary/category/risk-management">
-                    <c:param name="keyword" value="${keyword}"/>
-                </c:url>
+                        <a href="${tradingUrl}"
+                           class="category"
+                           data-image="<c:url value='/images/dictionary/trading.png'/>"
+                           data-alt="trading-image">
+                            <span class="category-box">매매와 투자 행동</span>
+                        </a>
+                    </c:if>
 
-                <a href="${riskManagementUrl}"
-                   class="category"
-                   data-image="<c:url value='/images/dictionary/risk-management.png'/>"
-                   data-alt="risk-management-image">
-                    <span class="category-box">투자자·자금·손익 관리</span>
-                </a>
-            </c:if>
+                    <%-- 투자자·자금·손익 관리 --%>
+                    <c:if test="${visible['risk-management']}">
+                        <c:url var="riskManagementUrl" value="/dictionary/category/risk-management"/>
 
-            <%-- 상품과 포지션 --%>
-            <c:if test="${visible['position']}">
-                <c:url var="positionUrl" value="/dictionary/category/position">
-                    <c:param name="keyword" value="${keyword}"/>
-                </c:url>
+                        <a href="${riskManagementUrl}"
+                           class="category"
+                           data-image="<c:url value='/images/dictionary/risk-management.png'/>"
+                           data-alt="risk-management-image">
+                            <span class="category-box">투자자·자금·손익 관리</span>
+                        </a>
+                    </c:if>
 
-                <a href="${positionUrl}"
-                   class="category"
-                   data-image="<c:url value='/images/dictionary/position.png'/>"
-                   data-alt="position-image">
-                    <span class="category-box">상품과 포지션</span>
-                </a>
-            </c:if>
+                    <%-- 상품과 포지션 --%>
+                    <c:if test="${visible['position']}">
+                        <c:url var="positionUrl" value="/dictionary/category/position"/>
 
-            <%-- 시장·지수·주문·거래 제도 --%>
-            <c:if test="${visible['market']}">
-                <c:url var="marketUrl" value="/dictionary/category/market">
-                    <c:param name="keyword" value="${keyword}"/>
-                </c:url>
+                        <a href="${positionUrl}"
+                           class="category"
+                           data-image="<c:url value='/images/dictionary/position.png'/>"
+                           data-alt="position-image">
+                            <span class="category-box">상품과 포지션</span>
+                        </a>
+                    </c:if>
 
-                <a href="${marketUrl}"
-                   class="category"
-                   data-image="<c:url value='/images/dictionary/market.png'/>"
-                   data-alt="market-image">
-                    <span class="category-box">시장·지수·주문·거래 제도</span>
-                </a>
-            </c:if>
+                    <%-- 시장·지수·주문·거래 제도 --%>
+                    <c:if test="${visible['market']}">
+                        <c:url var="marketUrl" value="/dictionary/category/market"/>
 
-            <%-- 종목 정보와 기업 분석 --%>
-            <c:if test="${visible['fundamental']}">
-                <c:url var="fundamentalUrl" value="/dictionary/category/fundamental">
-                    <c:param name="keyword" value="${keyword}"/>
-                </c:url>
+                        <a href="${marketUrl}"
+                           class="category"
+                           data-image="<c:url value='/images/dictionary/market.png'/>"
+                           data-alt="market-image">
+                            <span class="category-box">시장·지수·주문·거래 제도</span>
+                        </a>
+                    </c:if>
 
-                <a href="${fundamentalUrl}"
-                   class="category"
-                   data-image="<c:url value='/images/dictionary/fundamental.png'/>"
-                   data-alt="fundamental-image">
-                    <span class="category-box">종목 정보와 기업 분석</span>
-                </a>
-            </c:if>
+                    <%-- 종목 정보와 기업 분석 --%>
+                    <c:if test="${visible['fundamental']}">
+                        <c:url var="fundamentalUrl" value="/dictionary/category/fundamental"/>
 
-            <%-- 차트와 기술적 분석 --%>
-            <c:if test="${visible['chart']}">
-                <c:url var="chartUrl" value="/dictionary/category/chart">
-                    <c:param name="keyword" value="${keyword}"/>
-                </c:url>
+                        <a href="${fundamentalUrl}"
+                           class="category"
+                           data-image="<c:url value='/images/dictionary/fundamental.png'/>"
+                           data-alt="fundamental-image">
+                            <span class="category-box">종목 정보와 기업 분석</span>
+                        </a>
+                    </c:if>
 
-                <a href="${chartUrl}"
-                   class="category"
-                   data-image="<c:url value='/images/dictionary/chart.png'/>"
-                   data-alt="chart-image">
-                    <span class="category-box">차트와 기술적 분석</span>
-                </a>
-            </c:if>
+                    <%-- 차트와 기술적 분석 --%>
+                    <c:if test="${visible['chart']}">
+                        <c:url var="chartUrl" value="/dictionary/category/chart"/>
 
-            <%-- 검색 결과가 없을 때 --%>
-            <c:if test="${not empty keyword and not hasResult}">
-                <div class="search-empty">
-                    <strong>‘<c:out value="${keyword}"/>’</strong>에 해당하는 용어를 찾지 못했습니다.
+                        <a href="${chartUrl}"
+                           class="category"
+                           data-image="<c:url value='/images/dictionary/chart.png'/>"
+                           data-alt="chart-image">
+                            <span class="category-box">차트와 기술적 분석</span>
+                        </a>
+                    </c:if>
+
                 </div>
-            </c:if>
 
-        </div>
+                <%-- 카테고리 이미지 띄울 공간 --%>
+                <div class="category-preview">
+                    <img id="category-preview-image" src="" alt="">
+                </div>
 
-        <%-- 카테고리 이미지 띄울 공간 --%>
-        <div class="category-preview">
-            <img id="category-preview-image" src="" alt="">
-        </div>
+            </c:when>
+
+            <%-- 검색어가 있을 때: 카테고리를 거치지 않고 실제 용어 표시 --%>
+            <c:otherwise>
+
+                <c:choose>
+
+                    <c:when test="${hasResult}">
+
+                        <div class="search-result-info">
+                            <strong>‘<c:out value="${keyword}"/>’</strong>
+                            검색 결과
+                            <c:out value="${fn:length(glossaryList)}"/>개입니다.
+                        </div>
+
+                        <div class="glossary-list">
+                            <c:forEach var="glossary" items="${glossaryList}">
+
+                                <div class="glossary-item">
+                                    <h3 class="glossary-term">
+                                        <c:out value="${glossary.term}"/>
+                                    </h3>
+
+                                    <p class="glossary-definition">
+                                        <c:out value="${glossary.definition}"/>
+                                    </p>
+                                </div>
+
+                            </c:forEach>
+                        </div>
+
+                    </c:when>
+
+                    <c:otherwise>
+                        <div class="search-empty">
+                            <strong>‘<c:out value="${keyword}"/>’</strong>에 해당하는 용어를 찾지 못했습니다.
+                        </div>
+                    </c:otherwise>
+
+                </c:choose>
+
+            </c:otherwise>
+
+        </c:choose>
 
     </section>
 </main>
@@ -197,17 +220,19 @@
     const categories = document.querySelectorAll(".category");
     const previewImage = document.getElementById("category-preview-image");
 
-    categories.forEach(category => {
-        category.addEventListener("mouseenter", function () {
-            previewImage.src = this.dataset.image;
-            previewImage.alt = this.dataset.alt;
-            previewImage.classList.add("show");
-        });
+    if (previewImage) {
+        categories.forEach(category => {
+            category.addEventListener("mouseenter", function () {
+                previewImage.src = this.dataset.image;
+                previewImage.alt = this.dataset.alt;
+                previewImage.classList.add("show");
+            });
 
-        category.addEventListener("mouseleave", function () {
-            previewImage.classList.remove("show");
+            category.addEventListener("mouseleave", function () {
+                previewImage.classList.remove("show");
+            });
         });
-    });
+    }
 
     const searchForm = document.getElementById("glossary-search-form");
     const keywordInput = document.getElementById("glossary-keyword");

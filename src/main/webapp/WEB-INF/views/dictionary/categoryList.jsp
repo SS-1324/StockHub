@@ -6,7 +6,61 @@
       href="${pageContext.request.contextPath}/css/dictionary.css">
 <section class="glossary-category">
 
-    <h2 class = "category-name">${categoryName}</h2>
+    <div class="category-header">
+        <h2 class = "category-name">
+            <c:out value="${categoryName}"/>
+        </h2>
+
+        <form class ="glossary-search"
+              id="glossary-search-form"
+              action="${pageContext.request.contextPath}/dictionary"
+              method="get">
+
+              <div class="autocomplete-search">
+
+                <input type="text"
+                       id="glossary-keyword"
+                       name="keyword"
+                       value="${fn:escapeXml(keyword)}"
+                       placeholder="용어를 검색하세요"
+                       autocomplete="off">
+
+                <button type="submit"
+                        class="glossary-search-icon-btn"
+                        aria-label="검색">
+
+                     <svg width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg">
+
+                          <circle cx ="11"
+                                  cy="11"
+                                  r="7"
+                                  stroke="currentColor"
+                                  stroke-width="2"/>
+
+                          <line x1="21"
+                                y1="21"
+                                x2="16.65"
+                                y2="16.65"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"/>
+
+                          </svg>
+
+                     </button>
+
+                     <div id="autocomplete"
+                          class="autocomplete-list">
+                     </div>
+                </div>
+
+              </form>
+
+        </div>
 
     <c:choose>
         <c:when test="${not empty glossaryList}">

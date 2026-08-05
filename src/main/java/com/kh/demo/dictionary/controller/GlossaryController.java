@@ -28,44 +28,55 @@ public class GlossaryController {
     ) {
         String searchKeyword = keyword.trim();
 
-        // DB에 등록된 전체 카테고리 목록
-        List<String> categoryCodes =
-                glossaryService.selectCategoryList();
-
-        // 카테고리별 표시 여부
-        Map<String, Boolean> visibleCategories =
-                new LinkedHashMap<>();
-
         if (searchKeyword.isBlank()) {
-            // 검색어가 없으면 전체 카테고리 표시
+
+            // 검색어가 없을 때만 카테고리 목록이 필요함
+            List<String> categoryCodes =
+                    glossaryService.selectCategoryList();
+
+            Map<String, Boolean> visibleCategories =
+                    new LinkedHashMap<>();
+
+            // 모든 카테고리 표시
             for (String category : categoryCodes) {
                 visibleCategories.put(category, true);
             }
 
-            model.addAttribute("hasResult", true);
-
-        } else {
-            // 검색어가 포함된 카테고리 조회
-            List<String> matchedCategories =
-                    glossaryService.selectCategoryCodesByKeyword(
-                            searchKeyword
-                    );
-
-            for (String category : categoryCodes) {
-                visibleCategories.put(
-                        category,
-                        matchedCategories.contains(category)
-                );
-            }
+            // 카테고리 화면에서만 visible 전달
+            model.addAttribute(
+                    "visible",
+                    visibleCategories
+            );
 
             model.addAttribute(
                     "hasResult",
-                    !matchedCategories.isEmpty()
+                    true
+            );
+
+        } else {
+
+            // 검색어가 있으면 카테고리가 아니라 실제 용어 검색
+            List<GlossaryDto> glossaryList =
+                    glossaryService.searchGlossary(
+                            searchKeyword
+                    );
+
+            // 실제 용어 목록을 JSP에 전달
+            model.addAttribute(
+                    "glossaryList",
+                    glossaryList
+            );
+
+            model.addAttribute(
+                    "hasResult",
+                    !glossaryList.isEmpty()
             );
         }
 
-        model.addAttribute("keyword", searchKeyword);
-        model.addAttribute("visible", visibleCategories);
+        model.addAttribute(
+                "keyword",
+                searchKeyword
+        );
 
         return "dictionary/glossary";
     }

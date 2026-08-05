@@ -28,12 +28,6 @@ public class GlossaryServiceImpl implements GlossaryService {
         return glossaryMapper.selectCategoryList();
     }
 
-    //검색어 포함 카테고리 조회
-    @Override
-    public List<String> selectCategoryCodesByKeyword(String keyword){
-        return glossaryMapper.selectCategoryCodesByKeyword(keyword.trim());
-    }
-
     //카테고리 내부 검색
     @Override
     public List<GlossaryDto> selectGlossaryByCategoryAndKeyword(
@@ -46,9 +40,16 @@ public class GlossaryServiceImpl implements GlossaryService {
         );
     }
 
+    //검색 자동 완성
     @Override
     public List<String> AutoCompleteTerms(String keyword){
         return glossaryMapper.AutoCompleteTerms(keyword.trim()
         );
+    }
+
+    //사전 검색 기능
+    @Override
+    public List<GlossaryDto> searchGlossary(String keyword){
+        return glossaryMapper.searchGlossary(keyword.trim());
     }
 }
