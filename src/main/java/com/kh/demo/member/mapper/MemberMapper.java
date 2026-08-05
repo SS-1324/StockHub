@@ -4,6 +4,8 @@ import com.kh.demo.member.dto.MemberDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 // 회원 SQL을 MemberMapper.xml과 연결
 @Mapper
 public interface MemberMapper {
@@ -60,6 +62,9 @@ public interface MemberMapper {
 
     // 회원의 계좌 연동을 모두 해제 (계좌 자체는 증권사 소유라 보존됨)
     int deleteAccountLinksByMemberId(@Param("memberId") String memberId);
+
+    // 아직 연동된 증권사 계좌가 하나도 없는 회원 목록 (데모 데이터 생성기 전용)
+    List<MemberDto> selectMembersWithoutAccount();
 
     // 회원 정보를 삭제
     int deleteMemberById(@Param("memberId") String memberId);

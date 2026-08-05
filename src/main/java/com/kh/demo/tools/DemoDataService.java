@@ -2,6 +2,8 @@ package com.kh.demo.tools;
 
 import com.kh.demo.brokerage.dto.*;
 import com.kh.demo.brokerage.mapper.*;
+import com.kh.demo.member.dto.MemberDto;
+import com.kh.demo.member.mapper.MemberMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +33,7 @@ public class DemoDataService {
     @Autowired private ProductHoldingMapper productHoldingMapper;
     @Autowired private ProductTransactionMapper productTransactionMapper;
     @Autowired private CashTransactionMapper cashTransactionMapper;
+    @Autowired private MemberMapper memberMapper;
 
     // 시드 고정 -> 재실행해도 같은 결과가 나와서 "손보면서 반복"하기 편함
     private final Random random = new Random(20260805L);
@@ -45,6 +48,7 @@ public class DemoDataService {
     public void generate() {
         seedFinancialProductsIfEmpty();
         List<AccountDto> newDemoAccounts = seedUnlinkedDemoAccountsIfMissing();
+        seedAccountsForUnaccountedMembers();
 
         List<AccountDto> targets = accountMapper.selectAllNonAdminAccounts();
         List<StockDto> stocks = stockMapper.selectAllStocks();
@@ -165,6 +169,38 @@ public class DemoDataService {
             created.add(accountMapper.selectAccountById(dto.getAccountId()));
         }
         return created;
+    }
+
+    // ==================== 2-1. 계좌가 하나도 없는 기존 회원에게 계좌 개설 ====================
+
+    // 시드 잔고를 소액~고액까지 다양하게 순환 배정 (사람 수가 늘어도 안전하게 나머지 연산으로 순환)
+    private static final long[] AUTO_SEED_BALANCES = {
+            700_000L, 1_500_000L, 3_000_000L, 8_000_000L, 15_000_000L,
+            25_000_000L, 40_000_000L, 55_000_000L, 70_000_000L, 20_000_000L
+    };
+
+    private void seedAccountsForUnaccountedMembers() {
+        List<MemberDto> membersWithoutAccount = memberMapper.selectMembersWithoutAccount();
+        if (membersWithoutAccount.isEmpty()) {
+            return;
+        }
+        List<BrokerageDto> brokerages = brokerageMapper.selectAllBrokerages();
+        if (brokerages.isEmpty()) {
+            return;
+        }
+        for (int i = 0; i < membersWithoutAccount.size(); i++) {
+            MemberDto member = membersWithoutAccount.get(i);
+            BrokerageDto brokerage = brokerages.get(i % brokerages.size());
+            long seedBalance = AUTO_SEED_BALANCES[i % AUTO_SEED_BALANCES.length];
+
+            AccountDto dto = new AccountDto();
+            dto.setAccountNo("AUTO-" + member.getMemberId().toUpperCase() + "-" + brokerage.getBrokerageId());
+            dto.setOwnerName(member.getMemberName());
+            dto.setBrokerageId(brokerage.getBrokerageId());
+            accountMapper.insertAccount(dto);
+            accountMapper.updateBalance(dto.getAccountId(), seedBalance);
+            accountMapper.linkAccount(dto.getAccountId(), member.getMemberId());
+        }
     }
 
     // ==================== 3. 계좌별 1년 이력 재생성 ====================
