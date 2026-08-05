@@ -9,6 +9,12 @@
    반복되는 색상·너비·간격을 한곳에서 관리한다.
    ========================================================= */
 :root{
+    /* 라이트 모드 게시글 카드 hover 효과 */
+    --board-card-hover-border: #5865e8;
+    --board-card-hover-shadow:
+            0 0 0 2px rgba(88, 101, 232, 0.20),
+            0 8px 24px rgba(52, 65, 160, 0.20);
+
     --board-feed-width: 680px;
     --board-primary: #526ff5;
     --board-primary-hover: #435fe2;
@@ -24,6 +30,15 @@
     --board-badge-text: #536bdb;
     --board-shadow: 0 2px 7px rgba(30, 51, 88, 0.04);
     --board-shadow-hover: 0 6px 16px rgba(30, 51, 88, 0.08);
+}
+
+/* 다크 모드에서는 밝은 테두리와 인디고 광원으로 hover 상태를 강조한다. */
+html[data-theme="dark"]{
+    --board-card-hover-border: #9299ff;
+    --board-card-hover-shadow:
+            0 0 0 2px rgba(146, 153, 255, 0.48),
+            0 8px 28px rgba(0, 0, 0, 0.55),
+            0 0 22px rgba(88, 101, 232, 0.28);
 }
 
 /*
@@ -287,13 +302,17 @@
     background: var(--board-surface);
     color: var(--board-text);
     box-shadow: var(--board-shadow);
-    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+
+    /* 위치 이동 없이 테두리와 그림자만 부드럽게 변경 */
+    transition:
+            border-color 0.18s ease,
+            box-shadow 0.18s ease;
 }
 
-.board-card:hover{
-    border-color: var(--board-border-strong);
-    box-shadow: var(--board-shadow-hover);
-    transform: translateY(-1px);
+.board-card:hover,
+.board-card:focus-within{
+    border-color: var(--board-card-hover-border);
+    box-shadow: var(--board-card-hover-shadow);
 }
 
 .board-card-header{
