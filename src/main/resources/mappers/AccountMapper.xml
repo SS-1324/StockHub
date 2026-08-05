@@ -114,4 +114,32 @@
         WHERE account_id = #{accountId}
     </update>
 
+    <select id="selectAllNonAdminAccounts" resultType="com.kh.demo.brokerage.dto.AccountDto">
+        SELECT a.account_id, a.account_no, a.owner_name,
+               al.member_id,
+               a.brokerage_id,
+               b.brokerage_name,
+               a.balance,
+               a.return_rate,
+               a.profit_amount,
+               a.holding_stock_quantity,
+               a.create_at,
+               al.linked_at
+        FROM account a
+        JOIN brokerage b ON a.brokerage_id = b.brokerage_id
+        LEFT JOIN account_link al ON al.account_id = a.account_id
+        LEFT JOIN member m ON m.member_id = al.member_id
+        WHERE COALESCE(m.member_role, 'USER') != 'ADMIN'
+        ORDER BY a.account_id
+    </select>
+
+    <update id="updateStats">
+        UPDATE account
+        SET balance = #{balance},
+            return_rate = #{returnRate},
+            profit_amount = #{profitAmount},
+            holding_stock_quantity = #{holdingStockQuantity}
+        WHERE account_id = #{accountId}
+    </update>
+
 </mapper>

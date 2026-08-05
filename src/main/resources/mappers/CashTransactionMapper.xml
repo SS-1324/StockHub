@@ -25,4 +25,14 @@
         ORDER BY ct.transaction_at DESC
     </select>
 
+    <insert id="insertTransaction" parameterType="com.kh.demo.brokerage.dto.CashTransactionDto"
+            useGeneratedKeys="true" keyProperty="cashTransactionId">
+        INSERT INTO cash_transaction(account_id, transaction_type, amount, balance_after, memo, transaction_at)
+        VALUES(#{accountId}, #{transactionType}, #{amount}, #{balanceAfter}, #{memo}, #{transactionAt})
+    </insert>
+
+    <delete id="deleteTransactionsByAccount" parameterType="long">
+        DELETE FROM cash_transaction WHERE account_id = #{accountId}
+    </delete>
+
 </mapper>

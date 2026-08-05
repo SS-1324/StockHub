@@ -73,4 +73,8 @@
         DELETE FROM holding WHERE holding_id = #{holdingId}
     </delete>
 
+    <delete id="deleteHoldingsByAccount" parameterType="long">
+        DELETE FROM holding WHERE account_id = #{accountId}
+    </delete>
+
 </mapper>

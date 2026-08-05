@@ -5,13 +5,13 @@
 <mapper namespace="com.kh.demo.brokerage.mapper.BrokerageMapper">
 
     <select id="selectAllBrokerages" resultType="com.kh.demo.brokerage.dto.BrokerageDto">
-        SELECT brokerage_id, brokerage_name, fee_rate, create_at
+        SELECT brokerage_id, brokerage_name, fee_rate
         FROM brokerage
         ORDER BY brokerage_id
     </select>
 
     <select id="selectBrokerageById" parameterType="long" resultType="com.kh.demo.brokerage.dto.BrokerageDto">
-        SELECT brokerage_id, brokerage_name, fee_rate, create_at
+        SELECT brokerage_id, brokerage_name, fee_rate
         FROM brokerage
         WHERE brokerage_id = #{brokerageId}
     </select>

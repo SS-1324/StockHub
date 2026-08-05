@@ -26,6 +26,16 @@
         ORDER BY t.trade_at DESC
     </select>
 
+    <insert id="insertHistoricalTrade" parameterType="com.kh.demo.brokerage.dto.TradeDto"
+            useGeneratedKeys="true" keyProperty="tradeId">
+        INSERT INTO trade(account_id, stock_code, trade_type, quantity, price, fee, trade_at)
+        VALUES(#{accountId}, #{stockCode}, #{tradeType}, #{quantity}, #{price}, #{fee}, #{tradeAt})
+    </insert>
+
+    <delete id="deleteTradesByAccount" parameterType="long">
+        DELETE FROM trade WHERE account_id = #{accountId}
+    </delete>
+
     <select id="selectTradesByMember" parameterType="string" resultType="com.kh.demo.brokerage.dto.TradeDto">
         SELECT t.trade_id,
                t.account_id,

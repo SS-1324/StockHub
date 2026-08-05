@@ -28,4 +28,14 @@
         ORDER BY pt.transaction_at DESC
     </select>
 
+    <insert id="insertTransaction" parameterType="com.kh.demo.brokerage.dto.ProductTransactionDto"
+            useGeneratedKeys="true" keyProperty="transactionId">
+        INSERT INTO product_transaction(account_id, product_id, transaction_type, quantity, nav, amount, transaction_at)
+        VALUES(#{accountId}, #{productId}, #{transactionType}, #{quantity}, #{nav}, #{amount}, #{transactionAt})
+    </insert>
+
+    <delete id="deleteTransactionsByAccount" parameterType="long">
+        DELETE FROM product_transaction WHERE account_id = #{accountId}
+    </delete>
+
 </mapper>
