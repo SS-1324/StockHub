@@ -107,8 +107,10 @@ CREATE TABLE IF NOT EXISTS password_reset_token (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='비밀번호 재설정 토큰';
 
 -- -------------------- 2. 종목, 증권사, 계좌 및 거래 --------------------
+-- 이 섹션은 대부분 "외부/파트너 소유" 데이터다(증권사가 갖고 있다고 가정하는 정보).
+-- 우리(웹사이트) 소유인 테이블은 그때그때 별도로 표시한다(예: account_link).
 
--- 주식
+-- 주식 (※ 외부/파트너 소유 영역)
 CREATE TABLE IF NOT EXISTS stock (
     stock_code     VARCHAR(20)      NOT NULL COMMENT '종목 코드(PK, 예: NVDA)',
     stock_name     VARCHAR(100)     NOT NULL COMMENT '종목 이름',
@@ -140,32 +142,46 @@ VALUES ('스톡증권', 0.0001500),
        ('허브증권', 0.0001200),
        ('KH투자증권', 0.0001000);
 
--- 가상 계좌
+-- 가상 계좌 (※ 외부/파트너 소유 영역 — 증권사가 갖고 있는 데이터. 우리 회원 정보는 여기 두지 않는다. 연동 관계는 account_link 참고)
 CREATE TABLE IF NOT EXISTS account (
     account_id    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '가상 계좌 번호(PK)',
     account_no    VARCHAR(50)     NOT NULL COMMENT '사용자에게 표시할 계좌번호',
-    member_id     VARCHAR(50)     NOT NULL COMMENT '계좌 소유 회원(FK)',
     brokerage_id  BIGINT UNSIGNED NOT NULL COMMENT '계좌를 개설한 증권사(FK)',
     owner_name    VARCHAR(50)     NOT NULL COMMENT '예금주명',
 	balance BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '현금 잔고(기본 0원)',
     create_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '계좌 개설일시',
-    linked_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '회원과 연결된 일시',
 	return_rate             DECIMAL(9, 4)   NOT NULL DEFAULT 0.0000 COMMENT '현재 수익률(%)',
 	profit_amount           BIGINT           NOT NULL DEFAULT 0 COMMENT '현재 수익금(원)',
 	holding_stock_quantity  BIGINT UNSIGNED  NOT NULL DEFAULT 0 COMMENT '총 보유 주식 수량',
 
     CONSTRAINT PK_ACCOUNT PRIMARY KEY (account_id),
     CONSTRAINT UQ_ACCOUNT_NO UNIQUE (account_no),
-    CONSTRAINT UQ_ACCOUNT_MEMBER_BROKERAGE UNIQUE (member_id, brokerage_id),
-    CONSTRAINT FK_MEMBER_TO_ACCOUNT
-        FOREIGN KEY (member_id) REFERENCES member (member_id)
-        ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT FK_BROKERAGE_TO_ACCOUNT
         FOREIGN KEY (brokerage_id) REFERENCES brokerage (brokerage_id)
         ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='가상 증권 계좌';
 
--- 보유 종목
+-- 회원-계좌 연동 (※ 우리(웹사이트) 소유 영역 — "어느 회원이 어느 증권사 계좌를 검증하고 연동했는가"만 담는다.
+-- account_no/owner_name으로 본인확인 후 여기 한 행이 생기며, 그 전까지 계좌는 어떤 회원과도 연결되지 않은 상태다.
+-- 회원 탈퇴시에도 이 테이블만 정리하고 account/holding/trade 등 증권사측 데이터는 그대로 보존한다.
+CREATE TABLE IF NOT EXISTS account_link (
+    link_id     BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '연동 번호(PK)',
+    member_id   VARCHAR(50)     NOT NULL COMMENT '연동한 회원(FK)',
+    account_id  BIGINT UNSIGNED NOT NULL COMMENT '연동된 계좌(FK)',
+    linked_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '연동 일시',
+
+    CONSTRAINT PK_ACCOUNT_LINK PRIMARY KEY (link_id),
+    CONSTRAINT UQ_ACCOUNT_LINK_ACCOUNT UNIQUE (account_id),
+    CONSTRAINT UQ_ACCOUNT_LINK_MEMBER_ACCOUNT UNIQUE (member_id, account_id),
+    CONSTRAINT FK_MEMBER_TO_ACCOUNT_LINK
+        FOREIGN KEY (member_id) REFERENCES member (member_id)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT FK_ACCOUNT_TO_ACCOUNT_LINK
+        FOREIGN KEY (account_id) REFERENCES account (account_id)
+        ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='회원-계좌 연동(우리 사이트 소유)';
+
+-- 보유 종목 (※ 외부/파트너 소유 영역)
 CREATE TABLE IF NOT EXISTS holding (
     holding_id   BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '보유내역 번호(PK)',
     account_id   BIGINT UNSIGNED NOT NULL COMMENT '가상 계좌(FK)',
@@ -185,7 +201,7 @@ CREATE TABLE IF NOT EXISTS holding (
         ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='계좌별 주식 보유내역';
 
--- 거래 체결 이력
+-- 거래 체결 이력 (※ 외부/파트너 소유 영역)
 CREATE TABLE IF NOT EXISTS trade (
     trade_id    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '거래내역 번호(PK)',
     account_id  BIGINT UNSIGNED NOT NULL COMMENT '가상 계좌(FK)',
@@ -284,7 +300,7 @@ CREATE TABLE IF NOT EXISTS ranking_board (
     INDEX IDX_RANKING_MEMBER_DATE (member_id, rank_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='일자별 수익률 랭킹';
 
--- 증권사 전용 상품
+-- 증권사 전용 상품 (※ 외부/파트너 소유 영역)
 CREATE TABLE IF NOT EXISTS financial_product (
     product_id     BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '금융상품 번호(PK)',
     brokerage_id   BIGINT UNSIGNED NOT NULL COMMENT '판매 증권사(FK)',
@@ -303,7 +319,7 @@ CREATE TABLE IF NOT EXISTS financial_product (
     INDEX IDX_FINANCIAL_PRODUCT_BROKERAGE_TYPE (brokerage_id, product_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='증권사별 금융상품';
 
--- 계좌별 금융상품 보유내역 (holding의 상품 버전)
+-- 계좌별 금융상품 보유내역 (holding의 상품 버전) (※ 외부/파트너 소유 영역)
 CREATE TABLE IF NOT EXISTS product_holding (
     product_holding_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '상품보유 번호(PK)',
     account_id      BIGINT UNSIGNED NOT NULL COMMENT '가상 계좌(FK)',
@@ -323,7 +339,7 @@ CREATE TABLE IF NOT EXISTS product_holding (
         ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='계좌별 금융상품 보유내역';
 
--- 금융상품 가입·환매 원장 (trade의 상품 버전)
+-- 금융상품 가입·환매 원장 (trade의 상품 버전) (※ 외부/파트너 소유 영역)
 CREATE TABLE IF NOT EXISTS product_transaction (
     transaction_id   BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '상품거래내역 번호(PK)',
     account_id       BIGINT UNSIGNED NOT NULL COMMENT '가상 계좌(FK)',
@@ -345,7 +361,7 @@ CREATE TABLE IF NOT EXISTS product_transaction (
     INDEX IDX_PRODUCT_TX_ACCOUNT_DATE (account_id, transaction_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='금융상품 가입·환매 원장';
 
--- 계좌 입출금 원장
+-- 계좌 입출금 원장 (※ 외부/파트너 소유 영역)
 CREATE TABLE IF NOT EXISTS cash_transaction (
     cash_transaction_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '입출금내역 번호(PK)',
     account_id          BIGINT UNSIGNED NOT NULL COMMENT '가상 계좌(FK)',

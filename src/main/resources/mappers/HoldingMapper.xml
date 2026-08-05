@@ -47,10 +47,10 @@
                        ) * 100.0
                    ) / SUM(h.avg_price * h.quantity)
                END AS return_rate
-        FROM account a
-        JOIN holding h ON h.account_id = a.account_id
+        FROM account_link al
+        JOIN holding h ON h.account_id = al.account_id
         JOIN stock s ON s.stock_code = h.stock_code
-        WHERE a.member_id = #{memberId}
+        WHERE al.member_id = #{memberId}
           AND h.quantity > 0
         GROUP BY s.stock_code, s.stock_name, s.current_price
         ORDER BY current_value DESC, s.stock_code
@@ -71,6 +71,10 @@
 
     <delete id="deleteHolding" parameterType="long">
         DELETE FROM holding WHERE holding_id = #{holdingId}
+    </delete>
+
+    <delete id="deleteHoldingsByAccount" parameterType="long">
+        DELETE FROM holding WHERE account_id = #{accountId}
     </delete>
 
 </mapper>

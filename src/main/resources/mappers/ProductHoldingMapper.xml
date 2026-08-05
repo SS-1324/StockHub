@@ -20,4 +20,14 @@
         ORDER BY ph.update_at DESC
     </select>
 
+    <insert id="insertHolding" parameterType="com.kh.demo.brokerage.dto.ProductHoldingDto"
+            useGeneratedKeys="true" keyProperty="productHoldingId">
+        INSERT INTO product_holding(account_id, product_id, quantity, avg_nav, purchase_amount, update_at)
+        VALUES(#{accountId}, #{productId}, #{quantity}, #{avgNav}, #{purchaseAmount}, #{updateAt})
+    </insert>
+
+    <delete id="deleteHoldingsByAccount" parameterType="long">
+        DELETE FROM product_holding WHERE account_id = #{accountId}
+    </delete>
+
 </mapper>

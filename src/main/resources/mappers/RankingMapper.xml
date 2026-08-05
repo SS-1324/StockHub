@@ -28,8 +28,10 @@
         FROM member m
         LEFT JOIN settings s
         ON s.member_id = m.member_id
+        LEFT JOIN account_link al
+        ON al.member_id = m.member_id
         LEFT JOIN account a
-        ON a.member_id = m.member_id
+        ON a.account_id = al.account_id
 
         WHERE m.member_role = 'USER'
 

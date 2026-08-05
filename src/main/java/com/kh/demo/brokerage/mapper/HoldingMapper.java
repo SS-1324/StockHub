@@ -27,4 +27,7 @@ public interface HoldingMapper {
 
     // 전량매도로 보유수량이 0이 되었을 때 보유내역 자체를 삭제
     int deleteHolding(Long holdingId);
+
+    // 계좌의 보유내역을 전부 삭제 (데모 데이터 생성기가 재생성 전 초기화할 때 사용)
+    int deleteHoldingsByAccount(Long accountId);
 }

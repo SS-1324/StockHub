@@ -35,4 +35,14 @@ public interface AccountMapper {
 
     // 잔고 갱신 (매수/매도 체결시 사용)
     int updateBalance(@Param("accountId") Long accountId, @Param("balance") Long balance);
+
+    // 관리자 소유가 아닌 전체 계좌 목록 (데모 데이터 생성 대상 선정용 - 연동 여부 무관)
+    List<AccountDto> selectAllNonAdminAccounts();
+
+    // 계좌 요약 통계(잔고/수익률/수익금/보유주식수량) 일괄 갱신 (데모 데이터 생성기 전용)
+    int updateStats(@Param("accountId") Long accountId,
+                     @Param("balance") Long balance,
+                     @Param("returnRate") java.math.BigDecimal returnRate,
+                     @Param("profitAmount") Long profitAmount,
+                     @Param("holdingStockQuantity") Long holdingStockQuantity);
 }

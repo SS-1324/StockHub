@@ -27,4 +27,14 @@
         ORDER BY b.brokerage_id, fp.product_id
     </select>
 
+    <insert id="insertProduct" parameterType="com.kh.demo.brokerage.dto.FinancialProductDto"
+            useGeneratedKeys="true" keyProperty="productId">
+        INSERT INTO financial_product(brokerage_id, product_type, product_name, description, nav, maturity_date)
+        VALUES(#{brokerageId}, #{productType}, #{productName}, #{description}, #{nav}, #{maturityDate})
+    </insert>
+
+    <select id="countAllProducts" resultType="int">
+        SELECT COUNT(*) FROM financial_product
+    </select>
+
 </mapper>

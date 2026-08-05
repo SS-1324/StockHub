@@ -8,8 +8,7 @@
         SELECT stock_code,
                stock_name,
                current_price,
-               description,
-               create_at
+               description
         FROM stock
         ORDER BY stock_code
     </select>
@@ -18,8 +17,7 @@
         SELECT stock_code,
                stock_name,
                current_price,
-               description,
-               create_at
+               description
         FROM stock
         WHERE stock_code = #{stockCode}
     </select>
