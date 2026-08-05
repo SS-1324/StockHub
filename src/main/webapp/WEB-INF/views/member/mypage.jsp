@@ -153,36 +153,6 @@
         </div>
     </fieldset>
 
-    <%-- DB에 등록된 증권사 중 하나를 선택 --%>
-    <div class="form-row">
-        <label for="brokerage-id">증권사</label>
-        <select id="brokerage-id" name="brokerageId">
-            <option value="">증권사를 선택해주세요.</option>
-            <c:forEach var="brokerage" items="${brokerages}">
-                <option value="${brokerage.brokerageId}"
-                        <c:if test="${member.brokerageId eq brokerage.brokerageId}">selected</c:if>>
-                    <c:out value="${brokerage.brokerageName}"/>
-                </option>
-            </c:forEach>
-        </select>
-        <c:if test="${empty brokerages}">
-            <p class="form-tip form-tip-error">
-                sql 파일의 증권사 기본 데이터를 먼저 실행해주세요.
-            </p>
-        </c:if>
-        <p class="form-tip">계좌를 등록할 때만 증권사를 선택해주세요.</p>
-    </div>
-
-    <%-- 하이픈 없는 숫자 계좌번호 입력 영역 --%>
-    <div class="form-row">
-        <label for="account-no">계좌번호</label>
-        <input id="account-no" name="accountNo" type="text"
-               inputmode="numeric" pattern="[0-9]+" maxlength="50"
-               value="<c:out value="${member.accountNo}"/>"
-               placeholder="- 없이 숫자만 입력">
-        <p id="account-result" class="form-tip"></p>
-    </div>
-
     <%-- 프로필 수정 내용을 저장 --%>
     <div class="form-row form-row-actions">
         <button class="btn btn-primary" type="submit">수정하기</button>

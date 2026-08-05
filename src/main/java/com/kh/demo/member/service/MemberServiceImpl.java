@@ -2,7 +2,6 @@ package com.kh.demo.member.service;
 
 import com.kh.demo.common.util.FileUploadUtil;
 import com.kh.demo.common.util.SavedFile;
-import com.kh.demo.member.dto.BrokerageDto;
 import com.kh.demo.member.dto.MemberDto;
 import com.kh.demo.member.dto.ProfileUpdateDto;
 import com.kh.demo.member.mapper.MemberMapper;
@@ -15,7 +14,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -278,13 +276,7 @@ public class MemberServiceImpl implements MemberService {
         return member;
     }
 
-    // 증권사 선택 목록을 반환
-    @Override
-    public List<BrokerageDto> getBrokerages() {
-        return memberMapper.selectBrokerages();
-    }
-
-    // 입력값 검사 후 회원·설정·계좌를 한 번에 수정
+    // 입력값 검사 후 회원·설정을 한 번에 수정
     @Override
     @Transactional
     public MemberDto updateProfile(ProfileUpdateDto updateDto,
@@ -338,29 +330,6 @@ public class MemberServiceImpl implements MemberService {
         member.setStockPublic(Boolean.TRUE.equals(updateDto.getStockPublic()));
         member.setWordTooltip(Boolean.TRUE.equals(updateDto.getWordTooltip()));
 
-        // 증권사와 숫자 계좌번호를 검사
-        Long brokerageId = updateDto.getBrokerageId();
-        String accountNo = updateDto.getAccountNo() == null
-                ? ""
-                : updateDto.getAccountNo().trim();
-        boolean accountUpdateRequested = brokerageId != null || !accountNo.isEmpty();
-        if (accountUpdateRequested) {
-            if (brokerageId == null || accountNo.isEmpty()) {
-                throw new IllegalStateException("증권사와 계좌번호를 함께 입력해주세요.");
-            }
-            if (memberMapper.countByBrokerageId(brokerageId) == 0) {
-                throw new IllegalStateException("올바른 증권사를 선택해주세요.");
-            }
-            if (!accountNo.matches("^[0-9]{1,50}$")) {
-                throw new IllegalStateException("계좌번호는 - 없이 숫자만 입력해주세요.");
-            }
-            if (memberMapper.countByAccountNoExceptAccount(accountNo, member.getAccountId()) > 0) {
-                throw new IllegalStateException("이미 등록된 계좌번호입니다.");
-            }
-            member.setBrokerageId(brokerageId);
-            member.setAccountNo(accountNo);
-        }
-
         // 새 이미지가 있으면 이미지 파일인지 검사 후 저장
         String oldProfile = member.getProfile();
         SavedFile saved = null;
@@ -380,19 +349,6 @@ public class MemberServiceImpl implements MemberService {
                 throw new IllegalStateException("프로필 수정에 실패했습니다.");
             }
             memberMapper.upsertSettings(member);
-
-            // 기존 계좌가 있으면 수정하고 없으면 새로 연결
-            if (accountUpdateRequested) {
-                if (member.getAccountId() == null) {
-                    if (memberMapper.insertAccount(member) != 1) {
-                        throw new IllegalStateException("계좌 등록에 실패했습니다.");
-                    }
-                } else {
-                    if (memberMapper.updateAccount(member) != 1) {
-                        throw new IllegalStateException("계좌 수정에 실패했습니다.");
-                    }
-                }
-            }
         } catch (RuntimeException e) {
             // DB 저장 실패 시 새로 저장한 이미지를 삭제
             if (saved != null) {
@@ -452,13 +408,8 @@ public class MemberServiceImpl implements MemberService {
             throw new IllegalStateException("현재 비밀번호가 일치하지 않습니다.");
         }
 
-        // 거래 테이블이 있는 프로젝트에서는 거래 내역을 먼저 삭제
-        if (memberMapper.countTradeTable() > 0) {
-            memberMapper.deleteTradesByMemberId(memberId);
-        }
-
-        // 계좌를 정리한 뒤 회원 정보를 삭제
-        memberMapper.deleteAccountsByMemberId(memberId);
+        // 계좌 연동을 해제한 뒤 회원 정보를 삭제 (계좌/보유/거래이력은 증권사 소유라 보존됨)
+        memberMapper.deleteAccountLinksByMemberId(memberId);
         if (memberMapper.deleteMemberById(memberId) != 1) {
             throw new IllegalStateException("회원 탈퇴에 실패했습니다.");
         }

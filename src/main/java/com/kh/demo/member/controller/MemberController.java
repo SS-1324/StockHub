@@ -334,10 +334,9 @@ public class MemberController {
         }
 
         try {
-            // DB의 최신 프로필과 증권사 목록을 전달
+            // DB의 최신 프로필을 전달
             MemberDto member = memberService.getMemberProfile(loginMember.getMemberId());
             model.addAttribute("member", member);
-            model.addAttribute("brokerages", memberService.getBrokerages());
             return "member/mypage";
         } catch (IllegalStateException e) {
             // DB에서 회원을 찾지 못하면 세션을 종료

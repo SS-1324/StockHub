@@ -4,15 +4,16 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kh.demo.brokerage.mapper.AccountMapper">
 
+    <!-- account 자체엔 member_id가 없다(외부/파트너 소유 데이터라 우리 회원을 모름) -->
     <insert id="insertAccount" parameterType="com.kh.demo.brokerage.dto.AccountDto"
             useGeneratedKeys="true" keyProperty="accountId">
-        INSERT INTO account(account_no, owner_name, member_id, brokerage_id, linked_at)
-        VALUES(#{accountNo}, #{ownerName}, #{memberId}, #{brokerageId}, now())
+        INSERT INTO account(account_no, owner_name, brokerage_id)
+        VALUES(#{accountNo}, #{ownerName}, #{brokerageId})
     </insert>
 
     <select id="selectAccountsByMember" parameterType="string" resultType="com.kh.demo.brokerage.dto.AccountDto">
         SELECT a.account_id, a.account_no, a.owner_name,
-               a.member_id,
+               al.member_id,
                a.brokerage_id,
                b.brokerage_name,
                a.balance,
@@ -20,16 +21,17 @@
                a.profit_amount,
                a.holding_stock_quantity,
                a.create_at,
-               a.linked_at
+               al.linked_at
         FROM account a
         JOIN brokerage b ON a.brokerage_id = b.brokerage_id
-        WHERE a.member_id = #{memberId}
+        JOIN account_link al ON al.account_id = a.account_id
+        WHERE al.member_id = #{memberId}
         ORDER BY a.account_id
     </select>
 
     <select id="selectAccountById" parameterType="long" resultType="com.kh.demo.brokerage.dto.AccountDto">
         SELECT a.account_id, a.account_no, a.owner_name,
-               a.member_id,
+               al.member_id,
                a.brokerage_id,
                b.brokerage_name,
                a.balance,
@@ -37,15 +39,16 @@
                a.profit_amount,
                a.holding_stock_quantity,
                a.create_at,
-               a.linked_at
+               al.linked_at
         FROM account a
         JOIN brokerage b ON a.brokerage_id = b.brokerage_id
+        LEFT JOIN account_link al ON al.account_id = a.account_id
         WHERE a.account_id = #{accountId}
     </select>
 
     <select id="selectAccountByAccountNo" resultType="com.kh.demo.brokerage.dto.AccountDto">
         SELECT a.account_id, a.account_no, a.owner_name,
-               a.member_id,
+               al.member_id,
                a.brokerage_id,
                b.brokerage_name,
                a.balance,
@@ -53,16 +56,17 @@
                a.profit_amount,
                a.holding_stock_quantity,
                a.create_at,
-               a.linked_at
+               al.linked_at
         FROM account a
         JOIN brokerage b ON a.brokerage_id = b.brokerage_id
+        LEFT JOIN account_link al ON al.account_id = a.account_id
         WHERE a.brokerage_id = #{brokerageId}
           AND a.account_no = #{accountNo}
     </select>
 
     <select id="selectUnlinkedAccountsByBrokerage" parameterType="long" resultType="com.kh.demo.brokerage.dto.AccountDto">
         SELECT a.account_id, a.account_no, a.owner_name,
-               a.member_id,
+               al.member_id,
                a.brokerage_id,
                b.brokerage_name,
                a.balance,
@@ -70,16 +74,17 @@
                a.profit_amount,
                a.holding_stock_quantity,
                a.create_at,
-               a.linked_at
+               al.linked_at
         FROM account a
         JOIN brokerage b ON a.brokerage_id = b.brokerage_id
-        WHERE a.brokerage_id = #{brokerageId} AND a.member_id IS NULL
+        LEFT JOIN account_link al ON al.account_id = a.account_id
+        WHERE a.brokerage_id = #{brokerageId} AND al.link_id IS NULL
         ORDER BY a.account_id
     </select>
 
     <select id="selectUnlinkedAccount" resultType="com.kh.demo.brokerage.dto.AccountDto">
         SELECT a.account_id, a.account_no, a.owner_name,
-               a.member_id,
+               al.member_id,
                a.brokerage_id,
                b.brokerage_name,
                a.balance,
@@ -87,22 +92,21 @@
                a.profit_amount,
                a.holding_stock_quantity,
                a.create_at,
-               a.linked_at
+               al.linked_at
         FROM account a
         JOIN brokerage b ON a.brokerage_id = b.brokerage_id
+        LEFT JOIN account_link al ON al.account_id = a.account_id
         WHERE a.brokerage_id = #{brokerageId}
           AND a.account_no = #{accountNo}
           AND a.owner_name = #{ownerName}
-          AND a.member_id IS NULL
+          AND al.link_id IS NULL
     </select>
 
-    <update id="linkAccount">
-        UPDATE account
-        SET member_id = #{memberId},
-            linked_at = now()
-        WHERE account_id = #{accountId}
-          AND member_id IS NULL
-    </update>
+    <!-- 연동(claim) = account_link에 새 행 추가. UQ_ACCOUNT_LINK_ACCOUNT가 이미 연동된 계좌의 중복 연동을 막아준다 -->
+    <insert id="linkAccount">
+        INSERT INTO account_link(member_id, account_id, linked_at)
+        VALUES(#{memberId}, #{accountId}, now())
+    </insert>
 
     <update id="updateBalance">
         UPDATE account
