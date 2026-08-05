@@ -203,20 +203,66 @@ function setupChatPanel(initialStockCode) {
         stompClient.activate();
     }
 
+    // 도배 방지 기준: 0.1초보다 짧은 간격은 그냥 무시, 1초 안에 3개 이상 보내면 3초간 잠금
+    // (서버의 StockChatServiceImpl과 동일한 기준으로 맞춰둠 — 여기는 즉각적인 화면 반응용이고,
+    // 실제 강제는 서버가 함)
+    const MIN_SEND_INTERVAL_MS = 100;
+    const BURST_WINDOW_MS = 1000;
+    const BURST_LIMIT = 3;
+    const LOCKOUT_MS = 3000;
+
+    let lastSentAt = 0;
+    let recentSentTimestamps = [];
+    let lockedUntil = 0;
+
+    function applyLockout(durationMs) {
+        lockedUntil = Date.now() + durationMs;
+        const placeholderBeforeLockout = inputEl.placeholder;
+        inputEl.disabled = true;
+        sendBtn.disabled = true;
+        inputEl.placeholder = '메시지를 너무 많이 보냈어요. 잠시 후 다시 시도해주세요';
+
+        setTimeout(() => {
+            // 그 사이 또 도배로 lockedUntil이 늘어났으면 아직 풀어주면 안 됨
+            if (Date.now() < lockedUntil) return;
+            if (stompClient && stompClient.connected
+                && typeof isLoggedIn !== 'undefined' && isLoggedIn) {
+                inputEl.disabled = false;
+                sendBtn.disabled = false;
+                inputEl.placeholder = placeholderBeforeLockout;
+                inputEl.focus();
+            }
+        }, durationMs);
+    }
+
     function sendMessage() {
         const content = inputEl.value.trim();
         if (!content || !stompClient || !stompClient.connected) return;
+
+        const now = Date.now();
+        if (now - lastSentAt < MIN_SEND_INTERVAL_MS) return;
+        lastSentAt = now;
+
+        recentSentTimestamps.push(now);
+        recentSentTimestamps = recentSentTimestamps.filter((t) => now - t <= BURST_WINDOW_MS);
 
         stompClient.publish({
             destination: `/app/chat/${currentStockCode}`,
             body: JSON.stringify({ content }),
         });
         inputEl.value = '';
+
+        if (recentSentTimestamps.length >= BURST_LIMIT) {
+            applyLockout(LOCKOUT_MS);
+        }
     }
 
     sendBtn.addEventListener('click', sendMessage);
     inputEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') sendMessage();
+        // e.isComposing이 true면 한글(IME) 입력이 아직 조합 중이라는 뜻.
+        // 이걸 걸러주지 않으면 마지막 글자를 조합 중에 Enter가 눌려 메시지가 먼저 전송되고,
+        // 그 직후 조합이 끝난 마지막 글자가 빈 입력창에 남아 두 번째 메시지로 또 전송돼버림
+        if (e.key === 'Enter' && !e.isComposing) sendMessage();
     });
 
     toggleBtn.addEventListener('click', () => setOpen(!panel.classList.contains('open')));

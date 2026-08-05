@@ -77,7 +77,6 @@ public class StockChatController {
     @MessageExceptionHandler(IllegalStateException.class)
     @SendToUser("/queue/errors")
     public String handleChatError(IllegalStateException e) {
-        System.err.println("[DEBUG] handleChatError invoked: " + e.getMessage());
         return e.getMessage();
     }
 }

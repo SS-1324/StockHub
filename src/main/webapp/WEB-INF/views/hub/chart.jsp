@@ -10,11 +10,16 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<c:url value='/css/stockhub.css'/>">
 
+    <script type="module" src="https://widgets.tradingview-widget.com/w/kr/tv-ticker-tape.js"></script>
+
     <!-- 종목 채팅용 WebSocket(STOMP) 클라이언트 -->
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
 </head>
 <body>
+
+<%-- 거래 허브 페이지 전용 실시간 시세 티커바 (TradingView Ticker Tape 위젯) --%>
+<tv-ticker-tape symbols="NASDAQ:AAPL,NASDAQ:TSLA,NASDAQ:MSFT,NASDAQ:AMZN,NASDAQ:META,NASDAQ:SPCX,NASDAQ:NVDA,NASDAQ:AMD,NASDAQ:GOOGL,NASDAQ:INTC,NASDAQ:NFLX,NASDAQ:MSTR" hide-chart item-size="compact"></tv-ticker-tape>
 
 <H2>주식 거래 허브</H2>
 <p>관심 종목의 실시간 차트를 확인하세요.</p>
