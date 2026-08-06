@@ -112,6 +112,11 @@ function setupChatPanel(initialStockCode) {
     // 채팅 메시지 하나를 그려 넣음. 다른 사용자가 입력한 내용이 들어오는 자리라
     // innerHTML은 절대 쓰지 않고 textContent로만 채움 (XSS 방지)
     function appendMessage(chatMessage) {
+        // 실시간으로 첫 메시지가 들어오는 경우, "아직 채팅이 없습니다" 등
+        // showPlaceholder()가 남겨둔 안내 문구가 그대로 남아있으므로 먼저 지워줌
+        const existingPlaceholder = messagesEl.querySelector('.chat-panel-placeholder');
+        if (existingPlaceholder) existingPlaceholder.remove();
+
         const item = document.createElement('div');
         item.className = 'chat-message';
 

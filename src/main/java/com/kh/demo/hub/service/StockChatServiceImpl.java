@@ -2,12 +2,16 @@ package com.kh.demo.hub.service;
 
 import com.kh.demo.hub.dto.ChatMessageDto;
 import com.kh.demo.hub.mapper.StockChatMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
@@ -19,12 +23,16 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class StockChatServiceImpl implements StockChatService {
 
+    private static final Logger log = LoggerFactory.getLogger(StockChatServiceImpl.class);
+
     private static final int MAX_CONTENT_LENGTH = 200;
     // 도배 방지: 최소 전송 간격, 짧은 시간 안에 너무 많이 보내면 잠그는 기준/시간
     private static final Duration MIN_MESSAGE_INTERVAL = Duration.ofMillis(100);
     private static final Duration BURST_WINDOW = Duration.ofSeconds(1);
     private static final int BURST_LIMIT = 3;
     private static final Duration LOCKOUT_DURATION = Duration.ofSeconds(3);
+    // 채팅 보관 기간: 30일보다 오래된 메시지는 매일 새벽에 정리
+    private static final int RETENTION_DAYS = 30;
 
     private final StockChatMapper stockChatMapper;
     // 회원별 전송 속도 상태. 단일 인스턴스 기준 도배 방지용이라 별도 저장소 없이 메모리로 충분함
@@ -109,5 +117,15 @@ public class StockChatServiceImpl implements StockChatService {
         List<ChatMessageDto> recent = stockChatMapper.selectRecentChats(stockCode, limit);
         Collections.reverse(recent);
         return recent;
+    }
+
+    // 매일 새벽 4시, 보관 기간(30일)이 지난 채팅을 정리
+    @Scheduled(cron = "0 0 4 * * *")
+    public void cleanupOldMessages() {
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(RETENTION_DAYS);
+        int deleted = stockChatMapper.deleteChatsBefore(cutoff);
+        if (deleted > 0) {
+            log.info("[종목채팅 정리] {}일 지난 채팅 {}건 삭제 (기준: {})", RETENTION_DAYS, deleted, cutoff);
+        }
     }
 }
