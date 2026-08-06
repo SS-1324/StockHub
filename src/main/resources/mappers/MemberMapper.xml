@@ -182,6 +182,16 @@
         DELETE FROM account_link
         WHERE member_id = #{memberId}
     </delete>
+
+    <!-- 아직 연동된 증권사 계좌가 하나도 없는 회원 목록 (데모 데이터 생성기 전용) -->
+    <select id="selectMembersWithoutAccount" resultType="MemberDto">
+        SELECT m.member_id, m.member_name
+        FROM member m
+        LEFT JOIN account_link al ON al.member_id = m.member_id
+        WHERE m.member_role = 'USER' AND al.link_id IS NULL
+        ORDER BY m.member_id
+    </select>
+
     <!-- 회원 기본 정보를 삭제 -->
     <delete id="deleteMemberById">
         DELETE FROM member
