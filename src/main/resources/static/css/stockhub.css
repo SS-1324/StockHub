@@ -6,6 +6,17 @@
     max-width: 1300px;
 }
 
+/* 티커바는 .container의 960px 제한과 상관없이 뷰포트 전체 폭으로 펼치고,
+   .container의 top padding(32px)을 상쇄해서 헤더 바로 아래에 붙임 */
+.hub-ticker-tape {
+    display: block;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    margin-top: -32px;
+    padding: 0;
+}
+
 /* 헤더와 차트+채팅을 한 장의 카드로 감싸는 배경. 사이트 다크/라이트 테마에 맞춰 같이 바뀜 */
 .chart-wrapper {
     width: 100%;

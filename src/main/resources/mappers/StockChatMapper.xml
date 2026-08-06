@@ -44,4 +44,10 @@
         LIMIT #{limit}
     </select>
 
+    <!-- 보관 기간이 지난 채팅을 정리 (기준 시각 이전 = 삭제 대상) -->
+    <delete id="deleteChatsBefore">
+        DELETE FROM stock_chat
+        WHERE create_at &lt; #{before}
+    </delete>
+
 </mapper>
