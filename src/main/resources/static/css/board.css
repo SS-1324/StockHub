@@ -990,6 +990,14 @@ html[data-theme="dark"]{
     font-style: normal;
     left: 15px;
 }
+
+/*
+ * Quill은 한글 IME 조합 중 첫 글자가 화면에 표시된 뒤에도 ql-blank를 잠시 유지한다.
+ * 포커스된 편집기에서는 안내 문구를 바로 숨겨 첫 글자를 가리지 않게 한다.
+ */
+.ql-editor.ql-blank:focus::before{
+    display: none;
+}
 /* 기존 랭킹 프레임을 게시판 크기에 맞춤 */
 .board-card-rank-frame {
     width: 38px;
