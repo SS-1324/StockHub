@@ -35,9 +35,17 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     themeToggle?.addEventListener("click", () => {
+        root.classList.add("theme-changing");
+
         const nextTheme = root.dataset.theme === "dark" ? "light" : "dark";
         root.dataset.theme = nextTheme;
         saveTheme(nextTheme);
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(()=>{
+                root.classList.remove("theme-changing");
+            });
+        });
     });
 
     mobileMenuToggle?.addEventListener("click", () => {
