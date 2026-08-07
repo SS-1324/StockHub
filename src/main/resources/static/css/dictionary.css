@@ -156,6 +156,8 @@
             box-shadow 0.2s ease;
 }
 
+/*카테고리 이미지 미리보기*/
+
 .category-preview {
     width: 360px;
     height: 240px;
@@ -242,6 +244,20 @@
     align-items: stretch;
 }
 
+.category-header {
+    width: min(100%, 720px);
+    margin: 6px auto 24px;
+}
+
+.category-name {
+    margin: 0 0 2px;
+    color: #111827;
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    text-align: left;
+}
+
 .glossary-item {
     box-sizing: border-box;
     width: 100%;
@@ -271,7 +287,7 @@
 
 .glossary-term {
     margin: 0;
-    color: #172033;
+    color: rgb(8, 116, 247);
     font-size: 17px;
     font-weight: 750;
     line-height: 1.4;
