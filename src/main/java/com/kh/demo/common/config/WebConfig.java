@@ -39,6 +39,8 @@ public class WebConfig implements WebMvcConfigurer {
                         "/member/mypage/**",
                         "/member/stocks",
                         "/member/stocks/**",
+                        "/member/dashboard",
+                        "/member/dashboard/**",
                         "/member/withdraw",
                         "/member/withdraw/**",
                         CommunityUrls.WRITE,

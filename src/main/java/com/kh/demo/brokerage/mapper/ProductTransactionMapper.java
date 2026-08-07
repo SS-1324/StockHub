@@ -15,6 +15,9 @@ public interface ProductTransactionMapper {
                                                               @Param("from") LocalDate from,
                                                               @Param("to") LocalDate to);
 
+    // 로그인 회원의 모든 계좌를 통틀어 상품 거래이력 조회 (대시보드 타임라인용)
+    List<ProductTransactionDto> selectTransactionsByMember(String memberId);
+
     // 과거 시각을 직접 지정해 거래이력을 등록 (데모 데이터 생성기 전용)
     int insertTransaction(ProductTransactionDto productTransactionDto);
 

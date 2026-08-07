@@ -56,12 +56,19 @@ public class MyStockServiceImpl implements MyStockService {
                 .orElse(BigDecimal.ZERO)
                 .setScale(2, RoundingMode.HALF_UP);
 
+        long totalPurchaseAmount = holdings.stream()
+                .map(MyStockHoldingDto::getPurchaseAmount)
+                .filter(value -> value != null)
+                .mapToLong(Long::longValue)
+                .sum();
+
         MyStockSummaryDto summary = new MyStockSummaryDto();
         summary.setHoldings(holdings);
         summary.setTotalStockQuantity(totalStockQuantity);
         summary.setReturnRate(returnRate);
         summary.setProfitAmount(totalProfitAmount);
         summary.setCurrentBalance(currentBalance);
+        summary.setTotalPurchaseAmount(totalPurchaseAmount);
         return summary;
     }
 }

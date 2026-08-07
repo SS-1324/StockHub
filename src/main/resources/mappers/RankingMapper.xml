@@ -18,7 +18,8 @@
         m.nickname AS nickname,
         m.profile AS profile,
 
-        CASE WHEN COALESCE(s.is_stock_public, FALSE) = TRUE
+        CASE WHEN #{includePrivateDetails} = TRUE
+        OR COALESCE(s.is_stock_public, FALSE) = TRUE
         THEN 'Y' ELSE 'N' END AS tradeHistoryPublicYn,
 
         COALESCE(SUM(a.return_rate), 0) AS returnRate,

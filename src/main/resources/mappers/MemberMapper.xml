@@ -143,10 +143,12 @@
         AND member_id != #{memberId}
     </select>
 
-    <!-- 닉네임·프로필 이미지와 입력된 경우 새 비밀번호를 수정 -->
+    <!-- 이름·닉네임·이메일·프로필 이미지와 입력된 경우 새 비밀번호를 수정 -->
     <update id="updateMemberProfile" parameterType="MemberDto">
         UPDATE member
-        SET nickname = #{nickname},
+        SET member_name = #{memberName},
+            nickname = #{nickname},
+            email = #{email},
             profile = #{profile}
             <if test="memberPwd != null and memberPwd != ''">
                 , member_pwd = #{memberPwd}
