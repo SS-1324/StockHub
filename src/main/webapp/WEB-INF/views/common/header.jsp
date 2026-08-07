@@ -148,7 +148,7 @@
                                 <c:otherwise>
                                     <a href="${mypageUrl}">프로필 수정</a>
                                     <a href="${myInfoUrl}">내 정보</a>
-                                    <a href="${dashboardUrl}">내 금융거래 상세</a>
+                                    <a href="${dashboardUrl}">내 금융거래</a>
                                 </c:otherwise>
                             </c:choose>
                             <a class="header-logout-link" href="${logoutUrl}">로그아웃</a>
