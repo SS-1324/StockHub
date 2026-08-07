@@ -32,6 +32,11 @@ footerModalButtons.forEach(function (button) {
         if (button.dataset.loadMyInquiries === "true") {
             loadMyInquiries();
         }
+
+        // 팔로우·팔로잉은 모달을 열 때마다 DB의 최신 목록을 다시 조회
+        if (button.dataset.loadFollowList === "true") {
+            loadFollowList(modal);
+        }
     });
 });
 
@@ -209,6 +214,93 @@ async function loadMyInquiries() {
             createInquiryParagraph(
                 "my-inquiry-message my-inquiry-error",
                 error.message || "문의 내역을 불러오지 못했습니다."
+            )
+        );
+    }
+}
+
+// 팔로우 목록의 안내 문구를 생성
+function createFollowMessage(text, error) {
+    const paragraph = document.createElement("p");
+    paragraph.className = error
+        ? "follow-list-message follow-list-error"
+        : "follow-list-message";
+    paragraph.textContent = text;
+    return paragraph;
+}
+
+// 팔로우·팔로잉 목록에 표시할 회원 한 명을 생성
+function createFollowMemberItem(member, contextPath) {
+    const item = document.createElement("div");
+    item.className = "follow-member-item";
+
+    const image = document.createElement("img");
+    const defaultProfile = `${contextPath}/images/common_member.png`;
+    image.src = member.profile
+        ? `${contextPath}${member.profile}`
+        : defaultProfile;
+    image.alt = `${member.nickname || member.memberId} 프로필 이미지`;
+    image.addEventListener("error", function () {
+        image.src = defaultProfile;
+    }, {once: true});
+
+    const text = document.createElement("div");
+    text.className = "follow-member-text";
+
+    const nickname = document.createElement("strong");
+    nickname.textContent = member.nickname || "알 수 없는 회원";
+
+    const memberId = document.createElement("span");
+    memberId.textContent = member.memberId || "";
+
+    text.append(nickname, memberId);
+
+    if (member.followAtStr) {
+        const date = document.createElement("small");
+        date.textContent = `${member.followAtStr}부터`;
+        text.append(date);
+    }
+
+    item.append(image, text);
+    return item;
+}
+
+// 선택한 팔로우 모달의 목록을 JSON으로 받아 표시
+async function loadFollowList(modal) {
+    const list = modal.querySelector("[data-follow-list]");
+    if (!list || !modal.dataset.listUrl) {
+        return;
+    }
+
+    list.replaceChildren(createFollowMessage("목록을 불러오는 중입니다.", false));
+
+    try {
+        const response = await fetch(modal.dataset.listUrl, {
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || "목록을 불러오지 못했습니다.");
+        }
+
+        list.replaceChildren();
+        if (!result.data || result.data.length === 0) {
+            list.append(createFollowMessage("표시할 회원이 없습니다.", false));
+            return;
+        }
+
+        const contextPath = modal.dataset.contextPath || "";
+        result.data.forEach(function (member) {
+            list.append(createFollowMemberItem(member, contextPath));
+        });
+    } catch (error) {
+        list.replaceChildren(
+            createFollowMessage(
+                error.message || "목록을 불러오지 못했습니다.",
+                true
             )
         );
     }

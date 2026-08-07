@@ -28,6 +28,12 @@ public interface BoardService {
     // 카테고리와 검색 조건에 맞는 전체 게시글 수
     long getTotalCount(String category, String keyword);
 
+    // 내 정보 화면에서 로그인 회원이 작성한 게시글만 조회
+    List<BoardDto> getMemberPosts(String memberId, String loginMemberId);
+
+    // 로그인 회원이 작성한 공개 게시글 수
+    long getMemberPostCount(String memberId);
+
     // 게시글 존재 여부 확인 (좋아요/북마크 등 다른 기능에서 대상 게시글 유효성 검사용)
     boolean exists(Long boardId);
 

@@ -23,6 +23,17 @@ public interface BoardMapper {
             @Param("category") String category,
             @Param("keywords") List<String> keywords
     );
+
+    // 로그인 회원이 작성한 공개 게시글 목록
+    List<BoardDto> selectBoardListByMemberId(
+            @Param("memberId") String memberId
+    );
+
+    // 로그인 회원이 작성한 공개 게시글 수
+    long selectBoardCountByMemberId(
+            @Param("memberId") String memberId
+    );
+
     // 게시글 상세 조회
     BoardDto selectBoardDetail(
             @Param("boardId") Long boardId

@@ -32,6 +32,11 @@ public class MemberServiceImpl implements MemberService {
             "^\\S{1,50}$"
     );
 
+    // 프로필에서 수정하는 이름은 한글과 영문만 사용
+    private static final Pattern PROFILE_MEMBER_NAME_PATTERN = Pattern.compile(
+            "^[가-힣A-Za-z]{1,50}$"
+    );
+
     // 닉네임은 한글·영문·숫자만 2자 이상 10자 이하 사용
     private static final Pattern NICKNAME_PATTERN = Pattern.compile(
             "^[가-힣A-Za-z0-9]{2,10}$"
@@ -292,6 +297,30 @@ public class MemberServiceImpl implements MemberService {
             throw new IllegalStateException("회원 정보를 찾을 수 없습니다.");
         }
 
+        // 이름은 숫자·공백·특수문자 없이 한글과 영문만 허용
+        String memberName = updateDto.getMemberName() == null
+                ? ""
+                : updateDto.getMemberName().trim();
+        if (!PROFILE_MEMBER_NAME_PATTERN.matcher(memberName).matches()) {
+            throw new IllegalStateException(
+                    "이름은 숫자·띄어쓰기·특수문자 없이 한글 또는 영문으로 입력해주세요."
+            );
+        }
+
+        // 이메일 형식과 다른 회원의 중복 이메일을 검사
+        String email = updateDto.getEmail() == null
+                ? ""
+                : updateDto.getEmail().trim().toLowerCase(Locale.ROOT);
+        if (!EMAIL_PATTERN.matcher(email).matches()) {
+            throw new IllegalStateException(
+                    "이메일은 영문 소문자·숫자와 .com, .co.kr, .net 형식으로 입력해주세요."
+            );
+        }
+        if (!email.equalsIgnoreCase(member.getEmail())
+                && memberMapper.countByEmail(email) > 0) {
+            throw new IllegalStateException("이미 사용 중인 이메일입니다.");
+        }
+
         // 닉네임의 공백과 중복을 검사
         String nickname = updateDto.getNickname() == null
                 ? ""
@@ -331,7 +360,9 @@ public class MemberServiceImpl implements MemberService {
         }
 
         // 공개 여부와 툴팁 값이 없으면 기본값을 사용
+        member.setMemberName(memberName);
         member.setNickname(nickname);
+        member.setEmail(email);
         member.setStockPublic(Boolean.TRUE.equals(updateDto.getStockPublic()));
         member.setWordTooltip(Boolean.TRUE.equals(updateDto.getWordTooltip()));
 
