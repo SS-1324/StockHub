@@ -1,13 +1,5 @@
 const root = document.documentElement;
 
-const getSavedTheme = () => {
-    try {
-        return localStorage.getItem("stockhub-theme");
-    } catch {
-        return null;
-    }
-};
-
 const saveTheme = (theme) => {
     try {
         localStorage.setItem("stockhub-theme", theme);
@@ -15,10 +7,6 @@ const saveTheme = (theme) => {
         // 저장할 수 없는 환경에서도 현재 화면의 색상 모드는 정상적으로 변경
     }
 };
-
-const savedTheme = getSavedTheme();
-const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-root.dataset.theme = savedTheme || (prefersDark ? "dark" : "light");
 
 document.addEventListener("DOMContentLoaded", () => {
     const themeToggle = document.getElementById("theme-toggle");
