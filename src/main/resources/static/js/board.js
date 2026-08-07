@@ -232,6 +232,7 @@ async function toggleBoardLike(){
     try {
         const result = await postAction(`/community/like/${boardId}`);
         likeBtn.classList.toggle("active", result.active);
+        likeBtn.setAttribute("aria-pressed", String(result.active));
         likeBtn.querySelector("#like-count").textContent = result.count;
     } catch (err) {
         alert(err.message);
@@ -248,6 +249,7 @@ async function toggleBoardBookmark(){
     try {
         const bookmarked = await postAction(`/community/bookmark/${boardId}`);
         bookmarkBtn.classList.toggle("active", bookmarked);
+        bookmarkBtn.setAttribute("aria-pressed", String(bookmarked));
     } catch (err) {
         alert(err.message);
     }

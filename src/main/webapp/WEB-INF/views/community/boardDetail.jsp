@@ -13,7 +13,7 @@
     v 값은 CSS 내용을 바꾼 뒤 브라우저가 예전 파일을 재사용하지 않고 새로 받게 하는 캐시 갱신 번호다.
 --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css?v=7">
+      href="${pageContext.request.contextPath}/css/board.css?v=14">
 
 <c:if test="${not empty error}">
     <p class="alert alert-error">${error}</p>
@@ -117,36 +117,67 @@
 </c:if>
 
 <div class="board-meta-bottom">
-    <button type="button" id="like-btn" class="btn-icon ${board.liked ? 'active' : ''}"
-            data-board-id="${board.boardId}" data-active="${board.liked}">
-        좋아요 <span id="like-count">${board.likeCount}</span>
+    <%--
+        하트와 책갈피는 글자 기호가 아니라 SVG를 사용한다.
+        SVG는 화면 크기가 달라져도 선명하고, CSS의 currentColor를 받아
+        active 상태에서 윤곽선과 내부 색을 함께 변경할 수 있다.
+    --%>
+    <button type="button" id="like-btn" class="btn-icon btn-like ${board.liked ? 'active' : ''}"
+            data-board-id="${board.boardId}" data-active="${board.liked}"
+            aria-pressed="${board.liked}" aria-label="이 게시글 좋아요" title="좋아요">
+        <svg class="reaction-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21.2l7.8-7.7 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/>
+        </svg>
+        <span id="like-count" class="reaction-count">${board.likeCount}</span>
     </button>
-    <button type="button" id="bookmark-btn" class="btn-icon ${board.bookmarked ? 'active' : ''}"
-            data-board-id="${board.boardId}" data-active="${board.bookmarked}">
-        북마크
+    <button type="button" id="bookmark-btn" class="btn-icon btn-bookmark ${board.bookmarked ? 'active' : ''}"
+            data-board-id="${board.boardId}" data-active="${board.bookmarked}"
+            aria-pressed="${board.bookmarked}" aria-label="이 게시글 북마크" title="북마크">
+        <svg class="reaction-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 3.5h12v17l-6-4-6 4v-17Z"/>
+        </svg>
     </button>
     <span class="meta-count">조회 ${board.count}</span>
     <span class="meta-count">댓글 ${fn:length(comments)}</span>
     <span class="category-badge">${allowedCategories[board.category]}</span>
 </div>
 
-<%-- 이전글/다음글 - 같은 카테고리 안에서만 이동. 둘 다 없으면(글이 하나뿐이면) 아무것도 안 보임 --%>
-<c:if test="${not empty board.prevBoardId or not empty board.nextBoardId}">
-    <div class="board-adjacent-nav">
-        <c:if test="${not empty board.prevBoardId}">
+<%--
+    이전글·다음글은 같은 카테고리 안에서만 이동한다.
+    이동할 글이 없는 방향도 숨기지 않고 비활성 안내를 보여줘서
+    사용자가 기능 누락이 아니라 목록의 처음/끝이라는 사실을 알 수 있게 한다.
+--%>
+<div class="board-adjacent-nav" aria-label="이전글 및 다음글">
+    <c:choose>
+        <c:when test="${not empty board.prevBoardId}">
             <a class="board-adjacent-link" href="${communityUrl}/${board.prevBoardId}">
                 <span class="board-adjacent-label">이전글</span>
                 <span class="board-adjacent-title"><c:out value="${board.prevTitle}" /></span>
             </a>
-        </c:if>
-        <c:if test="${not empty board.nextBoardId}">
+        </c:when>
+        <c:otherwise>
+            <span class="board-adjacent-link is-disabled" aria-disabled="true">
+                <span class="board-adjacent-label">이전글</span>
+                <span class="board-adjacent-title">이전글이 없습니다</span>
+            </span>
+        </c:otherwise>
+    </c:choose>
+
+    <c:choose>
+        <c:when test="${not empty board.nextBoardId}">
             <a class="board-adjacent-link" href="${communityUrl}/${board.nextBoardId}">
                 <span class="board-adjacent-label">다음글</span>
                 <span class="board-adjacent-title"><c:out value="${board.nextTitle}" /></span>
             </a>
-        </c:if>
-    </div>
-</c:if>
+        </c:when>
+        <c:otherwise>
+            <span class="board-adjacent-link is-disabled" aria-disabled="true">
+                <span class="board-adjacent-label">다음글</span>
+                <span class="board-adjacent-title">다음글이 없습니다</span>
+            </span>
+        </c:otherwise>
+    </c:choose>
+</div>
 
 </div>
 
@@ -221,9 +252,17 @@
                     </c:if>
                 </div>
                 <c:if test="${empty c.parentCommentId && not empty loginMemberId}">
+                    <%--
+                        대댓글도 일반 댓글과 같은 comment-input-wrap과 comment-submit-btn을 사용한다.
+                        같은 클래스를 재사용하면 두 입력창의 높이·테두리·글자 수 위치가 함께 유지되어
+                        나중에 디자인을 바꿀 때 CSS 한 곳만 수정하면 된다.
+                    --%>
                     <form class="reply-form hidden" data-parent-id="${c.commentId}" data-board-id="${board.boardId}">
-                        <textarea placeholder="답글을 입력하세요" maxlength="1500" required></textarea>
-                        <button type="submit" class="btn btn-outline">답글 등록</button>
+                        <div class="comment-input-wrap">
+                            <textarea aria-label="답글 내용" placeholder="답글을 입력하세요"
+                                      maxlength="1500" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary comment-submit-btn">등록</button>
                     </form>
                 </c:if>
             </div>
