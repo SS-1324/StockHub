@@ -28,6 +28,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const profileDropdown = document.getElementById("header-profile-dropdown");
     const mobileMenuQuery = window.matchMedia("(max-width: 840px)");
 
+    // 서버 처리 결과로 표시된 성공·실패 알림은 5초 뒤 화면에서 제거
+    document.querySelectorAll(".alert").forEach((alertElement) => {
+        window.setTimeout(() => {
+            alertElement.remove();
+        }, 5000);
+    });
+
     const closeMobileMenu = () => {
         mainNavigation?.classList.remove("is-open");
         mobileMenuToggle?.setAttribute("aria-expanded", "false");

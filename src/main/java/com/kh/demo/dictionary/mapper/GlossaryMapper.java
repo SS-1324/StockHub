@@ -18,6 +18,11 @@ public interface GlossaryMapper {
     // 그 기능을 담당하는 메서드의 이름은 selectGlossaryList
     List<GlossaryDto> selectGlossaryList();
 
+    // 전달받은 용어명에 해당하는 용어를 전달받은 순서대로 조회
+    List<GlossaryDto> selectGlossaryByTerms(
+            @Param("terms") List<String> terms
+    );
+
 
     // 용어 번호 기준으로 조회하는 메서드(selectGlossaryById)
     GlossaryDto selectGlossaryById(@Param("termId") Long termId);

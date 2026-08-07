@@ -27,6 +27,22 @@
         ORDER BY category ASC, term ASC
     </select>
 
+    <!-- 메인 화면 등에 표시할 지정 용어를 요청받은 순서대로 조회 -->
+    <select id="selectGlossaryByTerms" resultMap="glossaryResultMap">
+        SELECT term_id, term, definition, category
+        FROM glossary
+        WHERE term IN
+        <foreach collection="terms" item="term" open="(" separator="," close=")">
+            #{term}
+        </foreach>
+        ORDER BY FIELD(
+            term,
+            <foreach collection="terms" item="term" separator=",">
+                #{term}
+            </foreach>
+        )
+    </select>
+
     <!-- 용어 번호로 상세 조회 -->
     <select id="selectGlossaryById" resultMap="glossaryResultMap">
         SELECT term_id, term, definition, category

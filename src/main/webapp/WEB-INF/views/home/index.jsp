@@ -5,7 +5,7 @@
 
 <%-- 홈 전용 CSS를 공통 헤더의 head 안에서 불러오도록 전달 --%>
 <c:url var="homeCssUrl" value="/css/home.css">
-    <c:param name="v" value="14" />
+    <c:param name="v" value="15" />
 </c:url>
 <c:set var="pageCssUrl" value="${homeCssUrl}" scope="request" />
 
@@ -256,22 +256,34 @@
 
     <%-- 용어사전으로 이동하는 안내 박스 --%>
     <a class="home-dictionary-card" href="${dictionaryUrl}">
-        <span class="home-dictionary-text">
-            <strong>주식 용어 사전</strong>
-            <span>직관적인 설명으로 구성된 알짜배기 주식 용어 사전입니다.</span>
+        <span class="home-dictionary-header">
+            <span class="home-dictionary-text">
+                <strong>주식 용어 사전</strong>
+                <span>직관적인 설명으로 구성된 알짜배기 주식 용어 사전입니다.</span>
+            </span>
+            <span class="home-card-arrow" aria-hidden="true">→</span>
         </span>
-        <span class="home-card-arrow" aria-hidden="true">→</span>
+
+        <c:if test="${not empty featuredGlossaryTerms}">
+            <span class="home-dictionary-terms">
+                <c:forEach var="glossary" items="${featuredGlossaryTerms}">
+                    <span class="home-dictionary-term-card">
+                        <strong><c:out value="${glossary.term}" /></strong>
+                        <span><c:out value="${glossary.definition}" /></span>
+                    </span>
+                </c:forEach>
+            </span>
+        </c:if>
     </a>
 </div>
 
 <%-- 거래 허브와 동일한 기본 종목·일봉 차트를 메인 화면에 마운트 --%>
-<script src="https://s3.tradingview.com/tv.js"></script>
 <script>
     const resolvedCode = "AAPL";
     const resolvedPeriod = "day";
 </script>
 <script src="${pageContext.request.contextPath}/js/tradingview-chart.js"></script>
-<script src="${pageContext.request.contextPath}/js/stockhub.js?v=4"></script>
+<script src="${pageContext.request.contextPath}/js/stockhub.js?v=5"></script>
 
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />
