@@ -399,6 +399,23 @@ CREATE TABLE IF NOT EXISTS cash_transaction (
     INDEX IDX_CASH_TX_ACCOUNT_DATE (account_id, transaction_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='계좌 입출금 원장';
 
+-- 회원 목표 (※ 우리(웹사이트) 소유 영역 - 대시보드 도달률 표시용, 증권사와 무관한 우리 사이트 자체 기능)
+CREATE TABLE IF NOT EXISTS goal (
+    goal_id      BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '목표 번호(PK)',
+    member_id    VARCHAR(50)     NOT NULL COMMENT '목표를 설정한 회원(FK)',
+    goal_type    ENUM('RETURN_RATE', 'PROFIT_AMOUNT') NOT NULL COMMENT '목표 종류(수익률 % / 수익금 원)',
+    title        VARCHAR(100)    NOT NULL COMMENT '목표 이름(예: 이번 달 +5%, 30만원 모으기)',
+    target_value DECIMAL(18, 2)  NOT NULL COMMENT '목표치(수익률=%, 수익금=원)',
+    create_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '목표 설정일시',
+
+    CONSTRAINT PK_GOAL PRIMARY KEY (goal_id),
+    CONSTRAINT CK_GOAL_TARGET CHECK (target_value > 0),
+    CONSTRAINT FK_MEMBER_TO_GOAL
+        FOREIGN KEY (member_id) REFERENCES member (member_id)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    INDEX IDX_GOAL_MEMBER_DATE (member_id, create_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='회원 목표(대시보드 도달률 표시용)';
+
 -- -------------------- 3. 게시판, 댓글 및 회원 관계 --------------------
 
 -- 게시판

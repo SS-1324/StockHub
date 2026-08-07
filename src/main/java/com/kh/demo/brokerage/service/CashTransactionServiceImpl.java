@@ -3,6 +3,7 @@ package com.kh.demo.brokerage.service;
 import com.kh.demo.brokerage.dto.AccountDto;
 import com.kh.demo.brokerage.dto.CashTransactionDto;
 import com.kh.demo.brokerage.mapper.AccountMapper;
+import com.kh.demo.brokerage.mapper.CashTransactionMapper;
 import com.kh.demo.brokerage.partner.PartnerBrokerageClient;
 import com.kh.demo.brokerage.partner.dto.PartnerCashTransactionDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,9 @@ public class CashTransactionServiceImpl implements CashTransactionService {
 
     @Autowired
     private AccountMapper accountMapper;
+
+    @Autowired
+    private CashTransactionMapper cashTransactionMapper;
 
     @Autowired
     private PartnerBrokerageClient partnerBrokerageClient;
@@ -35,6 +39,11 @@ public class CashTransactionServiceImpl implements CashTransactionService {
                 .getData().stream()
                 .map(p -> toInternalDto(accountId, p))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CashTransactionDto> getMyTransactions(String memberId) {
+        return cashTransactionMapper.selectTransactionsByMember(memberId);
     }
 
     // 파트너 응답을 내부 DTO로 변환 - cashTransactionId는 파트너측 식별자(partnerTransactionId)와 별개라 비워둔다

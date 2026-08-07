@@ -37,8 +37,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns(
                         "/member/mypage",
                         "/member/mypage/**",
-                        "/member/stocks",
-                        "/member/stocks/**",
+                        "/member/dashboard",
+                        "/member/dashboard/**",
                         "/member/withdraw",
                         "/member/withdraw/**",
                         CommunityUrls.WRITE,

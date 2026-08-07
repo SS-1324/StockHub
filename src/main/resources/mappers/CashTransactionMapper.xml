@@ -25,6 +25,21 @@
         ORDER BY ct.transaction_at DESC
     </select>
 
+    <select id="selectTransactionsByMember" parameterType="string" resultType="com.kh.demo.brokerage.dto.CashTransactionDto">
+        SELECT ct.cash_transaction_id,
+               ct.account_id,
+               ct.transaction_type,
+               ct.amount,
+               ct.balance_after,
+               ct.memo,
+               ct.transaction_at
+        FROM cash_transaction ct
+        JOIN account_link al ON al.account_id = ct.account_id
+        WHERE al.member_id = #{memberId}
+        ORDER BY ct.transaction_at DESC
+        LIMIT 30
+    </select>
+
     <insert id="insertTransaction" parameterType="com.kh.demo.brokerage.dto.CashTransactionDto"
             useGeneratedKeys="true" keyProperty="cashTransactionId">
         INSERT INTO cash_transaction(account_id, transaction_type, amount, balance_after, memo, transaction_at)

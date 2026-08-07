@@ -16,4 +16,5 @@ public class MyStockSummaryDto {
     private BigDecimal returnRate;
     private Long profitAmount;
     private Long currentBalance;
+    private Long totalPurchaseAmount; // 대시보드에서 상품 매입금액과 합산해 전체 수익률을 계산할 때 사용
 }

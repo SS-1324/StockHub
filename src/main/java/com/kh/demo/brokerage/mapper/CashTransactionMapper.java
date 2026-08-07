@@ -15,6 +15,9 @@ public interface CashTransactionMapper {
                                                            @Param("from") LocalDate from,
                                                            @Param("to") LocalDate to);
 
+    // 로그인 회원의 모든 계좌를 통틀어 입출금이력 조회 (대시보드 타임라인용)
+    List<CashTransactionDto> selectTransactionsByMember(String memberId);
+
     // 과거 시각을 직접 지정해 입출금이력을 등록 (데모 데이터 생성기 전용)
     int insertTransaction(CashTransactionDto cashTransactionDto);
 
