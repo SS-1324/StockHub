@@ -31,7 +31,7 @@
 </c:if>
 
 <%-- 변경할 프로필 정보를 서버로 전송 --%>
-<form id="profile-form" class="form form-flex profile-form"
+<form id="profile-form" class="form form-flex profile-form" novalidate
       action="${pageContext.request.contextPath}/member/mypage"
       data-current-profile-url="${currentProfileUrl}"
       data-context-path="${pageContext.request.contextPath}"
@@ -84,6 +84,16 @@
                value="<c:out value="${member.memberId}"/>" readonly>
     </div>
 
+    <%-- 이름은 숫자·공백·특수문자 없이 한글과 영문만 입력 --%>
+    <div class="form-row">
+        <label for="member-name">이름</label>
+        <input id="member-name" name="memberName" type="text"
+               maxlength="50" autocomplete="name"
+               value="<c:out value="${member.memberName}"/>" required>
+        <p id="profile-name-result" class="form-tip"></p>
+        <p class="form-tip">숫자·띄어쓰기·특수문자 없이 한글 또는 영문으로 입력해주세요.</p>
+    </div>
+
     <%-- 새 닉네임 입력 영역 --%>
     <div class="form-row">
         <label for="nickname">닉네임</label>
@@ -92,6 +102,18 @@
                value="<c:out value="${member.nickname}"/>" required>
         <p id="profile-nickname-result" class="form-tip"></p>
         <p class="form-tip">한글·영문·숫자로 2자 이상 10자 이하로 입력해주세요. 특수문자는 사용할 수 없습니다.</p>
+    </div>
+
+    <%-- 이메일 형식 오류를 팝업 대신 입력칸 아래에 바로 표시 -->
+    <div class="form-row">
+        <label for="email">이메일</label>
+        <input id="email" name="email" type="text"
+               inputmode="email" maxlength="100" autocomplete="email"
+               value="<c:out value="${member.email}"/>" required>
+        <p id="profile-email-result" class="form-tip"></p>
+        <p class="form-tip">
+            영문 소문자·숫자를 사용하고 .com, .co.kr, .net으로 끝나도록 입력해주세요.
+        </p>
     </div>
 
     <%-- 새 비밀번호 입력 영역 --%>
@@ -167,7 +189,7 @@
 </div>
 
 <%-- 프로필 이미지 미리보기와 입력 검사를 불러옴 --%>
-<script src="${pageContext.request.contextPath}/js/profile.js?v=5"></script>
+<script src="${pageContext.request.contextPath}/js/profile.js?v=6"></script>
 
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

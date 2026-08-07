@@ -3,6 +3,7 @@ package com.kh.demo.brokerage.service;
 import com.kh.demo.brokerage.dto.AccountDto;
 import com.kh.demo.brokerage.dto.ProductTransactionDto;
 import com.kh.demo.brokerage.mapper.AccountMapper;
+import com.kh.demo.brokerage.mapper.ProductTransactionMapper;
 import com.kh.demo.brokerage.partner.PartnerBrokerageClient;
 import com.kh.demo.brokerage.partner.dto.PartnerProductTransactionDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,9 @@ public class ProductTransactionServiceImpl implements ProductTransactionService 
 
     @Autowired
     private AccountMapper accountMapper;
+
+    @Autowired
+    private ProductTransactionMapper productTransactionMapper;
 
     @Autowired
     private PartnerBrokerageClient partnerBrokerageClient;
@@ -35,6 +39,11 @@ public class ProductTransactionServiceImpl implements ProductTransactionService 
                 .getData().stream()
                 .map(p -> toInternalDto(accountId, p))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProductTransactionDto> getMyTransactions(String memberId) {
+        return productTransactionMapper.selectTransactionsByMember(memberId);
     }
 
     // 파트너 응답을 내부 DTO로 변환 - transactionId는 파트너측 식별자(partnerTransactionId)와 별개라 비워둔다

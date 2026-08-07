@@ -9,7 +9,8 @@
 <c:url var="dictionaryUrl" value="/dictionary" />
 <c:url var="loginUrl" value="/member/login" />
 <c:url var="mypageUrl" value="/member/mypage/password-check" />
-<c:url var="myStocksUrl" value="/member/stocks" />
+<c:url var="myInfoUrl" value="/member/stocks" />
+<c:url var="dashboardUrl" value="/member/dashboard" />
 <c:url var="adminUrl" value="/admin" />
 <c:url var="logoutUrl" value="/member/logout" />
 <c:url var="logoUrl" value="/images/StockHub_logo_blue.png" />
@@ -146,11 +147,8 @@
                                 </c:when>
                                 <c:otherwise>
                                     <a href="${mypageUrl}">프로필 수정</a>
-                                    <a href="${myStocksUrl}">내 주식</a>
-                                    <%-- 로그인 회원의 문의 목록을 페이지 이동 없이 표시 --%>
-                                    <button type="button"
-                                            data-modal-target="my-inquiries-modal"
-                                            data-load-my-inquiries="true">내 문의</button>
+                                    <a href="${myInfoUrl}">내 정보</a>
+                                    <a href="${dashboardUrl}">내 금융거래</a>
                                 </c:otherwise>
                             </c:choose>
                             <a class="header-logout-link" href="${logoutUrl}">로그아웃</a>

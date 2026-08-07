@@ -2,6 +2,48 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- FollowMapper 인터페이스와 follow 테이블 조회 SQL을 연결 -->
 <mapper namespace="com.kh.demo.member.mapper.FollowMapper">
+
+    <!-- 나를 팔로우하는 회원 수 -->
+    <select id="countFollowers" resultType="long">
+        SELECT COUNT(*)
+        FROM follow
+        WHERE followee_id = #{memberId}
+    </select>
+
+    <!-- 내가 팔로우하는 회원 수 -->
+    <select id="countFollowing" resultType="long">
+        SELECT COUNT(*)
+        FROM follow
+        WHERE follower_id = #{memberId}
+    </select>
+
+    <!-- 나를 팔로우하는 회원 목록 -->
+    <select id="selectFollowers"
+            resultType="com.kh.demo.member.dto.FollowDto">
+        SELECT m.member_id,
+               m.nickname,
+               COALESCE(NULLIF(m.profile, ''), '/images/common_member.png') AS profile,
+               DATE_FORMAT(f.follow_at, '%Y-%m-%d') AS follow_at_str
+        FROM follow f
+        JOIN member m ON m.member_id = f.follower_id
+        WHERE f.followee_id = #{memberId}
+        ORDER BY f.follow_at DESC, m.nickname ASC
+    </select>
+
+    <!-- 내가 팔로우하는 회원 목록 -->
+    <select id="selectFollowing"
+            resultType="com.kh.demo.member.dto.FollowDto">
+        SELECT m.member_id,
+               m.nickname,
+               COALESCE(NULLIF(m.profile, ''), '/images/common_member.png') AS profile,
+               DATE_FORMAT(f.follow_at, '%Y-%m-%d') AS follow_at_str
+        FROM follow f
+        JOIN member m ON m.member_id = f.followee_id
+        WHERE f.follower_id = #{memberId}
+        ORDER BY f.follow_at DESC, m.nickname ASC
+    </select>
 
 </mapper>
