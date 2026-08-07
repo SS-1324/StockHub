@@ -51,7 +51,7 @@
     <c:if test="${not empty requestScope.pageCssUrl}">
         <link rel="stylesheet" href="${requestScope.pageCssUrl}">
     </c:if>
-    <script src="${headerJsUrl}?v=5" defer></script>
+    <script src="${headerJsUrl}?v=6" defer></script>
 </head>
 <body>
 <%-- 로고, 페이지 이동 메뉴, 회원 메뉴를 표시하는 공통 헤더 --%>

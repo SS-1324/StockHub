@@ -75,9 +75,8 @@
 
 /* 용어사전으로 이동하는 한 줄 안내 카드 */
 .home-dictionary-card{
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
+    display: flex;
+    flex-direction: column;
     gap: 18px;
     width: 100%;
     margin-bottom: 72px;
@@ -87,6 +86,14 @@
     background: rgba(255, 255, 255, 0.9);
     box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.home-dictionary-header{
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 18px;
+    width: 100%;
 }
 
 .home-main > .home-dictionary-card:last-child{
@@ -116,6 +123,37 @@
 .home-dictionary-text > span{
     color: #718096;
     font-size: 15px;
+}
+
+.home-dictionary-terms{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    width: 100%;
+}
+
+.home-dictionary-term-card{
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+    padding: 16px 18px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.home-dictionary-term-card > strong{
+    color: #0874f7;
+    font-size: 17px;
+    letter-spacing: -0.025em;
+}
+
+.home-dictionary-term-card > span{
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.55;
+    word-break: keep-all;
 }
 
 .home-card-arrow{
@@ -175,10 +213,9 @@
 /* 거래 허브와 같은 TradingView 차트 */
 .home-chart-wrapper{
     width: 100%;
-    padding: 20px;
-    border-radius: 12px;
-    background: #131722;
-    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
+    overflow: hidden;
+    border-radius: 8px;
+    background: transparent;
 }
 
 #tv-chart-container{
@@ -668,12 +705,18 @@ html[data-theme="dark"] .home-community-card{
 }
 
 html[data-theme="dark"] .home-dictionary-text > span,
+html[data-theme="dark"] .home-dictionary-term-card > span,
 html[data-theme="dark"] .home-section-heading p,
 html[data-theme="dark"] .home-hero-description,
 html[data-theme="dark"] .home-community-content,
 html[data-theme="dark"] .home-community-ellipsis,
 html[data-theme="dark"] .home-empty-message{
     color: #94a3b8;
+}
+
+html[data-theme="dark"] .home-dictionary-term-card{
+    border-color: #334155;
+    background: #172233;
 }
 
 html[data-theme="dark"] .home-ranking-list > li,
@@ -728,6 +771,10 @@ html[data-theme="dark"] .home-community-image{
         font-size: 14px;
     }
 
+    .home-dictionary-terms{
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     .home-section{
         margin-bottom: 58px;
     }
@@ -742,10 +789,6 @@ html[data-theme="dark"] .home-community-image{
 
     .home-section-heading p{
         font-size: 14px;
-    }
-
-    .home-chart-wrapper{
-        padding: 12px;
     }
 
     #tv-chart-container{

@@ -220,7 +220,12 @@ public class MemberController {
 
     // 로그인 화면을 반환
     @GetMapping("/login")
-    public String loginForm() {
+    public String loginForm(HttpSession session) {
+        // 이미 로그인한 회원이 주소를 직접 입력해도 로그인 화면을 다시 보여주지 않음
+        if (session.getAttribute(SessionConst.LOGIN_MEMBER) != null) {
+            return "redirect:/";
+        }
+
         return "member/login";
     }
 
