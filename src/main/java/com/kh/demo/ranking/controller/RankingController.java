@@ -1,7 +1,9 @@
 package com.kh.demo.ranking.controller;
 
+import com.kh.demo.common.util.SessionUtil;
 import com.kh.demo.ranking.dto.RankingDto;
 import com.kh.demo.ranking.service.RankingService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,11 +25,13 @@ public class RankingController {
 
     // 공통 헤더에서 '랭킹'을 눌렀을 때 JSP 화면을 반환
     @GetMapping
-    public String rankingBoard(Model model) {
+    public String rankingBoard(Model model, HttpSession session) {
+
+        boolean includePrivateDetails = SessionUtil.isAdmin(session);
 
         model.addAttribute(
                 "rankingList",
-                rankingService.getRankingBoard()
+                rankingService.getRankingBoard(includePrivateDetails)
         );
 
         return "ranking/memberRanking";
@@ -37,7 +41,7 @@ public class RankingController {
     // 예: /ranking/data
     @GetMapping("/data")
     @ResponseBody
-    public List<RankingDto> getRanking() {
-        return rankingService.getRankingBoard();
+    public List<RankingDto> getRanking(HttpSession session) {
+        return rankingService.getRankingBoard(SessionUtil.isAdmin(session));
     }
 }

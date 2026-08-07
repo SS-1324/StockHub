@@ -1,3 +1,4 @@
+
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
@@ -100,6 +101,7 @@
                                       @<c:out value="${ranking.memberId}" />
                                   </span>
                               </span>
+</span>
 
 
                                 <%-- 수익률/평가손익 요약 (카드 접혀있을 때도 보이는 부분) --%>
