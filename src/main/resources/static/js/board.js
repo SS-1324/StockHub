@@ -10,7 +10,6 @@ const boardWriteForm = document.querySelector("#board-write-form");
 const likeBtn = document.querySelector("#like-btn");
 const bookmarkBtn = document.querySelector("#bookmark-btn");
 const commentForm = document.querySelector("#comment-form");
-const commentFormToggle = document.querySelector("#comment-form-toggle");
 const commentList = document.querySelector("#comment-list");
 
 /*
@@ -67,16 +66,6 @@ function preventInlineEditorImages(editor){
 
 if (typeof quill !== "undefined") {
     preventInlineEditorImages(quill);
-}
-
-/* "댓글 달기" 버튼 - 누르면 말풍선 모양 입력창이 펼쳐지고, 다시 누르면 접힌다 */
-if (commentFormToggle && commentForm) {
-    commentFormToggle.addEventListener("click", function(){
-        const opened = commentForm.classList.toggle("hidden") === false;
-        if (opened) {
-            document.querySelector("#comment-input").focus();
-        }
-    });
 }
 
 /* 글쓰기 폼 제출 - 일반 폼 네비게이션 대신 fetch로 보내고, 성공하면 location.replace()로 상세 이동.
