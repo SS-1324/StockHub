@@ -675,7 +675,9 @@ public class BoardServiceImpl implements BoardService {
             );
         }
 
-        if (boardDto.getContent().length()
+        // Quill의 서식용 HTML 길이가 아니라 사용자가 실제로 입력한 본문 글자 수를 센다.
+        // 특히 붙여넣은 이미지의 data URL처럼 화면에 보이지 않는 값이 제한에 포함되면 안 된다.
+        if (visibleContent.length()
                 > MAX_CONTENT_LENGTH) {
 
             throw new IllegalArgumentException(

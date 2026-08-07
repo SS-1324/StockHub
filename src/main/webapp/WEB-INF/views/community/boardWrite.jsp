@@ -70,7 +70,7 @@
     // 폼이 제출되기 직전에 Quill 안의 HTML을 hidden input(content)으로 옮겨준다.
     // 이 hidden input이 없으면 Controller의 BoardDto.content가 계속 빈 값으로 넘어간다.
     document.getElementById('board-write-form').addEventListener('submit', function () {
-        document.getElementById('content').value = quill.root.innerHTML;
+        document.getElementById('content').value = quill.getSemanticHTML();
     });
 </script>
 <script src="/js/board.js"></script>
