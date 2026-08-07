@@ -7,5 +7,9 @@ import java.util.List;
 public interface RankingService {
 
     // 전체 누적 기준 랭킹 목록을 조회
-    List<RankingDto> getRankingBoard();
+    default List<RankingDto> getRankingBoard() {
+        return getRankingBoard(false);
+    }
+
+    List<RankingDto> getRankingBoard(boolean includePrivateDetails);
 }

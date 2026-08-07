@@ -16,7 +16,7 @@ public class RankingServiceImpl implements RankingService {
     }
 
     @Override
-    public List<RankingDto> getRankingBoard() {
-        return rankingMapper.selectRankingBoard();
+    public List<RankingDto> getRankingBoard(boolean includePrivateDetails) {
+        return rankingMapper.selectRankingBoard(includePrivateDetails);
     }
 }
