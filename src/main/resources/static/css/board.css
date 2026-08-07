@@ -409,19 +409,27 @@ html[data-theme="dark"]{
 }
 
 /* 이미지가 한 장이면 카드 너비에 맞추되 지나치게 커지지 않게 제한한다. */
-.board-card-image-single{ margin: 10px 0; }
+/*
+    이미지가 다운로드되기 전에도 카드가 차지할 높이를 미리 확보한다.
+    이미지 로딩 완료 순간 아래 게시글들이 밀려나는 레이아웃 이동을 줄인다.
+*/
+.board-card-image-single{
+    aspect-ratio: 16 / 9;
+    margin: 10px 0;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #f3f5f8;
+}
 
 .board-card-image-single img{
     display: block;
     width: 100%;
-    height: auto;
-    max-height: 380px;
+    height: 100%;
     border-radius: 10px;
     object-fit: cover;
     user-select: none;
     -webkit-user-drag: none;
 }
-
 /* 카드 하단 정보 */
 .board-card-footer{
     display: flex;
