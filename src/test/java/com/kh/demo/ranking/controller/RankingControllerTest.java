@@ -41,17 +41,31 @@ class RankingControllerTest {
         admin.setMemberId("admin");
         admin.setMemberRole("ADMIN");
 
-        List<RankingDto> rankings = List.of(new RankingDto());
+        List<RankingDto> returnRateRankings =
+                List.of(new RankingDto());
+        List<RankingDto> profitRankings =
+                List.of(new RankingDto());
         ExtendedModelMap model = new ExtendedModelMap();
 
         when(session.getAttribute(SessionConst.LOGIN_MEMBER)).thenReturn(admin);
-        when(rankingService.getRankingBoard(true)).thenReturn(rankings);
+        when(rankingService.getRankingBoard(true, false))
+                .thenReturn(returnRateRankings);
+        when(rankingService.getRankingBoard(true, true))
+                .thenReturn(profitRankings);
 
         String viewName = rankingController.rankingBoard(model, session);
 
         assertEquals("ranking/memberRanking", viewName);
-        assertSame(rankings, model.get("rankingList"));
-        verify(rankingService).getRankingBoard(true);
+        assertSame(
+                returnRateRankings,
+                model.get("returnRateRankingList")
+        );
+        assertSame(
+                profitRankings,
+                model.get("profitRankingList")
+        );
+        verify(rankingService).getRankingBoard(true, false);
+        verify(rankingService).getRankingBoard(true, true);
     }
 
     @Test
