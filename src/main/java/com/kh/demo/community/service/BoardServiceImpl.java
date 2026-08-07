@@ -209,6 +209,33 @@ public class BoardServiceImpl implements BoardService {
         );
     }
 
+    @Override
+    public List<BoardDto> getMemberPosts(
+            String memberId,
+            String loginMemberId
+    ) {
+        List<BoardDto> boardList =
+                boardMapper.selectBoardListByMemberId(memberId);
+
+        if (boardList.isEmpty()) {
+            return boardList;
+        }
+
+        List<Long> boardIds = boardList.stream()
+                .map(BoardDto::getBoardId)
+                .collect(Collectors.toList());
+
+        attachImages(boardList, boardIds);
+        attachViewerState(boardList, boardIds, loginMemberId);
+        stripHtmlForPreview(boardList);
+        return boardList;
+    }
+
+    @Override
+    public long getMemberPostCount(String memberId) {
+        return boardMapper.selectBoardCountByMemberId(memberId);
+    }
+
     private void stripHtmlForPreview(List<BoardDto> boardList) {
         for (BoardDto board : boardList) {
             String content = board.getContent() == null ? "" : board.getContent();

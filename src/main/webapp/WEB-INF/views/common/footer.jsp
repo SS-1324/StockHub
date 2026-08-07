@@ -148,6 +148,6 @@
 </div>
 
 <%-- 푸터 모달과 문의 글자 수 검사 기능을 불러옴 --%>
-<script src="${footerJsUrl}?v=2"></script>
+<script src="${footerJsUrl}?v=3"></script>
 </body>
 </html>
