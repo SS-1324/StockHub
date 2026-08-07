@@ -586,12 +586,65 @@ html[data-theme="dark"]{
     user-select: none;
 }
 
+/*
+    게시글 상세 화면의 본문 전체 영역.
+
+    본문은 단순 문자열이 아니라 Quill이 만든 <p>, <ol>, <ul>, <li>, <br> 등의
+    HTML로 출력된다. 따라서 줄바꿈은 각 HTML 태그가 담당하게 하고 white-space는
+    normal로 둔다. pre-wrap을 사용하면 jsoup이 HTML을 정리하면서 태그 사이에 넣은
+    줄바꿈과 들여쓰기 공백까지 화면에 남아 문단 및 목록 행간이 비정상적으로 벌어진다.
+*/
 .board-content{
     font-size: 15px;
-    line-height: 1.8;
-    white-space: pre-wrap;
+    line-height: 1.6;
+    white-space: normal;
     word-break: break-word;
     margin-bottom: 20px;
+}
+
+/*
+    p는 paragraph(문단)의 약자다.
+    Quill에서 일반 문장을 입력하고 Enter를 누르면 보통 문장 하나가 <p>로 저장된다.
+    아래쪽 여백만 주어 연속된 문단을 구분하되, 위아래 여백이 겹쳐 과하게 벌어지지 않게 한다.
+*/
+.board-content p{
+    margin: 0 0 0.8em;
+}
+
+/*
+    ol은 ordered list(순서가 있는 목록)의 약자다.
+    글쓰기 도구에서 1, 2, 3 목록을 선택한 내용이 <ol>로 저장되므로 decimal을 지정해
+    숫자 표식을 확실히 표시한다. padding-left는 숫자가 본문 밖으로 잘리지 않을 공간이다.
+*/
+.board-content ol{
+    list-style: decimal;
+    padding-left: 1.6em;
+    margin: 0.8em 0;
+}
+
+/*
+    ul은 unordered list(순서가 없는 목록)의 약자다.
+    글쓰기 도구에서 글머리표 목록을 선택한 내용이 <ul>로 저장되므로 disc(●) 표식을 사용한다.
+    ol과 동일한 들여쓰기와 바깥 여백을 줘 두 목록의 정렬을 맞춘다.
+*/
+.board-content ul{
+    list-style: disc;
+    padding-left: 1.6em;
+    margin: 0.8em 0;
+}
+
+/*
+    li는 list item(목록의 각 항목)의 약자다.
+    예를 들어 1번 문장과 2번 문장은 각각 하나의 <li>다. 항목 사이에는 0.25em만 주어
+    숫자 목록이 읽기 편하면서도 스크린샷처럼 한 줄씩 크게 벌어지지 않게 한다.
+*/
+.board-content li{
+    margin: 0.25em 0;
+}
+
+/* 본문의 마지막 문단이나 목록 아래에는 불필요한 여백을 남기지 않는다. */
+.board-content > :last-child{
+    margin-bottom: 0;
 }
 
 /* Quill에서 저장한 글자 크기 서식을 상세 화면에서도 동일하게 표시 */

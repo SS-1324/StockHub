@@ -8,9 +8,9 @@
 <link rel="stylesheet"
       href="${pageContext.request.contextPath}/css/ranking.css?v=7">
 
-<%-- 커뮤니티 전용 CSS --%>
+<%-- 커뮤니티 전용 CSS  :  4에서 5로 수정해서 캐시 업데이트--%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css?v=4">
+      href="${pageContext.request.contextPath}/css/board.css?v=5">
 
 <c:if test="${not empty error}">
     <p class="alert alert-error">${error}</p>
