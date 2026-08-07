@@ -36,6 +36,10 @@ public class BoardDto {
     private String nickname;
     private String profile;
 
+    // 게시글 작성자의 현재 수익률 순위
+    // 수익률 1~3위가 아니면 null
+    private Integer rankPosition;
+
     // 현재 로그인한 회원의 좋아요/북마크 여부 (서비스에서 채워주는 표시용 필드, DB 매핑 대상 아님)
     // Boolean(래퍼)로 두는 이유: BoardCommentDto와 같은 이유 - primitive는 JSON 역직렬화 시 값이 없으면 실패한다.
     private Boolean liked;

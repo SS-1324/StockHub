@@ -4,7 +4,13 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css?v=2">
+<%-- 기존 금·은·동 랭킹 CSS --%>
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/ranking.css?v=7">
+
+<%-- 커뮤니티 전용 CSS --%>
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/board.css?v=4">
 
 <c:if test="${not empty error}">
     <p class="alert alert-error">${error}</p>
@@ -32,9 +38,50 @@
 <c:if test="${not empty board.title}">
     <h2 class="board-title"><c:out value="${board.title}" /></h2>
 </c:if>
+<%-- 상세 게시글 작성자의 수익률 순위 클래스 --%>
+<c:set var="boardRankClass" value="" />
 
-<div class="board-header-meta">
-    <img class="board-header-avatar" src="${board.profile}" alt="${board.nickname}">
+<c:choose>
+    <c:when test="${board.rankPosition eq 1}">
+        <c:set var="boardRankClass"
+               value="rank-first" />
+    </c:when>
+
+    <c:when test="${board.rankPosition eq 2}">
+        <c:set var="boardRankClass"
+               value="rank-second" />
+    </c:when>
+
+    <c:when test="${board.rankPosition eq 3}">
+        <c:set var="boardRankClass"
+               value="rank-third" />
+    </c:when>
+</c:choose>
+<div class="board-header-meta ${boardRankClass}">
+
+    <c:choose>
+
+        <%-- 수익률 1~3위 작성자 --%>
+        <c:when test="${not empty boardRankClass}">
+            <span class="ranking-avatar-frame
+                         board-detail-rank-frame
+                         ${boardRankClass}">
+
+                <img class="board-header-avatar"
+                     src="${board.profile}"
+                     alt="${board.nickname}">
+            </span>
+        </c:when>
+
+        <%-- 일반 작성자 --%>
+        <c:otherwise>
+            <img class="board-header-avatar"
+                 src="${board.profile}"
+                 alt="${board.nickname}">
+        </c:otherwise>
+
+    </c:choose>
+
     <span>${board.nickname}</span>
     <span>${board.createAtStr}</span>
 </div>

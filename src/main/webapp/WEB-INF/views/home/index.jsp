@@ -5,7 +5,7 @@
 
 <%-- 홈 전용 CSS를 공통 헤더의 head 안에서 불러오도록 전달 --%>
 <c:url var="homeCssUrl" value="/css/home.css">
-    <c:param name="v" value="14" />
+    <c:param name="v" value="15" />
 </c:url>
 <c:set var="pageCssUrl" value="${homeCssUrl}" scope="request" />
 
@@ -75,20 +75,59 @@
             <c:when test="${not empty latestBoards}">
                 <div class="home-community-grid">
                     <c:forEach var="board" items="${latestBoards}">
+
+                        <%-- 홈 게시글 작성자의 현재 수익률 순위에 따라 금·은·동 클래스를 계산 --%>
+                        <c:set var="boardRankClass" value="" />
+                        <c:choose>
+                            <c:when test="${board.rankPosition eq 1}">
+                                <c:set var="boardRankClass" value="rank-first" />
+                            </c:when>
+                            <c:when test="${board.rankPosition eq 2}">
+                                <c:set var="boardRankClass" value="rank-second" />
+                            </c:when>
+                            <c:when test="${board.rankPosition eq 3}">
+                                <c:set var="boardRankClass" value="rank-third" />
+                            </c:when>
+                        </c:choose>
+
                         <c:set var="hasBoardTitle"
                                value="${not empty board.title and not empty fn:trim(board.title)}" />
                         <c:set var="hasBoardImage" value="${not empty board.imageList}" />
                         <a class="home-community-card ${hasBoardTitle ? '' : 'has-no-title'} ${hasBoardImage ? 'has-image' : 'has-no-image'}"
                            href="${communityUrl}/${board.boardId}">
-                            <div class="home-community-author">
+                            <div class="home-community-author ${boardRankClass}">
                                 <c:choose>
-                                    <c:when test="${not empty board.profile}">
-                                        <img src="${pageContext.request.contextPath}${board.profile}"
-                                             onerror="this.onerror=null; this.src='${defaultProfileUrl}';"
-                                             alt="프로필 이미지">
+                                    <%-- 수익률 1~3위는 홈 랭킹의 프로필 프레임을 재사용 --%>
+                                    <c:when test="${not empty boardRankClass}">
+                                        <span class="home-ranking-avatar-frame home-community-rank-frame">
+                                            <c:choose>
+                                                <c:when test="${not empty board.profile}">
+                                                    <img class="home-ranking-avatar"
+                                                         src="${pageContext.request.contextPath}${board.profile}"
+                                                         onerror="this.onerror=null; this.src='${defaultProfileUrl}';"
+                                                         alt="${board.nickname} 프로필 이미지">
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <img class="home-ranking-avatar"
+                                                         src="${defaultProfileUrl}"
+                                                         alt="기본 프로필 이미지">
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </span>
                                     </c:when>
+                                    <%-- 1~3위가 아닌 회원은 기존 프로필 모양을 유지 --%>
                                     <c:otherwise>
-                                        <img src="${defaultProfileUrl}" alt="기본 프로필 이미지">
+                                        <c:choose>
+                                            <c:when test="${not empty board.profile}">
+                                                <img src="${pageContext.request.contextPath}${board.profile}"
+                                                     onerror="this.onerror=null; this.src='${defaultProfileUrl}';"
+                                                     alt="${board.nickname} 프로필 이미지">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <img src="${defaultProfileUrl}"
+                                                     alt="기본 프로필 이미지">
+                                            </c:otherwise>
+                                        </c:choose>
                                     </c:otherwise>
                                 </c:choose>
                                 <span>

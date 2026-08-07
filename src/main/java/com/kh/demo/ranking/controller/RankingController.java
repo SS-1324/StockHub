@@ -19,29 +19,63 @@ public class RankingController {
 
     private final RankingService rankingService;
 
-    public RankingController(RankingService rankingService) {
+    public RankingController(
+            RankingService rankingService
+    ) {
         this.rankingService = rankingService;
     }
 
-    // 공통 헤더에서 '랭킹'을 눌렀을 때 JSP 화면을 반환
+    // 랭킹 JSP 화면을 반환
     @GetMapping
-    public String rankingBoard(Model model, HttpSession session) {
+    public String rankingBoard(
+            Model model,
+            HttpSession session
+    ) {
+        boolean includePrivateDetails =
+                SessionUtil.isAdmin(session);
 
-        boolean includePrivateDetails = SessionUtil.isAdmin(session);
+        /*
+         * 같은 회원 데이터를 정렬 기준만 다르게 하여 두 번 조회한다.
+         * false는 수익률순, true는 수익금순이라는 약속을
+         * RankingService와 RankingMapper가 함께 사용한다.
+         */
+        List<RankingDto> returnRateRankingList =
+                rankingService.getRankingBoard(
+                        includePrivateDetails,
+                        false
+                );
+
+        List<RankingDto> profitRankingList =
+                rankingService.getRankingBoard(
+                        includePrivateDetails,
+                        true
+                );
+
+        /*
+         * JSP에서 두 보드를 구분할 수 있도록 서로 다른 이름으로 전달한다.
+         * memberRanking.jsp가 아래 이름을 그대로 사용하므로 이름을 함께 변경해야 한다.
+         */
+        model.addAttribute(
+                "returnRateRankingList",
+                returnRateRankingList
+        );
 
         model.addAttribute(
-                "rankingList",
-                rankingService.getRankingBoard(includePrivateDetails)
+                "profitRankingList",
+                profitRankingList
         );
 
         return "ranking/memberRanking";
     }
 
-    // 랭킹 목록을 JSON으로 조회할 때 사용하는 주소
-    // 예: /ranking/data
+    // 랭킹 목록을 JSON으로 반환
     @GetMapping("/data")
     @ResponseBody
-    public List<RankingDto> getRanking(HttpSession session) {
-        return rankingService.getRankingBoard(SessionUtil.isAdmin(session));
+    public List<RankingDto> getRanking(
+            HttpSession session
+    ) {
+        return rankingService.getRankingBoard(
+                SessionUtil.isAdmin(session)
+        );
     }
 }

@@ -9,8 +9,11 @@ import java.util.List;
 @Mapper
 public interface RankingMapper {
 
-    // 전체 누적 기준 랭킹을 상위 5명까지 조회
     List<RankingDto> selectRankingBoard(
-            @Param("includePrivateDetails") boolean includePrivateDetails
+            @Param("includePrivateDetails")
+            boolean includePrivateDetails,
+
+            @Param("sortByProfit")
+            boolean sortByProfit
     );
 }

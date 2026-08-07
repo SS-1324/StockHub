@@ -1,6 +1,6 @@
-/* 랭킹 화면만 피그마 시안의 폭과 여백을 사용 */
+/* 두 개의 랭킹 보드가 한 줄에 들어가도록 기존 720px 폭을 1240px로 확장 */
 .ranking-page {
-    width: min(100%, 720px);
+    width: min(100%, 1240px);
     margin: 6px auto 64px;
 }
 
@@ -20,6 +20,55 @@
     color: #61759a;
     font-size: 14px;
     font-weight: 400;
+}
+
+/* 데스크톱에서는 두 보드를 같은 너비로 좌우 배치 */
+.ranking-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 20px;
+}
+
+.ranking-board {
+    min-width: 0;
+}
+
+.ranking-board-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+    padding: 0 4px;
+}
+
+.ranking-board-heading h2 {
+    margin: 0 0 3px;
+    color: #1e293b;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.ranking-board-heading p {
+    margin: 0;
+    color: #8090aa;
+    font-size: 12px;
+}
+
+.ranking-board-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid #dbe5f3;
+    border-radius: 10px;
+    background: #f5f8ff;
+    color: #3478f6;
+    font-size: 15px;
+    font-weight: 800;
 }
 
 .ranking-periods {
@@ -175,7 +224,8 @@
 }
 
 /* 1위 황금색 원형 테두리 */
-.rank-first .ranking-avatar-frame {
+.rank-first .ranking-avatar-frame,
+.ranking-avatar-frame.rank-first {
     padding: 3px;
     background:
             linear-gradient(
@@ -198,7 +248,8 @@
 }
 
 /* 2위 은색 원형 테두리 */
-.rank-second .ranking-avatar-frame {
+.rank-second .ranking-avatar-frame,
+.ranking-avatar-frame.rank-second {
     padding: 3px;
     background:
             linear-gradient(
@@ -220,7 +271,8 @@
 }
 
 /* 3위 동색 원형 테두리 */
-.rank-third .ranking-avatar-frame {
+.rank-third .ranking-avatar-frame,
+.ranking-avatar-frame.rank-third {
     padding: 3px;
     background:
             linear-gradient(
@@ -316,11 +368,13 @@
 }
 
 .ranking-profit.is-positive,
+.ranking-profit .is-positive,
 .ranking-detail-stat strong.is-positive {
     color: #ff304d;
 }
 
 .ranking-profit.is-negative,
+.ranking-profit .is-negative,
 .ranking-detail-stat strong.is-negative {
     color: #3478f6;
 }
@@ -416,9 +470,9 @@
 /* 상세정보 능력치 */
 .ranking-details-stats {
     display: grid;
-    grid-template-columns: repeat(3, minmax(92px, 1fr));
+    grid-template-columns: repeat(2, minmax(92px, 1fr));
     gap: 8px;
-    width: 320px;
+    width: 220px;
     flex-shrink: 0;
 }
 
@@ -484,6 +538,20 @@ html[data-theme="dark"] .ranking-heading h1 {
 
 html[data-theme="dark"] .ranking-heading p {
     color: #94a3b8;
+}
+
+html[data-theme="dark"] .ranking-board-heading h2 {
+    color: #e5edf8;
+}
+
+html[data-theme="dark"] .ranking-board-heading p {
+    color: #8292ae;
+}
+
+html[data-theme="dark"] .ranking-board-badge {
+    border-color: #334155;
+    background: #162033;
+    color: #75a7ff;
 }
 
 html[data-theme="dark"] .ranking-periods a {
@@ -553,6 +621,61 @@ html[data-theme="dark"] .ranking-detail-stat > strong {
 
 html[data-theme="dark"] .ranking-empty strong {
     color: #d7dfec;
+}
+
+/* 두 보드가 나란히 보일 때 각 행의 간격과 글자 크기를 조금 줄인다. */
+@media (min-width: 1051px) {
+    .ranking-grid .ranking-row {
+        grid-template-columns:
+                26px
+                42px
+                minmax(0, 1fr)
+                auto
+                16px;
+        gap: 9px;
+        min-height: 82px;
+        padding: 14px;
+    }
+
+    .ranking-grid .ranking-avatar-frame {
+        width: 42px;
+        height: 42px;
+    }
+
+    .ranking-grid .ranking-member strong {
+        font-size: 15px;
+    }
+
+    .ranking-grid .ranking-profit {
+        min-width: 108px;
+    }
+
+    .ranking-grid .ranking-profit strong {
+        font-size: 16px;
+    }
+
+    .ranking-grid .ranking-details-content {
+        align-items: stretch;
+        padding: 16px 16px 18px 92px;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .ranking-grid .ranking-details-stats {
+        width: 100%;
+    }
+}
+
+/* 화면이 좁으면 가로 스크롤 대신 두 보드를 위아래로 쌓는다. */
+@media (max-width: 1050px) {
+    .ranking-page {
+        width: min(100%, 720px);
+    }
+
+    .ranking-grid {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
 }
 
 /* 태블릿 */

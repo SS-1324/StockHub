@@ -273,7 +273,8 @@
 }
 
 /* ranking.css와 동일한 1위 황금색 원형 테두리와 순위 글자 색 */
-.home-ranking-list .rank-first .home-ranking-avatar-frame{
+.home-ranking-list .rank-first .home-ranking-avatar-frame,
+.home-community-author.rank-first .home-community-rank-frame{
     padding: 3px;
     background:
             linear-gradient(
@@ -296,7 +297,8 @@
 }
 
 /* ranking.css와 동일한 2위 은색 원형 테두리와 순위 글자 색 */
-.home-ranking-list .rank-second .home-ranking-avatar-frame{
+.home-ranking-list .rank-second .home-ranking-avatar-frame,
+.home-community-author.rank-second .home-community-rank-frame{
     padding: 3px;
     background:
             linear-gradient(
@@ -318,7 +320,8 @@
 }
 
 /* ranking.css와 동일한 3위 동색 원형 테두리와 순위 글자 색 */
-.home-ranking-list .rank-third .home-ranking-avatar-frame{
+.home-ranking-list .rank-third .home-ranking-avatar-frame,
+.home-community-author.rank-third .home-community-rank-frame{
     padding: 3px;
     background:
             linear-gradient(
@@ -460,6 +463,14 @@
     height: 42px;
     border-radius: 50%;
     object-fit: cover;
+}
+
+/* 홈 커뮤니티에서도 홈 랭킹 프레임을 기존 작성자 이미지 크기로 재사용 */
+.home-community-author > .home-community-rank-frame{
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    flex-direction: row;
 }
 
 .home-community-author > span{
