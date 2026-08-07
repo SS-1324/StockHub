@@ -6,10 +6,12 @@
       href="${pageContext.request.contextPath}/css/dictionary.css">
 <section class="glossary-category">
 
-    <div class="category-header">
-        <h2 class = "category-name">
-            <c:out value="${categoryName}"/>
-        </h2>
+    <div class="category-header glossary-header">
+        <div class="glossary-title-area">
+            <h2 class = "category-name">
+                <c:out value="${categoryName}"/>
+            </h2>
+        </div>
 
         <form class ="glossary-search"
               id="glossary-search-form"
