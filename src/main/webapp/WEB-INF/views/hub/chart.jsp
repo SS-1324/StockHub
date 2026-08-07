@@ -1,27 +1,23 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
+<%-- 페이지 전용 CSS는 header.jsp의 <head>에서 불러옴 --%>
+<c:url var="chartCssUrl" value="/css/stockhub.css" />
+<c:set var="pageCssUrl" value="${chartCssUrl}" scope="request" />
+
 <%-- 공통 헤더를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
-<!DOCTYPE html>
-<html lang="ko">
-<head>
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="<c:url value='/css/stockhub.css'/>">
+<script type="module" src="https://widgets.tradingview-widget.com/w/kr/tv-ticker-tape.js"></script>
 
-    <script type="module" src="https://widgets.tradingview-widget.com/w/kr/tv-ticker-tape.js"></script>
-
-    <!-- 종목 채팅용 WebSocket(STOMP) 클라이언트 -->
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
-</head>
-<body>
+<%-- 종목 채팅용 WebSocket(STOMP) 클라이언트 --%>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
 
 <%-- 거래 허브 페이지 전용 실시간 시세 티커바 (TradingView Ticker Tape 위젯) --%>
 <tv-ticker-tape class="hub-ticker-tape" symbols="NASDAQ:AAPL,NASDAQ:TSLA,NASDAQ:MSFT,NASDAQ:AMZN,NASDAQ:META,NASDAQ:SPCX,NASDAQ:NVDA,NASDAQ:AMD,NASDAQ:GOOGL,NASDAQ:INTC,NASDAQ:NFLX,NASDAQ:MSTR" hide-chart item-size="compact"></tv-ticker-tape>
 
-<H2>주식 거래 허브</H2>
+<h2>주식 거래 허브</h2>
 <p>관심 종목의 실시간 차트를 확인하세요.</p>
 
 <div class="chart-wrapper">
@@ -76,7 +72,37 @@
     </div>
 </div>
 
-</main>
+<%-- 종목별 "살까?팔까?" 실시간 투표 카드. 데이터는 JS가 /api/hub/vote/{stockCode}에서 채워 넣음 --%>
+<section class="stock-vote-card" id="stock-vote-card" aria-labelledby="stock-vote-title">
+    <div class="stock-vote-top">
+        <div class="stock-vote-badges">
+            <span class="stock-vote-badge">살까?팔까?</span>
+            <span class="stock-vote-live">실시간 투표</span>
+        </div>
+        <span class="stock-vote-participants" id="stock-vote-participants"></span>
+    </div>
+
+    <h3 class="stock-vote-title" id="stock-vote-title"></h3>
+    <p class="stock-vote-subtitle">현재 종목 가격 기준으로 상승 vs 하락 의견을 알려주세요</p>
+
+    <div class="stock-vote-bar" id="stock-vote-bar">
+        <div class="stock-vote-bar-up" id="stock-vote-bar-up">
+            <span id="stock-vote-up-label"></span>
+        </div>
+        <div class="stock-vote-bar-down" id="stock-vote-bar-down">
+            <span id="stock-vote-down-label"></span>
+        </div>
+    </div>
+
+    <div class="stock-vote-actions">
+        <button type="button" class="stock-vote-btn stock-vote-btn-up" id="stock-vote-up-btn">
+            <span aria-hidden="true">&#9650;</span> 상승 의견
+        </button>
+        <button type="button" class="stock-vote-btn stock-vote-btn-down" id="stock-vote-down-btn">
+            <span aria-hidden="true">&#9660;</span> 하락 의견
+        </button>
+    </div>
+</section>
 
 <!-- Custom JS -->
 <script>
@@ -89,7 +115,6 @@
 </script>
 <script src="<c:url value='/js/tradingview-chart.js'/>"></script>
 <script src="<c:url value='/js/stockhub.js'/>"></script>
-</body>
-</html>
+
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

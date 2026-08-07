@@ -51,6 +51,12 @@ function readSiteTheme() {
     return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
 }
 
+// 위젯 배경/그리드 색상은 theme 파라미터만으로는 자동 전환되지 않아 테마별로 직접 지정
+const TV_THEME_COLORS = {
+    dark: { backgroundColor: '#0F0F0F', gridColor: 'rgba(242, 242, 242, 0.06)' },
+    light: { backgroundColor: '#FFFFFF', gridColor: 'rgba(42, 46, 57, 0.06)' },
+};
+
 class TradingViewChart {
     constructor(containerId) {
         this.containerId = containerId;
@@ -70,6 +76,8 @@ class TradingViewChart {
         container.innerHTML = '';
 
         const symbol = resolveTradingViewSymbol(code);
+        const theme = readSiteTheme();
+        const themeColors = TV_THEME_COLORS[theme];
 
         const widgetContainer = document.createElement('div');
         widgetContainer.className = 'tradingview-widget-container';
@@ -121,10 +129,10 @@ class TradingViewChart {
             save_image: true,
             style: '1',
             symbol: symbol,
-            theme: readSiteTheme(),
+            theme: theme,
             timezone: 'Etc/UTC',
-            backgroundColor: '#0F0F0F',
-            gridColor: 'rgba(242, 242, 242, 0.06)',
+            backgroundColor: themeColors.backgroundColor,
+            gridColor: themeColors.gridColor,
             watchlist: [
                 'BITSTAMP:BTCUSD',
                 'NASDAQ:AAPL',
