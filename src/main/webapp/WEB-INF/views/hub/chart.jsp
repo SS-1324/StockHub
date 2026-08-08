@@ -113,8 +113,8 @@
     // 채팅 입력창 활성화 여부 판단용 (비로그인 사용자는 채팅 전송 불가)
     const isLoggedIn = <c:out value="${not empty sessionScope.loginMember}"/>;
 </script>
-<script src="<c:url value='/js/tradingview-chart.js'/>"></script>
-<script src="<c:url value='/js/stockhub.js'/>"></script>
+<script src="<c:url value='/js/tradingview-chart.js?v=1'/>"></script>
+<script src="<c:url value='/js/stockhub.js?v=5'/>"></script>
 
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

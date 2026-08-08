@@ -321,7 +321,7 @@
     const resolvedCode = "AAPL";
     const resolvedPeriod = "day";
 </script>
-<script src="${pageContext.request.contextPath}/js/tradingview-chart.js"></script>
+<script src="${pageContext.request.contextPath}/js/tradingview-chart.js?v=1"></script>
 <script src="${pageContext.request.contextPath}/js/stockhub.js?v=5"></script>
 
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
