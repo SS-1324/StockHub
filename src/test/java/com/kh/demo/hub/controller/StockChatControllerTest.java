@@ -85,6 +85,20 @@ class StockChatControllerTest {
     }
 
     @Test
+    void sendChatRejectsMalformedChartPriceInsteadOfThrowingRaw() {
+        MemberDto member = new MemberDto();
+        member.setMemberId("member1");
+        SimpMessageHeaderAccessor accessor = headerAccessorWithLoginMember(member);
+
+        IllegalStateException e = assertThrows(IllegalStateException.class,
+                () -> stockChatController.sendChat(
+                        "AAPL", Map.of("content", "안녕", "chartPrice", "abc"), accessor));
+
+        assertEquals("가격 정보가 올바르지 않습니다.", e.getMessage());
+        verify(messagingTemplate, never()).convertAndSend(anyString(), any(Object.class));
+    }
+
+    @Test
     void handleChatErrorReturnsExceptionMessage() {
         IllegalStateException e = new IllegalStateException("로그인이 필요합니다.");
 
