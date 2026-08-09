@@ -400,6 +400,22 @@ CREATE TABLE IF NOT EXISTS cash_transaction (
     INDEX IDX_CASH_TX_ACCOUNT_DATE (account_id, transaction_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='계좌 입출금 원장';
 
+-- 계좌별 일자별 총자산 스냅샷 (※ 외부/파트너 소유 영역 - 기간별 손익 계산용)
+CREATE TABLE IF NOT EXISTS asset_snapshot (
+    snapshot_id   BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '스냅샷 번호(PK)',
+    account_id    BIGINT UNSIGNED NOT NULL COMMENT '가상 계좌(FK)',
+    snapshot_date DATE            NOT NULL COMMENT '스냅샷 기준일',
+    total_asset   BIGINT          NOT NULL COMMENT '그 날짜 기준 총자산(현금잔고+평가금액)',
+    create_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성일시',
+
+    CONSTRAINT PK_ASSET_SNAPSHOT PRIMARY KEY (snapshot_id),
+    CONSTRAINT UQ_ASSET_SNAPSHOT_ACCOUNT_DATE UNIQUE (account_id, snapshot_date),
+    CONSTRAINT FK_ACCOUNT_TO_ASSET_SNAPSHOT
+        FOREIGN KEY (account_id) REFERENCES account (account_id)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    INDEX IDX_ASSET_SNAPSHOT_ACCOUNT_DATE (account_id, snapshot_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='계좌별 일자별 총자산 스냅샷(기간별 손익 계산용)';
+
 -- 회원 목표 (※ 우리(웹사이트) 소유 영역 - 대시보드 도달률 표시용, 증권사와 무관한 우리 사이트 자체 기능)
 CREATE TABLE IF NOT EXISTS goal (
     goal_id      BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '목표 번호(PK)',
@@ -407,6 +423,7 @@ CREATE TABLE IF NOT EXISTS goal (
     goal_type    ENUM('RETURN_RATE', 'PROFIT_AMOUNT') NOT NULL COMMENT '목표 종류(수익률 % / 수익금 원)',
     title        VARCHAR(100)    NOT NULL COMMENT '목표 이름(예: 이번 달 +5%, 30만원 모으기)',
     target_value DECIMAL(18, 2)  NOT NULL COMMENT '목표치(수익률=%, 수익금=원)',
+    target_date  DATE            NULL COMMENT '목표 기한(없으면 무기한)',
     create_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '목표 설정일시',
 
     CONSTRAINT PK_GOAL PRIMARY KEY (goal_id),

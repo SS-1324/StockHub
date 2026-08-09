@@ -46,6 +46,16 @@ public class CashTransactionServiceImpl implements CashTransactionService {
         return cashTransactionMapper.selectTransactionsByMember(memberId);
     }
 
+    @Override
+    public long getMyNetDeposits(String memberId, java.time.LocalDate since) {
+        return cashTransactionMapper.sumNetDeposits(memberId, since);
+    }
+
+    @Override
+    public long getMyNetDepositsSinceBaseline(String memberId, java.time.LocalDate periodStart) {
+        return cashTransactionMapper.sumNetDepositsSinceBaseline(memberId, periodStart);
+    }
+
     // 파트너 응답을 내부 DTO로 변환 - cashTransactionId는 파트너측 식별자(partnerTransactionId)와 별개라 비워둔다
     private CashTransactionDto toInternalDto(Long accountId, PartnerCashTransactionDto p) {
         CashTransactionDto dto = new CashTransactionDto();

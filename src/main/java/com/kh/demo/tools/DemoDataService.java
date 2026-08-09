@@ -33,6 +33,7 @@ public class DemoDataService {
     @Autowired private ProductHoldingMapper productHoldingMapper;
     @Autowired private ProductTransactionMapper productTransactionMapper;
     @Autowired private CashTransactionMapper cashTransactionMapper;
+    @Autowired private AssetSnapshotMapper assetSnapshotMapper;
     @Autowired private MemberMapper memberMapper;
 
     // 시드 고정 -> 재실행해도 같은 결과가 나와서 "손보면서 반복"하기 편함
@@ -259,15 +260,26 @@ public class DemoDataService {
         Map<String, RunningStockPosition> stockPositions = new HashMap<>();
         Map<Long, RunningProductPosition> productPositions = new HashMap<>();
 
-        for (SimEvent e : events) {
-            switch (e.type) {
-                case STOCK_BUY -> handleStockBuy(accountId, e, stockPaths, start, brokerage, cash, stockPositions);
-                case STOCK_SELL -> handleStockSell(accountId, e, stockPaths, start, brokerage, cash, stockPositions);
-                case PRODUCT_SUBSCRIBE -> handleSubscribe(accountId, e, myProducts, productPaths, start, cash, productPositions);
-                case PRODUCT_REDEEM -> handleRedeem(accountId, e, productPaths, start, cash, productPositions);
-                case CASH_DEPOSIT -> handleDeposit(accountId, e, cash);
-                case CASH_WITHDRAWAL -> handleWithdrawal(accountId, e, cash);
+        // 이벤트를 주 단위로 재생하면서, 매주 끝에 "그 시점 총자산" 스냅샷을 남긴다
+        // (실제 증권사가 매일 밤 배치로 잔고 스냅샷을 쌓아두는 것과 같은 역할 - 기간별 손익 계산의 기준값이 된다)
+        assetSnapshotMapper.deleteSnapshotsByAccount(accountId);
+        int eventIndex = 0;
+        for (int week = 0; week <= PriceWalk.WEEKS; week++) {
+            while (eventIndex < events.size() && weekOf(start, events.get(eventIndex).at) == week) {
+                SimEvent e = events.get(eventIndex);
+                switch (e.type) {
+                    case STOCK_BUY -> handleStockBuy(accountId, e, stockPaths, start, brokerage, cash, stockPositions);
+                    case STOCK_SELL -> handleStockSell(accountId, e, stockPaths, start, brokerage, cash, stockPositions);
+                    case PRODUCT_SUBSCRIBE -> handleSubscribe(accountId, e, myProducts, productPaths, start, cash, productPositions);
+                    case PRODUCT_REDEEM -> handleRedeem(accountId, e, productPaths, start, cash, productPositions);
+                    case CASH_DEPOSIT -> handleDeposit(accountId, e, cash);
+                    case CASH_WITHDRAWAL -> handleWithdrawal(accountId, e, cash);
+                }
+                eventIndex++;
             }
+
+            long totalAssetAtWeek = computeTotalAssetAtWeek(cash[0], stockPositions, stockPaths, productPositions, productPaths, week);
+            assetSnapshotMapper.insertSnapshot(accountId, start.plusWeeks(week).toLocalDate(), totalAssetAtWeek);
         }
 
         finalizeAccount(accountId, myStocks, cash, stockPositions, productPositions);
@@ -337,7 +349,7 @@ public class DemoDataService {
             return;
         }
         cash[0] -= totalCost;
-        positions.computeIfAbsent(e.stockCode, k -> new RunningStockPosition()).addBuy(quantity, price);
+        positions.computeIfAbsent(e.stockCode, k -> new RunningStockPosition()).addBuy(quantity, price, fee);
         tradeMapper.insertHistoricalTrade(tradeOf(accountId, e.stockCode, "BUY", quantity, price, fee, e.at));
     }
 
@@ -463,6 +475,31 @@ public class DemoDataService {
         return (int) Math.max(0, Math.min(PriceWalk.WEEKS, weeks));
     }
 
+    // 그 주의 시세(PriceWalk)로 보유 종목/상품을 평가한 총자산(현금 포함) - 스냅샷 저장용
+    private long computeTotalAssetAtWeek(long cash,
+                                          Map<String, RunningStockPosition> stockPositions, Map<String, double[]> stockPaths,
+                                          Map<Long, RunningProductPosition> productPositions, Map<Long, double[]> productPaths,
+                                          int week) {
+        long total = cash;
+        for (Map.Entry<String, RunningStockPosition> entry : stockPositions.entrySet()) {
+            RunningStockPosition pos = entry.getValue();
+            if (pos.quantity <= 0) {
+                continue;
+            }
+            double priceAtWeek = stockPaths.get(entry.getKey())[week];
+            total += Math.round(priceAtWeek * pos.quantity);
+        }
+        for (Map.Entry<Long, RunningProductPosition> entry : productPositions.entrySet()) {
+            RunningProductPosition pos = entry.getValue();
+            if (pos.quantity.signum() <= 0) {
+                continue;
+            }
+            double navAtWeek = productPaths.get(entry.getKey())[week];
+            total += Math.round(navAtWeek * pos.quantity.doubleValue());
+        }
+        return total;
+    }
+
     private int feeOf(BrokerageDto brokerage, long amount) {
         return BigDecimal.valueOf(amount).multiply(brokerage.getFeeRate())
                 .setScale(0, RoundingMode.HALF_UP).intValue();
@@ -573,12 +610,12 @@ public class DemoDataService {
         long quantity = 0;
         int avgPrice = 0;
 
-        void addBuy(long qty, int price) {
-            if (quantity == 0) {
-                avgPrice = price;
-            } else {
-                avgPrice = (int) ((quantity * avgPrice + qty * (long) price) / (quantity + qty));
-            }
+        // 평단가에 매수수수료도 포함 - TradeServiceImpl의 실제 매매 평단가 계산과 동일한 방식
+        void addBuy(long qty, int price, int fee) {
+            long buyCost = (long) price * qty + fee;
+            avgPrice = quantity == 0
+                    ? (int) (buyCost / qty)
+                    : (int) ((quantity * avgPrice + buyCost) / (quantity + qty));
             quantity += qty;
         }
 

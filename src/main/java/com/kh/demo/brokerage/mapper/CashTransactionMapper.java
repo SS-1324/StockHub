@@ -23,4 +23,12 @@ public interface CashTransactionMapper {
 
     // 계좌의 입출금이력을 전부 삭제 (데모 데이터 생성기가 재생성 전 초기화할 때 사용)
     int deleteTransactionsByAccount(Long accountId);
+
+    // 회원의 모든 연동 계좌를 통틀어 순입금액(입금-출금) 합계. since가 null이면 전체 기간(=총 투자원금)
+    long sumNetDeposits(@Param("memberId") String memberId, @Param("since") LocalDate since);
+
+    // 기간별 손익 계산 전용: 계좌별 "기준 스냅샷 날짜" 이후의 순입금액만 합산.
+    // (기간 시작일이 아니라 실제 스냅샷 날짜를 기준으로 삼아야, 스냅샷에 이미 반영된 입출금이
+    //  순입금액에서 다시 한번 빠지는 이중 차감을 막을 수 있다)
+    long sumNetDepositsSinceBaseline(@Param("memberId") String memberId, @Param("periodStart") LocalDate periodStart);
 }

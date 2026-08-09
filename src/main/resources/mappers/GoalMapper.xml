@@ -6,16 +6,32 @@
 
     <insert id="insertGoal" parameterType="com.kh.demo.goal.dto.GoalDto"
             useGeneratedKeys="true" keyProperty="goalId">
-        INSERT INTO goal(member_id, goal_type, title, target_value)
-        VALUES(#{memberId}, #{goalType}, #{title}, #{targetValue})
+        INSERT INTO goal(member_id, goal_type, title, target_value, target_date)
+        VALUES(#{memberId}, #{goalType}, #{title}, #{targetValue}, #{targetDate})
     </insert>
 
-    <select id="selectLatestGoalByMember" resultType="com.kh.demo.goal.dto.GoalDto">
-        SELECT goal_id, member_id, goal_type, title, target_value, create_at
+    <!-- 유예기간(2일): 기한이 지나도 이틀까지는 대시보드에 그대로 남겨둔다 -->
+    <select id="selectActiveGoalsByMember" parameterType="string" resultType="com.kh.demo.goal.dto.GoalDto">
+        SELECT goal_id, member_id, goal_type, title, target_value, target_date, create_at
         FROM goal
         WHERE member_id = #{memberId}
-        ORDER BY create_at DESC
-        LIMIT 1
+          AND (target_date IS NULL OR target_date >= DATE_SUB(CURDATE(), INTERVAL 2 DAY))
+        ORDER BY (target_date IS NULL), target_date ASC, create_at DESC
     </select>
+
+    <select id="selectGoalHistoryByMember" parameterType="string" resultType="com.kh.demo.goal.dto.GoalDto">
+        SELECT goal_id, member_id, goal_type, title, target_value, target_date, create_at
+        FROM goal
+        WHERE member_id = #{memberId}
+          AND target_date IS NOT NULL
+          AND target_date &lt; DATE_SUB(CURDATE(), INTERVAL 2 DAY)
+        ORDER BY target_date DESC
+    </select>
+
+    <delete id="deleteGoal">
+        DELETE FROM goal
+        WHERE goal_id = #{goalId}
+          AND member_id = #{memberId}
+    </delete>
 
 </mapper>
