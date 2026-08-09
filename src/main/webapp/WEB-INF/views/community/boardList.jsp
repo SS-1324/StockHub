@@ -7,9 +7,14 @@
 <%-- 공통 헤더 --%>
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
+
+<%-- 기존 금·은·동 랭킹 CSS --%>
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/ranking.css?v=7">
+
 <%-- 커뮤니티 전용 CSS --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css">
+      href="${pageContext.request.contextPath}/css/board.css?v=4">
 
 
 <%-- =========================================================

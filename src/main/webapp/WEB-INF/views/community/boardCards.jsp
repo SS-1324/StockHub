@@ -11,15 +11,66 @@
 <c:url var="communityUrl" value="/community" scope="request" />
 
 <c:forEach var="board" items="${boardList}">
-    <a class="board-card" href="${communityUrl}/${board.boardId}">
-        <div class="board-card-header">
-            <img class="board-card-avatar" src="${board.profile}" alt="${board.nickname}">
-            <div class="board-card-header-text">
-                <span class="board-card-nickname">${board.nickname}</span>
-                <span class="board-card-date">${board.createAtStr}</span>
-            </div>
-        </div>
 
+    <%-- 작성자의 현재 수익률 순위에 따라 기존 랭킹 CSS 클래스 선택 --%>
+    <c:set var="boardRankClass" value="" />
+
+    <c:choose>
+        <c:when test="${board.rankPosition eq 1}">
+            <c:set var="boardRankClass"
+                   value="rank-first" />
+        </c:when>
+
+        <c:when test="${board.rankPosition eq 2}">
+            <c:set var="boardRankClass"
+                   value="rank-second" />
+        </c:when>
+
+        <c:when test="${board.rankPosition eq 3}">
+            <c:set var="boardRankClass"
+                   value="rank-third" />
+        </c:when>
+    </c:choose>
+
+    <a class="board-card"
+       href="${communityUrl}/${board.boardId}">
+
+        <div class="board-card-header ${boardRankClass}">
+
+            <c:choose>
+
+                <%-- 수익률 1~3위는 기존 랭킹 프로필 프레임 사용 --%>
+                <c:when test="${not empty boardRankClass}">
+                    <span class="ranking-avatar-frame
+                                 board-card-rank-frame
+                                 ${boardRankClass}">
+
+                        <img class="board-card-avatar"
+                             src="${board.profile}"
+                             alt="${board.nickname}">
+                    </span>
+                </c:when>
+
+                <%-- 일반 회원은 기존 프로필 유지 --%>
+                <c:otherwise>
+                    <img class="board-card-avatar"
+                         src="${board.profile}"
+                         alt="${board.nickname}">
+                </c:otherwise>
+
+            </c:choose>
+
+            <div class="board-card-header-text">
+                <span class="board-card-nickname">
+                    ${board.nickname}
+                </span>
+
+                <span class="board-card-date">
+                    ${board.createAtStr}
+                </span>
+            </div>
+
+        </div>
         <c:if test="${not empty board.title}">
             <div class="board-card-title"><c:out value="${board.title}" /></div>
         </c:if>

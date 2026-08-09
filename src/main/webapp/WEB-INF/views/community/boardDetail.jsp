@@ -4,7 +4,16 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css?v=2">
+<%-- 기존 금·은·동 랭킹 CSS --%>
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/ranking.css?v=7">
+
+<%--
+    커뮤니티 전용 CSS.
+    v 값은 CSS 내용을 바꾼 뒤 브라우저가 예전 파일을 재사용하지 않고 새로 받게 하는 캐시 갱신 번호다.
+--%>
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/board.css?v=7">
 
 <c:if test="${not empty error}">
     <p class="alert alert-error">${error}</p>
@@ -26,15 +35,62 @@
     </div>
 </c:if>
 
+<%--
+    게시글 본문과 댓글은 서로 별개의 글이 아니라 하나의 대화 흐름이다.
+    두 영역을 하나의 바깥 카드로 묶어 테두리·둥근 모서리·그림자를 공유한다.
+--%>
+<div class="board-thread-card">
+
 <div class="board-detail-card">
 
 <%-- 제목은 선택 입력: 있으면 제목 -> 이미지 -> 내용, 없으면 이미지 -> 내용 순서로만 노출 --%>
 <c:if test="${not empty board.title}">
     <h2 class="board-title"><c:out value="${board.title}" /></h2>
 </c:if>
+<%-- 상세 게시글 작성자의 수익률 순위 클래스 --%>
+<c:set var="boardRankClass" value="" />
 
-<div class="board-header-meta">
-    <img class="board-header-avatar" src="${board.profile}" alt="${board.nickname}">
+<c:choose>
+    <c:when test="${board.rankPosition eq 1}">
+        <c:set var="boardRankClass"
+               value="rank-first" />
+    </c:when>
+
+    <c:when test="${board.rankPosition eq 2}">
+        <c:set var="boardRankClass"
+               value="rank-second" />
+    </c:when>
+
+    <c:when test="${board.rankPosition eq 3}">
+        <c:set var="boardRankClass"
+               value="rank-third" />
+    </c:when>
+</c:choose>
+<div class="board-header-meta ${boardRankClass}">
+
+    <c:choose>
+
+        <%-- 수익률 1~3위 작성자 --%>
+        <c:when test="${not empty boardRankClass}">
+            <span class="ranking-avatar-frame
+                         board-detail-rank-frame
+                         ${boardRankClass}">
+
+                <img class="board-header-avatar"
+                     src="${board.profile}"
+                     alt="${board.nickname}">
+            </span>
+        </c:when>
+
+        <%-- 일반 작성자 --%>
+        <c:otherwise>
+            <img class="board-header-avatar"
+                 src="${board.profile}"
+                 alt="${board.nickname}">
+        </c:otherwise>
+
+    </c:choose>
+
     <span>${board.nickname}</span>
     <span>${board.createAtStr}</span>
 </div>
@@ -99,10 +155,17 @@
 
     <c:choose>
         <c:when test="${not empty loginMemberId}">
-            <button type="button" id="comment-form-toggle" class="comment-form-toggle">댓글 달기</button>
-            <form id="comment-form" class="comment-form hidden" data-board-id="${board.boardId}">
-                <textarea id="comment-input" placeholder="댓글을 입력하세요" maxlength="1500" required></textarea>
-                <button type="submit" class="btn btn-primary">등록</button>
+            <%--
+                댓글 입력은 자주 쓰는 핵심 기능이므로 접기/펼치기 버튼 없이 항상 보여준다.
+                textarea를 별도 래퍼로 감싼 이유는 board.js가 만드는 글자 수(0/1500)를
+                입력창 오른쪽 아래에 안정적으로 배치하기 위해서다.
+            --%>
+            <form id="comment-form" class="comment-form" data-board-id="${board.boardId}">
+                <div class="comment-input-wrap">
+                    <textarea id="comment-input" aria-label="댓글 내용"
+                              placeholder="댓글을 입력하세요" maxlength="1500" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary comment-submit-btn">등록</button>
             </form>
         </c:when>
         <c:otherwise>
@@ -166,6 +229,8 @@
             </div>
         </c:forEach>
     </div>
+</div>
+
 </div>
 
 <script src="/js/board.js"></script>

@@ -10,17 +10,62 @@ const boardWriteForm = document.querySelector("#board-write-form");
 const likeBtn = document.querySelector("#like-btn");
 const bookmarkBtn = document.querySelector("#bookmark-btn");
 const commentForm = document.querySelector("#comment-form");
-const commentFormToggle = document.querySelector("#comment-form-toggle");
 const commentList = document.querySelector("#comment-list");
 
-/* "댓글 달기" 버튼 - 누르면 말풍선 모양 입력창이 펼쳐지고, 다시 누르면 접힌다 */
-if (commentFormToggle && commentForm) {
-    commentFormToggle.addEventListener("click", function(){
-        const opened = commentForm.classList.toggle("hidden") === false;
-        if (opened) {
-            document.querySelector("#comment-input").focus();
-        }
+/*
+ * 본문 편집기는 글자 서식만 저장한다. 클립보드/드래그 이미지를 Quill 본문에 넣으면
+ * base64 데이터가 content HTML에 포함되므로, 이미지는 별도의 첨부 영역만 사용하게 한다.
+ * 서버도 img 태그를 제거하지만 여기서 먼저 막아 사용자가 등록 직전에 실패하지 않도록 한다.
+ */
+function preventInlineEditorImages(editor){
+    if (!editor || !editor.root || editor.root.dataset.imageGuardBound) {
+        return;
+    }
+    editor.root.dataset.imageGuardBound = "true";
+
+    const Delta = Quill.import("delta");
+    editor.clipboard.addMatcher("img", function(){
+        return new Delta();
     });
+
+    function containsImage(dataTransfer){
+        if (!dataTransfer) {
+            return false;
+        }
+
+        const hasImageFile = Array.from(dataTransfer.items || []).some(function(item){
+            return item.kind === "file" && item.type.startsWith("image/");
+        });
+        const html = dataTransfer.getData("text/html") || "";
+        return hasImageFile || /<img\b/i.test(html);
+    }
+
+    editor.root.addEventListener("paste", function(ev){
+        if (!containsImage(ev.clipboardData)) {
+            return;
+        }
+
+        const hasImageFile = Array.from(ev.clipboardData.items || []).some(function(item){
+            return item.kind === "file" && item.type.startsWith("image/");
+        });
+        if (hasImageFile) {
+            ev.preventDefault();
+        }
+        alert("본문에는 이미지를 넣을 수 없습니다. 아래 이미지 첨부를 이용해 주세요.");
+    }, true);
+
+    editor.root.addEventListener("drop", function(ev){
+        if (!containsImage(ev.dataTransfer)) {
+            return;
+        }
+        ev.preventDefault();
+        ev.stopPropagation();
+        alert("본문에는 이미지를 넣을 수 없습니다. 아래 이미지 첨부를 이용해 주세요.");
+    }, true);
+}
+
+if (typeof quill !== "undefined") {
+    preventInlineEditorImages(quill);
 }
 
 /* 글쓰기 폼 제출 - 일반 폼 네비게이션 대신 fetch로 보내고, 성공하면 location.replace()로 상세 이동.

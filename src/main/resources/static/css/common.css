@@ -5,6 +5,14 @@
     padding: 0;
 }
 
+/*다크모드 전환*/
+
+html.theme-changing *,
+html.theme-changing *::before,
+html.theme-changing *::after {
+    transition: none !important;
+}
+
 /* 전체 화면의 배경색과 기본 글꼴 */
 /* 전체 화면의 그라데이션 배경과 기본 글꼴 */
 body {
@@ -1675,4 +1683,11 @@ html[data-theme="dark"] .login-member-links{
     .inquiry-actions{
         padding: 0 20px 20px;
     }
+}
+/*
+    카테고리마다 게시글 개수가 달라도 세로 스크롤바 자리를 항상 확보한다.
+    스크롤바가 생겼다 사라지면서 페이지 전체가 좌우로 움직이는 현상을 막는다.
+*/
+html{
+    scrollbar-gutter: stable;
 }

@@ -14,7 +14,21 @@ if (code && typeof isSupportedCode === 'function' && !isSupportedCode(code)) {
 const period = new URLSearchParams(window.location.search).get('period')
     || (typeof resolvedPeriod !== 'undefined' ? resolvedPeriod : 'day');
 
+// 티커테이프 위젯(tv-ticker-tape)도 advanced chart와 마찬가지로 사이트 테마에 맞춰
+// color-theme 속성을 갱신한다. 이 위젯은 속성 변경만으로 즉시 반영되는 커스텀 엘리먼트라
+// advanced chart처럼 재마운트할 필요는 없음
+function syncTickerTapeTheme() {
+    const tickerTape = document.querySelector('tv-ticker-tape');
+    if (!tickerTape) return;
+    const theme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+    tickerTape.setAttribute('color-theme', theme);
+}
+
 document.addEventListener('DOMContentLoaded', function () {
+    syncTickerTapeTheme();
+    new MutationObserver(syncTickerTapeTheme)
+        .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
     // 최신글 5개를 왼쪽 열부터 채우고, 나머지를 오른쪽 열에 배치한다.
     const communityGrid = document.querySelector('.home-community-grid');
     if (communityGrid && !communityGrid.querySelector('.home-community-column')) {
@@ -63,12 +77,13 @@ document.addEventListener('DOMContentLoaded', function () {
         .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
     const chat = setupChatPanel(code);
-    setupChartHeader(tvChart, code, chat);
+    const voteWidget = setupVoteWidget(code);
+    setupChartHeader(tvChart, code, chat, voteWidget);
     setupFullscreenToggle();
 });
 
 // 헤더 왼쪽 종목명 표시 + 오른쪽 빠른 종목 전환 버튼 5개를 구성
-function setupChartHeader(tvChart, initialCode, chat) {
+function setupChartHeader(tvChart, initialCode, chat, voteWidget) {
     const nameEl = document.getElementById('chart-symbol-name');
     const buttonsWrap = document.getElementById('chart-symbol-buttons');
     if (!nameEl || !buttonsWrap || typeof StockHubTradingViewChart === 'undefined') return;
@@ -94,9 +109,12 @@ function setupChartHeader(tvChart, initialCode, chat) {
             tvChart.setSymbol(quickCode, tvChart.getCurrentPeriod());
             setActiveCode(quickCode);
 
-            // 채팅도 지금 보고 있는 종목 방으로 갈아탐
+            // 채팅과 투표 카드도 지금 보고 있는 종목으로 갈아탐
             if (chat) {
                 chat.switchStock(quickCode);
+            }
+            if (voteWidget) {
+                voteWidget.switchStock(quickCode);
             }
 
             const url = new URL(window.location.href);
@@ -314,6 +332,91 @@ function setupChatPanel(initialStockCode) {
             currentStockCode = newStockCode;
             loadRecentMessages(newStockCode);
             subscribeStock(newStockCode);
+        },
+    };
+}
+
+// 종목별 "살까?팔까?" 실시간 투표 카드. 현황을 REST로 불러오고, 버튼을 누르면 투표를 보냄.
+// 종목이 바뀌면 switchStock()으로 다시 불러옴 (반환값은 setupChartHeader의 종목 전환 버튼에서 호출됨)
+function setupVoteWidget(initialStockCode) {
+    const titleEl = document.getElementById('stock-vote-title');
+    const participantsEl = document.getElementById('stock-vote-participants');
+    const barUpEl = document.getElementById('stock-vote-bar-up');
+    const barDownEl = document.getElementById('stock-vote-bar-down');
+    const upLabelEl = document.getElementById('stock-vote-up-label');
+    const downLabelEl = document.getElementById('stock-vote-down-label');
+    const upBtn = document.getElementById('stock-vote-up-btn');
+    const downBtn = document.getElementById('stock-vote-down-btn');
+    if (!titleEl || !participantsEl || !barUpEl || !barDownEl || !upBtn || !downBtn) return null;
+
+    // 다른 사람이 새로 남긴 투표도 자연스럽게 반영되도록 일정 주기로 다시 불러옴
+    const REFRESH_INTERVAL_MS = 20000;
+
+    let currentStockCode = initialStockCode;
+    const numberFormatter = new Intl.NumberFormat('ko-KR');
+
+    function render(result) {
+        titleEl.textContent = `${result.stockName}, 지금 팔까?`;
+        participantsEl.textContent = `${numberFormatter.format(result.totalCount)}명 참여`;
+
+        barUpEl.style.width = `${result.upPercent}%`;
+        barDownEl.style.width = `${result.downPercent}%`;
+        upLabelEl.textContent = `▲ 상승 ${result.upPercent}%`;
+        downLabelEl.textContent = `하락 ${result.downPercent}% ▼`;
+
+        upBtn.classList.toggle('selected', result.myVote === 'UP');
+        downBtn.classList.toggle('selected', result.myVote === 'DOWN');
+    }
+
+    function loadResult(stockCode) {
+        fetch(`/api/hub/vote/${encodeURIComponent(stockCode)}`)
+            .then((res) => res.json())
+            .then((res) => {
+                // 응답이 오는 사이 다른 종목으로 전환됐으면 화면에 반영하지 않음
+                if (!res.success || stockCode !== currentStockCode) return;
+                render(res.data);
+            })
+            .catch(() => {});
+    }
+
+    function sendVote(voteType) {
+        if (typeof isLoggedIn !== 'undefined' && !isLoggedIn) {
+            alert('로그인이 필요합니다.');
+            return;
+        }
+        upBtn.disabled = true;
+        downBtn.disabled = true;
+        fetch(`/api/hub/vote/${encodeURIComponent(currentStockCode)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ voteType }),
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                if (!res.success) {
+                    alert(res.message || '투표에 실패했습니다.');
+                    return;
+                }
+                render(res.data);
+            })
+            .catch(() => alert('투표에 실패했습니다.'))
+            .finally(() => {
+                upBtn.disabled = false;
+                downBtn.disabled = false;
+            });
+    }
+
+    upBtn.addEventListener('click', () => sendVote('UP'));
+    downBtn.addEventListener('click', () => sendVote('DOWN'));
+
+    loadResult(currentStockCode);
+    setInterval(() => loadResult(currentStockCode), REFRESH_INTERVAL_MS);
+
+    return {
+        switchStock(newStockCode) {
+            if (newStockCode === currentStockCode) return;
+            currentStockCode = newStockCode;
+            loadResult(newStockCode);
         },
     };
 }

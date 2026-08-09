@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- StockVoteMapper 인터페이스와 종목 투표("살까?팔까?") SQL을 연결 -->
+<mapper namespace="com.kh.demo.hub.mapper.StockVoteMapper">
+
+    <!-- 투표가 하나도 없으면 SUM이 NULL이 되므로 COALESCE로 0을 보장 -->
+    <select id="selectVoteCounts" resultType="com.kh.demo.hub.dto.VoteCountsDto">
+        SELECT
+            COALESCE(SUM(CASE WHEN vote_type = 'UP' THEN 1 ELSE 0 END), 0) AS upCount,
+            COALESCE(SUM(CASE WHEN vote_type = 'DOWN' THEN 1 ELSE 0 END), 0) AS downCount
+        FROM stock_vote
+        WHERE stock_code = #{stockCode}
+    </select>
+
+    <select id="selectMyVote" resultType="string">
+        SELECT vote_type FROM stock_vote
+        WHERE stock_code = #{stockCode} AND member_id = #{memberId}
+    </select>
+
+    <insert id="upsertVote">
+        INSERT INTO stock_vote (stock_code, member_id, vote_type)
+        VALUES (#{stockCode}, #{memberId}, #{voteType})
+        ON DUPLICATE KEY UPDATE vote_type = VALUES(vote_type), voted_at = CURRENT_TIMESTAMP
+    </insert>
+
+</mapper>

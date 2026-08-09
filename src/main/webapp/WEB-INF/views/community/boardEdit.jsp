@@ -87,13 +87,17 @@
 
     // hidden input에 미리 담아둔 기존 글 내용을 에디터에 채워 넣는다.
     const existingContent = document.getElementById('content').value;
+
     if (existingContent) {
-        quill.root.innerHTML = existingContent;
-    }
+   quill.clipboard.dangerouslyPasteHTML(
+        existingContent,
+        'silent'
+    );
+}
 
     // 폼이 제출되기 직전에 Quill 안의 최신 HTML을 hidden input(content)으로 다시 옮긴다.
     document.getElementById('board-edit-form').addEventListener('submit', function () {
-        document.getElementById('content').value = quill.root.innerHTML;
+        document.getElementById('content').value = quill.getSemanticHTML();
     });
 </script>
 <script src="/js/board.js"></script>

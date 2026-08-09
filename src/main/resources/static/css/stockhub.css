@@ -7,13 +7,18 @@
 }
 
 /* 티커바는 .container의 960px 제한과 상관없이 뷰포트 전체 폭으로 펼치고,
-   .container의 top padding(32px)을 상쇄해서 헤더 바로 아래에 붙임 */
+   .container의 top padding(32px)을 상쇄해서 헤더 바로 아래에 붙임.
+   음수 margin-top은 다음 형제 요소(제목 H2)의 위치에도 그대로 반영돼 32px만큼
+   끌어올리므로, margin-bottom으로 그만큼 되돌려서 제목이 티커바에 가려지지 않게 함.
+   overflow:hidden은 위젯 실제 렌더링 높이가 35px보다 커질 때 아래 제목을 덮지 않도록 잘라냄 */
 .hub-ticker-tape {
     display: block;
     width: 100vw;
+    overflow: hidden;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
     margin-top: -32px;
+    margin-bottom: 32px;
     padding: 0;
 }
 
@@ -254,4 +259,150 @@ html[data-theme="dark"] .chat-panel {
 .chart-wrapper:-webkit-full-screen .chart-body {
     flex: 1;
     height: auto;
+}
+
+/* 종목별 "살까?팔까?" 실시간 투표 카드. 색/배경은 .chart-wrapper와 같은 규칙을 그대로 씀 */
+.stock-vote-card {
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto 40px;
+    padding: 24px;
+    border-radius: 12px;
+    background: #eef1fb;
+    transition: background-color 0.2s ease;
+}
+
+html[data-theme="dark"] .stock-vote-card {
+    background: #10151f;
+}
+
+.stock-vote-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.stock-vote-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* board.css의 category-badge와 같은 배지 색을 재사용해 사이트 전체와 톤을 맞춤 */
+.stock-vote-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #536bdb;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.stock-vote-live,
+.stock-vote-participants,
+.stock-vote-subtitle {
+    font-size: 13px;
+    color: rgba(128, 128, 128, 0.9);
+}
+
+.stock-vote-title {
+    margin: 0 0 4px;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.stock-vote-subtitle {
+    margin: 0 0 20px;
+}
+
+.stock-vote-bar {
+    display: flex;
+    width: 100%;
+    height: 38px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    background: rgba(128, 128, 128, 0.15);
+}
+
+.stock-vote-bar-up,
+.stock-vote-bar-down {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: width 0.3s ease;
+}
+
+/* 국내 주식 관례대로 상승은 빨강, 하락은 파랑 */
+.stock-vote-bar-up {
+    background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+.stock-vote-bar-down {
+    background: linear-gradient(90deg, #60a5fa, #2563eb);
+}
+
+.stock-vote-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.stock-vote-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.stock-vote-btn-up {
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    background: rgba(239, 68, 68, 0.08);
+    color: #ef4444;
+}
+
+.stock-vote-btn-up:hover {
+    background: rgba(239, 68, 68, 0.16);
+}
+
+.stock-vote-btn-up.selected {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #fff;
+}
+
+.stock-vote-btn-down {
+    border: 1px solid rgba(37, 99, 235, 0.4);
+    background: rgba(37, 99, 235, 0.08);
+    color: #2563eb;
+}
+
+.stock-vote-btn-down:hover {
+    background: rgba(37, 99, 235, 0.16);
+}
+
+.stock-vote-btn-down.selected {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+}
+
+.stock-vote-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }

@@ -1,14 +1,15 @@
 package com.kh.demo.community.service;
 
-
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import com.kh.demo.community.dto.BoardDto;
 import com.kh.demo.community.dto.BoardImageDto;
 import com.kh.demo.community.mapper.BoardBookmarkMapper;
 import com.kh.demo.community.mapper.BoardLikeMapper;
 import com.kh.demo.community.mapper.BoardMapper;
+import com.kh.demo.ranking.dto.RankingDto;
+import com.kh.demo.ranking.service.RankingService;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.safety.Safelist;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -101,6 +102,10 @@ public class BoardServiceImpl implements BoardService {
     @Autowired
     private TermHighlightService termHighlightService;
 
+    // 게시판 작성자의 현재 수익률 순위를 조회
+    @Autowired
+    private RankingService rankingService;
+
     @Override
     public Map<String, String> getAllowedCategories() {
         return CATEGORY_LABELS;
@@ -169,6 +174,8 @@ public class BoardServiceImpl implements BoardService {
         if (boardList.isEmpty()) {
             return boardList;
         }
+        // 게시글 작성자에게 현재 수익률 순위를 연결
+        attachRankPositions(boardList);
 
         List<Long> boardIds = boardList.stream()
                 .map(BoardDto::getBoardId)
@@ -431,6 +438,8 @@ public class BoardServiceImpl implements BoardService {
                     "게시글을 찾을 수 없습니다."
             );
         }
+        // 상세 게시글 작성자에게 현재 수익률 순위를 연결
+        attachRankPosition(board);
 
         board.setLiked(
                 loginMemberId != null
@@ -666,7 +675,9 @@ public class BoardServiceImpl implements BoardService {
             );
         }
 
-        if (boardDto.getContent().length()
+        // Quill의 서식용 HTML 길이가 아니라 사용자가 실제로 입력한 본문 글자 수를 센다.
+        // 특히 붙여넣은 이미지의 data URL처럼 화면에 보이지 않는 값이 제한에 포함되면 안 된다.
+        if (visibleContent.length()
                 > MAX_CONTENT_LENGTH) {
 
             throw new IllegalArgumentException(
@@ -675,5 +686,59 @@ public class BoardServiceImpl implements BoardService {
                             + "자를 넘을 수 없습니다."
             );
         }
+    }
+
+    /*
+     * 현재 수익률 랭킹의 1~3위를
+     * memberId -> rankPosition 형태로 변환한다.
+     */
+    private Map<String, Integer> getTopRankPositions() {
+
+        return rankingService.getRankingBoard()
+                .stream()
+                .filter(ranking ->
+                        ranking.getMemberId() != null
+                                && ranking.getRankPosition() != null
+                                && ranking.getRankPosition() <= 3
+                )
+                .collect(Collectors.toMap(
+                        RankingDto::getMemberId,
+                        RankingDto::getRankPosition,
+                        (existing, replacement) -> existing
+                ));
+    }
+
+    /*
+     * 게시글 목록의 모든 작성자에게 순위를 연결한다.
+     */
+    private void attachRankPositions(
+            List<BoardDto> boardList
+    ) {
+        Map<String, Integer> topRankPositions =
+                getTopRankPositions();
+
+        for (BoardDto board : boardList) {
+            board.setRankPosition(
+                    topRankPositions.get(board.getMemberId())
+            );
+        }
+    }
+
+    /*
+     * 게시글 상세 하나의 작성자에게 순위를 연결한다.
+     */
+    private void attachRankPosition(
+            BoardDto board
+    ) {
+        if (board == null || board.getMemberId() == null) {
+            return;
+        }
+
+        Map<String, Integer> topRankPositions =
+                getTopRankPositions();
+
+        board.setRankPosition(
+                topRankPositions.get(board.getMemberId())
+        );
     }
 }

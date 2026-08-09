@@ -282,6 +282,26 @@ CREATE TABLE IF NOT EXISTS stock_chat (
     INDEX IDX_STOCK_CHAT_MEMBER (member_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='종목별 실시간 채팅';
 
+-- 종목별 상승/하락 의견 투표 ("살까?팔까?" 실시간 투표)
+CREATE TABLE IF NOT EXISTS stock_vote (
+    vote_id     BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '투표 번호(PK)',
+    stock_code  VARCHAR(20)     NOT NULL COMMENT '투표 대상 종목(FK)',
+    member_id   VARCHAR(50)     NOT NULL COMMENT '투표한 회원(FK)',
+    vote_type   ENUM('UP', 'DOWN') NOT NULL COMMENT '상승/하락 의견',
+    voted_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP COMMENT '투표(의견 변경 포함) 일시',
+
+    CONSTRAINT PK_STOCK_VOTE PRIMARY KEY (vote_id),
+    CONSTRAINT UQ_STOCK_VOTE_MEMBER UNIQUE (stock_code, member_id),
+    CONSTRAINT FK_STOCK_TO_STOCK_VOTE
+        FOREIGN KEY (stock_code) REFERENCES stock (stock_code)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT FK_MEMBER_TO_STOCK_VOTE
+        FOREIGN KEY (member_id) REFERENCES member (member_id)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    INDEX IDX_STOCK_VOTE_STOCK (stock_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='종목별 상승/하락 의견 투표';
+
 -- 시세 변동 기록
 CREATE TABLE IF NOT EXISTS stock_price_history (
     history_id   BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '시세 기록 번호(PK)',

@@ -7,5 +7,5 @@ public class SessionConst {
     public static final String LOGIN_MEMBER = "loginMember";
 
     // 객체 생성을 막는 생성자
-    private SessionConst(){};
+    private SessionConst(){}
 }
