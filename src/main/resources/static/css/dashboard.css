@@ -236,9 +236,9 @@
     font-size: 11px;
 }
 
-/* 보유 주식 컨트롤: 주/종목 전환, 정렬, 목록·차트 전환 */
+/* 보유 주식 헤더: 제목 옆엔 주/종목 전환 · 차트 팝업 버튼, 오른쪽엔 정렬만 남긴다 */
 
-.dashboard-holdings-controls{
+.dashboard-holdings-title-group{
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -258,7 +258,26 @@
     cursor: pointer;
 }
 
+.dashboard-chart-open-btn{
+    padding: 6px 14px;
+    border: 1px solid #dce5f3;
+    border-radius: 999px;
+    background: #fff;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.dashboard-chart-open-btn:hover{
+    border-color: #0874f7;
+    color: #0874f7;
+}
+
 .dashboard-holdings-sort{
+    width: auto;
     padding: 6px 12px;
     border: 1px solid #dce5f3;
     border-radius: 999px;
@@ -270,39 +289,61 @@
     cursor: pointer;
 }
 
-.dashboard-view-toggle{
+/* 보유 주식 - 원그래프(도넛) 팝업 */
+
+.dashboard-portfolio-dialog{
+    /* common.css의 전역 * { margin: 0 } 리셋이 dialog 기본 margin:auto 중앙 정렬을 깨뜨려서 명시적으로 복구 */
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: min(90vw, 460px);
+    height: fit-content;
+    padding: 24px;
+    border: 1px solid #e1e8f5;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 20px 48px rgba(40, 73, 128, 0.18);
+}
+
+.dashboard-portfolio-dialog::backdrop{
+    background: rgba(15, 23, 42, 0.45);
+}
+
+.dashboard-portfolio-dialog-header{
     display: flex;
     align-items: center;
-    gap: 3px;
+    justify-content: space-between;
+    margin-bottom: 18px;
 }
 
-.dashboard-view-tab{
-    padding: 6px 14px;
-    border: 1px solid #dce5f3;
-    border-radius: 999px;
-    background: #fff;
-    color: #64748b;
-    font-size: 13px;
-    font-weight: 700;
-    line-height: 1.4;
+.dashboard-portfolio-dialog-header h3{
+    color: #172033;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.dashboard-portfolio-dialog-close{
+    padding: 2px 8px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: #94a3b8;
+    font-size: 20px;
+    line-height: 1;
     cursor: pointer;
-    white-space: nowrap;
 }
 
-.dashboard-view-tab.is-active{
-    border-color: #0874f7;
-    background: #0874f7;
-    color: #fff;
+.dashboard-portfolio-dialog-close:hover{
+    background: #f1f5f9;
+    color: #172033;
 }
-
-/* 보유 주식 - 원그래프(도넛) 뷰 */
 
 .dashboard-portfolio-chart{
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 32px;
-    padding: 12px 4px 4px;
+    justify-content: center;
+    gap: 24px;
 }
 
 .dashboard-portfolio-donut{
@@ -569,9 +610,8 @@
     gap: 10px;
 }
 
-/* display:flex가 [hidden]보다 우선 적용돼서 눌러도 항상 펼쳐져(또는 항상 보여져) 있던 문제 수정 */
-.dashboard-inline-form[hidden],
-.dashboard-portfolio-chart[hidden]{
+/* display:flex가 [hidden]보다 우선 적용돼서 버튼을 눌러도 항상 펼쳐져 보이던 문제 수정 */
+.dashboard-inline-form[hidden]{
     display: none;
 }
 
@@ -730,18 +770,37 @@ html[data-theme="dark"] .dashboard-period-tab.is-active{
 }
 
 html[data-theme="dark"] .dashboard-holdings-sort,
-html[data-theme="dark"] .dashboard-view-tab,
+html[data-theme="dark"] .dashboard-chart-open-btn,
 html[data-theme="dark"] .dashboard-timeline-page-btn{
     background: #1e293b;
     border-color: #334155;
     color: #cbd5e1;
 }
 
-html[data-theme="dark"] .dashboard-view-tab.is-active,
+html[data-theme="dark"] .dashboard-chart-open-btn:hover{
+    border-color: #0874f7;
+    color: #0874f7;
+}
+
 html[data-theme="dark"] .dashboard-timeline-page-btn.is-active{
     border-color: #0874f7;
     background: #0874f7;
     color: #fff;
+}
+
+html[data-theme="dark"] .dashboard-portfolio-dialog{
+    border-color: #334155;
+    background: #172033;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="dark"] .dashboard-portfolio-dialog-header h3{
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] .dashboard-portfolio-dialog-close:hover{
+    background: #1e293b;
+    color: #f8fafc;
 }
 
 html[data-theme="dark"] .dashboard-portfolio-donut::after{
@@ -861,8 +920,8 @@ html[data-theme="dark"] .dashboard-portfolio-legend-name{
         flex-wrap: wrap;
     }
 
-    .dashboard-holdings-controls{
-        flex-wrap: wrap;
+    .dashboard-portfolio-dialog{
+        padding: 20px;
     }
 
     .dashboard-portfolio-donut{

@@ -180,33 +180,32 @@
     <%-- 보유 주식 --%>
     <section class="dashboard-holdings" aria-labelledby="stock-holdings-title">
         <div class="dashboard-section-heading">
-            <h2 id="stock-holdings-title">보유 주식</h2>
-            <c:if test="${not empty stockSummary.holdings}">
-                <div class="dashboard-holdings-controls">
+            <div class="dashboard-holdings-title-group">
+                <h2 id="stock-holdings-title">보유 주식</h2>
+                <c:if test="${not empty stockSummary.holdings}">
                     <button type="button" id="stock-holdings-count-toggle" class="dashboard-count-toggle"
                             data-mode="quantity"
                             data-quantity-text="<fmt:formatNumber value='${stockSummary.totalStockQuantity}' pattern='#,##0'/>주"
                             data-stock-text="<c:out value='${fn:length(stockSummary.holdings)}'/>종목">
                         <fmt:formatNumber value="${stockSummary.totalStockQuantity}" pattern="#,##0"/>주
                     </button>
-                    <select id="stock-holdings-sort" class="dashboard-holdings-sort" aria-label="보유 주식 정렬">
-                        <option value="default">기본순</option>
-                        <option value="returnRate">수익률순</option>
-                        <option value="quantity">수량순</option>
-                        <option value="name">가나다순</option>
-                        <option value="price">현재가순</option>
-                    </select>
-                    <span class="dashboard-view-toggle" role="tablist" aria-label="보유 주식 보기 방식">
-                        <button type="button" class="dashboard-view-tab is-active" data-view="list">목록</button>
-                        <button type="button" class="dashboard-view-tab" data-view="chart">차트</button>
-                    </span>
-                </div>
+                    <button type="button" id="stock-holdings-chart-open" class="dashboard-chart-open-btn">차트로 보기</button>
+                </c:if>
+            </div>
+            <c:if test="${not empty stockSummary.holdings}">
+                <select id="stock-holdings-sort" class="dashboard-holdings-sort" aria-label="보유 주식 정렬">
+                    <option value="default">기본순</option>
+                    <option value="returnRate">수익률순</option>
+                    <option value="quantity">수량순</option>
+                    <option value="name">가나다순</option>
+                    <option value="price">현재가순</option>
+                </select>
             </c:if>
         </div>
 
         <c:choose>
             <c:when test="${not empty stockSummary.holdings}">
-                <div class="dashboard-table-wrap" id="stock-holdings-list-view">
+                <div class="dashboard-table-wrap">
                     <table class="dashboard-table">
                         <thead>
                         <tr>
@@ -242,10 +241,17 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="dashboard-portfolio-chart" id="stock-holdings-chart-view" hidden>
-                    <div class="dashboard-portfolio-donut" id="stock-portfolio-donut"></div>
-                    <ul class="dashboard-portfolio-legend" id="stock-portfolio-legend"></ul>
-                </div>
+                <dialog id="stock-portfolio-dialog" class="dashboard-portfolio-dialog">
+                    <div class="dashboard-portfolio-dialog-header">
+                        <h3>보유 주식 구성</h3>
+                        <button type="button" id="stock-portfolio-dialog-close"
+                                class="dashboard-portfolio-dialog-close" aria-label="닫기">&times;</button>
+                    </div>
+                    <div class="dashboard-portfolio-chart">
+                        <div class="dashboard-portfolio-donut" id="stock-portfolio-donut"></div>
+                        <ul class="dashboard-portfolio-legend" id="stock-portfolio-legend"></ul>
+                    </div>
+                </dialog>
             </c:when>
             <c:otherwise>
                 <div class="dashboard-empty">

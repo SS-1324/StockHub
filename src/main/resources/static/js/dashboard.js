@@ -1,12 +1,12 @@
 // 대시보드 전용: 접었다 펼치는 패널(계좌 연동/목표 설정), 기간별 손익 탭 전환,
-// 보유 주식 컨트롤(주/종목 전환·정렬·목록-차트 전환), 최근 활동 페이지네이션
+// 보유 주식 컨트롤(주/종목 전환·정렬·차트 팝업), 최근 활동 페이지네이션
 document.addEventListener("DOMContentLoaded", () => {
     setupTogglePanel(".dashboard-link-account-toggle", "#link-account-panel");
     setupTogglePanel(".dashboard-goal-form-toggle", "#goal-form-panel");
     setupPeriodTabs();
     setupHoldingsCountToggle();
     setupHoldingsSort();
-    setupHoldingsView();
+    setupHoldingsChartDialog();
     setupTimelinePagination();
 });
 
@@ -94,31 +94,35 @@ function setupHoldingsSort() {
     });
 }
 
-// 보유 주식을 표 대신 원그래프(도넛 차트)로도 볼 수 있게 전환한다
-function setupHoldingsView() {
-    const tabs = document.querySelectorAll(".dashboard-view-tab");
-    const listView = document.getElementById("stock-holdings-list-view");
-    const chartView = document.getElementById("stock-holdings-chart-view");
-    if (tabs.length === 0 || !listView || !chartView) {
+// 보유 주식 구성을 원그래프(도넛 차트) 팝업으로 띄운다. 정렬 기준은 목록 전용이라
+// 팝업에는 필요 없으므로, 여기서는 항상 비중이 큰 순서로 독립적으로 그린다.
+function setupHoldingsChartDialog() {
+    const openBtn = document.getElementById("stock-holdings-chart-open");
+    const closeBtn = document.getElementById("stock-portfolio-dialog-close");
+    const dialog = document.getElementById("stock-portfolio-dialog");
+    if (!openBtn || !dialog) {
         return;
     }
 
     let chartBuilt = false;
 
-    tabs.forEach((tab) => {
-        tab.addEventListener("click", () => {
-            tabs.forEach((t) => t.classList.remove("is-active"));
-            tab.classList.add("is-active");
+    openBtn.addEventListener("click", () => {
+        if (!chartBuilt) {
+            buildPortfolioDonut();
+            chartBuilt = true;
+        }
+        dialog.showModal();
+    });
 
-            const view = tab.dataset.view;
-            listView.hidden = view !== "list";
-            chartView.hidden = view !== "chart";
+    if (closeBtn) {
+        closeBtn.addEventListener("click", () => dialog.close());
+    }
 
-            if (view === "chart" && !chartBuilt) {
-                buildPortfolioDonut();
-                chartBuilt = true;
-            }
-        });
+    // 배경(backdrop) 클릭 시 닫기 - dialog 요소 자체를 클릭했을 때만(내부 콘텐츠 클릭은 제외)
+    dialog.addEventListener("click", (e) => {
+        if (e.target === dialog) {
+            dialog.close();
+        }
     });
 }
 
