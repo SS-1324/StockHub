@@ -77,6 +77,10 @@
     color: #5281fb;
 }
 
+.search-result-info{
+    padding: 0 0 12px 0;
+}
+
 /*검색어 자동 완성*/
 
 .autocomplete-search{
