@@ -381,25 +381,93 @@ html[data-theme="dark"] .theme-dark-icon{
     object-fit: cover;
 }
 
+/*
+ * [프레임색상통일-1] 헤더·내 정보·프로필 팝업이 같은 금·은·동 장식값을 공유한다.
+ * 한 곳의 값을 바꾸면 모든 프로필 프레임이 동시에 바뀌므로 화면별 색상 차이가 다시 생기지 않는다.
+ */
+:root{
+    --rank-frame-first-bg: linear-gradient(135deg, #8f6200 0%, #f4c64f 24%, #fff2aa 45%, #d89d13 68%, #fff0a0 82%, #9a6800 100%);
+    --rank-frame-first-shadow: 0 0 0 2px rgba(232, 180, 44, 0.22), 0 5px 15px rgba(211, 151, 20, 0.36);
+    --rank-frame-second-bg: linear-gradient(135deg, #778292 0%, #dce3ec 25%, #ffffff 45%, #a9b5c4 68%, #edf2f7 82%, #7c8797 100%);
+    --rank-frame-second-shadow: 0 0 0 2px rgba(159, 172, 190, 0.2), 0 5px 14px rgba(111, 128, 151, 0.29);
+    --rank-frame-third-bg: linear-gradient(135deg, #7f4325 0%, #d8915c 26%, #f2c09a 45%, #a95f37 68%, #e9a775 84%, #754026 100%);
+    --rank-frame-third-shadow: 0 0 0 2px rgba(188, 111, 64, 0.18), 0 5px 14px rgba(156, 82, 43, 0.3);
+}
+
 /* 공통 헤더 프로필의 1위 금색 프레임 */
 .header-profile-rank-frame.rank-first{
     padding: 3px;
-    background: linear-gradient(135deg, #8f6200 0%, #f4c64f 24%, #fff2aa 45%, #d89d13 68%, #fff0a0 82%, #9a6800 100%);
-    box-shadow: 0 0 0 2px rgba(232, 180, 44, 0.22), 0 3px 11px rgba(211, 151, 20, 0.34);
+    background: var(--rank-frame-first-bg);
+    box-shadow: var(--rank-frame-first-shadow);
 }
 
 /* 공통 헤더 프로필의 2위 은색 프레임 */
 .header-profile-rank-frame.rank-second{
     padding: 3px;
-    background: linear-gradient(135deg, #778292 0%, #dce3ec 25%, #ffffff 45%, #a9b5c4 68%, #edf2f7 82%, #7c8797 100%);
-    box-shadow: 0 0 0 2px rgba(159, 172, 190, 0.2), 0 3px 10px rgba(111, 128, 151, 0.27);
+    background: var(--rank-frame-second-bg);
+    box-shadow: var(--rank-frame-second-shadow);
 }
 
 /* 공통 헤더 프로필의 3위 동색 프레임 */
 .header-profile-rank-frame.rank-third{
     padding: 3px;
-    background: linear-gradient(135deg, #7f4325 0%, #d8915c 26%, #f2c09a 45%, #a95f37 68%, #e9a775 84%, #754026 100%);
-    box-shadow: 0 0 0 2px rgba(188, 111, 64, 0.18), 0 3px 10px rgba(156, 82, 43, 0.28);
+    background: var(--rank-frame-third-bg);
+    box-shadow: var(--rank-frame-third-shadow);
+}
+
+/*
+ * [전체프로필프레임-5] 내 정보·대시보드·프로필 수정에서 공유하는 랭킹 프레임이다.
+ * 화면별로 크기만 정하고 금·은·동 색상과 안쪽 이미지 처리 방식은 한 곳에서 관리한다.
+ */
+.account-profile-rank-frame{
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    box-sizing: border-box;
+}
+
+.account-profile-rank-frame.rank-first,
+.account-profile-rank-frame.rank-second,
+.account-profile-rank-frame.rank-third{
+    padding: 4px;
+}
+
+.account-profile-rank-frame.rank-first{
+    background: var(--rank-frame-first-bg);
+    box-shadow: var(--rank-frame-first-shadow);
+}
+
+.account-profile-rank-frame.rank-second{
+    background: var(--rank-frame-second-bg);
+    box-shadow: var(--rank-frame-second-shadow);
+}
+
+.account-profile-rank-frame.rank-third{
+    background: var(--rank-frame-third-bg);
+    box-shadow: var(--rank-frame-third-shadow);
+}
+
+.account-profile-rank-frame.rank-first > img,
+.account-profile-rank-frame.rank-second > img,
+.account-profile-rank-frame.rank-third > img,
+.account-profile-rank-frame.rank-first > .profile-preview-placeholder,
+.account-profile-rank-frame.rank-second > .profile-preview-placeholder,
+.account-profile-rank-frame.rank-third > .profile-preview-placeholder{
+    border-color: var(--header-bg);
+}
+
+.profile-preview-wrap.profile-edit-rank-frame{
+    width: 96px;
+    height: 96px;
+}
+
+.profile-preview-wrap.profile-edit-rank-frame > .profile-preview{
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
 }
 
 .header-profile-nickname{
@@ -1904,7 +1972,7 @@ body.member-profile-modal-open{
     padding: 32px 38px 36px;
 }
 
-.member-profile-stats button{
+.member-profile-stat{
     display: flex;
     flex: 0 0 118px;
     flex-direction: column;
@@ -1918,12 +1986,16 @@ body.member-profile-modal-open{
     border-radius: 50%;
     background: #f7f9ff;
     color: #233452;
-    cursor: pointer;
+    cursor: default;
     transition: transform .18s ease, border-color .18s ease, background .18s ease;
 }
 
-.member-profile-stats button:hover,
-.member-profile-stats button.is-active{
+button.member-profile-stat{
+    cursor: pointer;
+}
+
+button.member-profile-stat:hover,
+button.member-profile-stat.is-active{
     border-color: #8cacfa;
     background: #edf2ff;
     color: #2f66f6;
@@ -1931,7 +2003,7 @@ body.member-profile-modal-open{
     box-shadow: 0 10px 24px rgba(47, 102, 246, 0.12);
 }
 
-.member-profile-stats button[hidden]{
+.member-profile-stat[hidden]{
     display: none;
 }
 
@@ -2092,7 +2164,7 @@ html[data-theme="dark"] .member-profile-inquiry-list details{
     border-color: #313d55;
 }
 
-html[data-theme="dark"] .member-profile-stats button,
+html[data-theme="dark"] .member-profile-stat,
 html[data-theme="dark"] .member-profile-inquiry-answer,
 html[data-theme="dark"] .member-profile-modal-close,
 html[data-theme="dark"] .member-profile-edit-link{
@@ -2101,8 +2173,8 @@ html[data-theme="dark"] .member-profile-edit-link{
     color: #b8c5da;
 }
 
-html[data-theme="dark"] .member-profile-stats button:hover,
-html[data-theme="dark"] .member-profile-stats button.is-active,
+html[data-theme="dark"] button.member-profile-stat:hover,
+html[data-theme="dark"] button.member-profile-stat.is-active,
 html[data-theme="dark"] .member-profile-follow-member:hover{
     background: #293858;
     color: #83a5ff;
@@ -2118,7 +2190,7 @@ html[data-theme="dark"] .member-profile-follow-member:hover{
         padding-inline: 20px;
     }
 
-    .member-profile-stats button{
+    .member-profile-stat{
         flex-basis: 96px;
         width: 96px;
         height: 96px;
@@ -2173,7 +2245,7 @@ html[data-theme="dark"] .member-profile-follow-member:hover{
         padding: 24px 14px 28px;
     }
 
-    .member-profile-stats button{
+    .member-profile-stat{
         flex-basis: 96px;
         width: 96px;
         height: 96px;
@@ -2240,11 +2312,38 @@ body.member-profile-modal-open{
 }
 
 .member-profile-summary{
-    grid-template-columns: 70px minmax(0, 1fr) auto;
+    grid-template-columns: 76px minmax(0, 1fr) auto;
     gap: 14px;
     min-height: 112px;
     margin: 0 18px;
     padding: 18px 0;
+}
+
+/* [프레임색상통일-2] 팝업도 단순한 2색 그라데이션 대신 공통 6색 금·은·동 프레임을 사용한다. */
+.member-profile-avatar-frame{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 76px;
+    height: 76px;
+    padding: 3px;
+    border-radius: 50%;
+    background: transparent;
+}
+
+.member-profile-avatar-frame.rank-first{
+    background: var(--rank-frame-first-bg);
+    box-shadow: var(--rank-frame-first-shadow);
+}
+
+.member-profile-avatar-frame.rank-second{
+    background: var(--rank-frame-second-bg);
+    box-shadow: var(--rank-frame-second-shadow);
+}
+
+.member-profile-avatar-frame.rank-third{
+    background: var(--rank-frame-third-bg);
+    box-shadow: var(--rank-frame-third-shadow);
 }
 
 .member-profile-avatar{
@@ -2322,7 +2421,7 @@ html[data-theme="dark"] .member-profile-follow-toggle.is-following{
     padding: 18px 14px 20px;
 }
 
-.member-profile-stats button{
+.member-profile-stat{
     flex: 0 0 76px;
     width: 76px;
     height: 76px;
@@ -2360,7 +2459,7 @@ html[data-theme="dark"] .member-profile-follow-toggle.is-following{
     }
 
     .member-profile-summary{
-        grid-template-columns: 58px minmax(0, 1fr);
+        grid-template-columns: 64px minmax(0, 1fr);
         gap: 10px;
         margin-inline: 14px;
         padding-block: 15px;
@@ -2369,6 +2468,11 @@ html[data-theme="dark"] .member-profile-follow-toggle.is-following{
     .member-profile-avatar{
         width: 58px;
         height: 58px;
+    }
+
+    .member-profile-avatar-frame{
+        width: 64px;
+        height: 64px;
     }
 
     .member-profile-actions{
@@ -2389,9 +2493,172 @@ html[data-theme="dark"] .member-profile-follow-toggle.is-following{
         padding: 16px 12px 18px;
     }
 
-    .member-profile-stats button{
+    .member-profile-stat{
         flex-basis: 74px;
         width: 74px;
         height: 74px;
+    }
+}
+
+/* =========================================================
+   [프로필토스UI-1] 장식적인 원형 지표를 걷어낸 간결한 가로형 프로필 카드
+   ========================================================= */
+.member-profile-modal{
+    width: min(410px, calc(100vw - 24px));
+    border: 1px solid #e5e8ee;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 18px 48px rgba(25, 39, 70, .18);
+}
+
+.member-profile-content{
+    padding: 18px;
+}
+
+.member-profile-heading{
+    margin: 0 0 12px 2px;
+    color: #4e5968;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.member-profile-card{
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.member-profile-summary{
+    grid-template-columns: 76px minmax(0, 1fr) auto;
+    gap: 14px;
+    min-height: 0;
+    margin: 0;
+    padding: 10px 2px 20px;
+    border-bottom: 1px solid #edf0f3;
+    background: transparent;
+}
+
+.member-profile-identity h3{
+    margin-bottom: 3px;
+    color: #191f28;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.member-profile-identity p{
+    color: #8b95a1;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.member-profile-actions{
+    align-self: center;
+    gap: 8px;
+}
+
+.member-profile-badge{
+    transform: none;
+}
+
+.member-profile-follow-toggle{
+    min-width: 72px;
+    border: 0;
+    border-radius: 10px;
+    background: #3182f6;
+}
+
+.member-profile-follow-toggle:hover,
+.member-profile-follow-toggle:focus-visible{
+    border: 0;
+    background: #1b64da;
+}
+
+.member-profile-follow-toggle.is-following{
+    border: 0;
+    background: #eef4ff;
+    color: #3182f6;
+}
+
+.member-profile-stats{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 16px 0 0;
+}
+
+.member-profile-stat{
+    flex: none;
+    flex-direction: row;
+    justify-content: space-between;
+    width: auto;
+    height: auto;
+    min-height: 48px;
+    padding: 13px 15px;
+    border: 0;
+    border-radius: 12px;
+    background: #f4f6f8;
+    color: #4e5968;
+}
+
+.member-profile-stats span{
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.member-profile-stats strong{
+    color: #191f28;
+    font-size: 14px;
+}
+
+html[data-theme="dark"] .member-profile-modal{
+    border-color: #344057;
+    background: #182235;
+    color: #f2f5fb;
+}
+
+html[data-theme="dark"] .member-profile-card,
+html[data-theme="dark"] .member-profile-summary{
+    border-color: #344057;
+    background: transparent;
+}
+
+html[data-theme="dark"] .member-profile-heading,
+html[data-theme="dark"] .member-profile-identity h3{
+    color: #f2f5fb;
+}
+
+html[data-theme="dark"] .member-profile-identity p{
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .member-profile-stat{
+    border: 0;
+    background: #222e43;
+    color: #aebbd0;
+}
+
+html[data-theme="dark"] .member-profile-stats strong{
+    color: #f2f5fb;
+}
+
+@media (max-width: 460px){
+    .member-profile-summary{
+        grid-template-columns: 64px minmax(0, 1fr);
+    }
+
+    .member-profile-actions{
+        grid-column: 1 / -1;
+        flex-direction: row;
+        justify-content: space-between;
+        justify-self: stretch;
+        margin-top: 2px;
+    }
+
+    .member-profile-stats{
+        grid-template-columns: 1fr;
+        gap: 7px;
+        padding-inline: 0;
     }
 }

@@ -40,6 +40,18 @@
 
 /* 다크 모드에서는 밝은 테두리와 인디고 광원으로 hover 상태를 강조한다. */
 html[data-theme="dark"]{
+    /* [게시판다크-1] 목록 카드·검색·배지에서 함께 사용하는 다크 표면 토큰. */
+    --board-surface: #182235;
+    --board-text: #f1f5fb;
+    --board-text-subtle: #c0cad9;
+    --board-muted: #91a0b6;
+    --board-border: #344057;
+    --board-border-strong: #46546d;
+    --board-divider: #303c52;
+    --board-badge-bg: #263653;
+    --board-badge-text: #9bb7ff;
+    --board-shadow: 0 4px 14px rgba(0, 0, 0, .22);
+    --board-shadow-hover: 0 8px 24px rgba(0, 0, 0, .34);
     --board-card-hover-border: #9299ff;
     --board-card-hover-shadow:
             0 0 0 2px rgba(146, 153, 255, 0.48),
@@ -457,25 +469,33 @@ html[data-theme="dark"]{
     -webkit-user-drag: none;
 }
 
-/* 이미지가 한 장이면 카드 너비에 맞추되 지나치게 커지지 않게 제한한다. */
+/* 이미지가 한 장이어도 여러 장일 때와 같은 썸네일 규격으로 왼쪽부터 표시한다. */
 /*
     이미지가 다운로드되기 전에도 카드가 차지할 높이를 미리 확보한다.
     이미지 로딩 완료 순간 아래 게시글들이 밀려나는 레이아웃 이동을 줄인다.
 */
 .board-card-image-single{
+    /* [카드단일이미지-1] flex 컨테이너의 시작점에 이미지를 붙여 한 장도 여러 장과 같은 왼쪽 정렬을 사용한다. */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
     flex: 0 0 165px;
     height: 165px;
     margin: 10px 0;
     overflow: hidden;
     border-radius: 10px;
-    background: #f3f5f8;
+    /* 카드와 같은 표면색을 사용하므로 라이트 모드의 회색 띠가 사라지고 다크 모드도 자동 대응한다. */
+    background: var(--board-surface);
 }
 
 .board-card-image-single img{
     display: block;
-    width: 100%;
+    /* [카드단일이미지-2] 여러 장 썸네일처럼 높이만 고정하고 폭은 원본 비율로 계산해 확대·왜곡을 막는다. */
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 100%;
     height: 100%;
-    border-radius: 10px;
+    border-radius: 8px;
     /* [카드이미지-3] 빈 여백이 생기더라도 이미지를 확대·절단하지 않고 원본 전체를 보여준다. */
     object-fit: contain;
     user-select: none;
@@ -1587,4 +1607,83 @@ html[data-theme="dark"] .comment-edit-form{
     border-radius: 50%;
     box-sizing: border-box;
     object-fit: cover;
+}
+
+/* =========================================================
+   [게시판다크-2] 목록·상세·댓글의 흰색 고정 배경을 공통 다크 표면으로 통일
+   ========================================================= */
+html[data-theme="dark"] .board-card,
+html[data-theme="dark"] .board-thread-card{
+    border-color: var(--board-border);
+    background: var(--board-surface);
+    color: var(--board-text);
+}
+
+html[data-theme="dark"] .board-card-image-single{
+    /* [카드단일이미지-3] 다크 모드에서도 별도 회색 패널 대신 게시글 카드 배경과 자연스럽게 이어진다. */
+    background: var(--board-surface);
+}
+
+html[data-theme="dark"] .board-detail-card,
+html[data-theme="dark"] .board-title,
+html[data-theme="dark"] .board-content,
+html[data-theme="dark"] .comment-section,
+html[data-theme="dark"] .comment-section-title,
+html[data-theme="dark"] .comment-nickname,
+html[data-theme="dark"] .comment-body{
+    color: var(--board-text) !important;
+}
+
+html[data-theme="dark"] .board-adjacent-nav,
+html[data-theme="dark"] .comment-item-reply,
+html[data-theme="dark"] .comment-edit-form{
+    background: #202c41;
+    color: var(--board-text) !important;
+}
+
+html[data-theme="dark"] .board-adjacent-link{
+    color: #d8e0ec;
+}
+
+html[data-theme="dark"] .board-adjacent-link.is-disabled,
+html[data-theme="dark"] .board-adjacent-link.is-disabled:hover,
+html[data-theme="dark"] .board-adjacent-link.is-disabled .board-adjacent-label{
+    color: #6f7d91;
+}
+
+html[data-theme="dark"] .comment-section,
+html[data-theme="dark"] .comment-item:not(:last-child){
+    border-color: var(--board-divider);
+}
+
+html[data-theme="dark"] .comment-item-reply{
+    --thread-line-color: #526078;
+}
+
+html[data-theme="dark"] .comment-form textarea,
+html[data-theme="dark"] .reply-form textarea,
+html[data-theme="dark"] .comment-edit-form textarea{
+    border-color: #46546d;
+    background: #111a2a;
+    color: #f1f5fb;
+    caret-color: #f1f5fb;
+}
+
+html[data-theme="dark"] .comment-form textarea::placeholder,
+html[data-theme="dark"] .reply-form textarea::placeholder,
+html[data-theme="dark"] .comment-edit-form textarea::placeholder{
+    color: #8290a5;
+}
+
+html[data-theme="dark"] .comment-meta,
+html[data-theme="dark"] .comment-meta button,
+html[data-theme="dark"] .comment-input-wrap .char-counter{
+    color: #91a0b6;
+}
+
+html[data-theme="dark"] .comment-meta button:hover,
+html[data-theme="dark"] .comment-meta button:focus-visible,
+html[data-theme="dark"] .comment-meta button.active,
+html[data-theme="dark"] .comment-mention{
+    color: #82a7ff;
 }

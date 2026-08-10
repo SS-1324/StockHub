@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <c:url var="myStocksCssUrl" value="/css/my-stocks.css">
-    <c:param name="v" value="3" />
+    <c:param name="v" value="4" />
 </c:url>
 <c:set var="pageCssUrl" value="${myStocksCssUrl}" scope="request" />
 <c:url var="defaultProfileUrl" value="/images/common_member.png" />
@@ -15,24 +15,35 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
+<%-- [전체프로필프레임-1] 공통 수익률 순위 값을 금·은·동 프레임 클래스로 변환한다. --%>
+<c:set var="myInfoRankClass" value="" />
+<c:choose>
+    <c:when test="${headerRankPosition eq 1}"><c:set var="myInfoRankClass" value="rank-first" /></c:when>
+    <c:when test="${headerRankPosition eq 2}"><c:set var="myInfoRankClass" value="rank-second" /></c:when>
+    <c:when test="${headerRankPosition eq 3}"><c:set var="myInfoRankClass" value="rank-third" /></c:when>
+</c:choose>
+
 <section class="my-info-page" aria-labelledby="my-info-title">
     <h1 id="my-info-title" class="my-info-title">내 정보</h1>
 
     <div class="my-info-card">
         <div class="my-info-profile-row">
-            <c:choose>
-                <c:when test="${not empty member.profile}">
-                    <img class="my-info-profile-image"
-                         src="${pageContext.request.contextPath}${member.profile}"
-                         onerror="this.onerror=null; this.src='${defaultProfileUrl}';"
-                         alt="프로필 이미지">
-                </c:when>
-                <c:otherwise>
-                    <img class="my-info-profile-image"
-                         src="${defaultProfileUrl}"
-                         alt="기본 프로필 이미지">
-                </c:otherwise>
-            </c:choose>
+            <%-- [전체프로필프레임-2] 이미지 종류와 관계없이 프레임이 프로필 전체를 감싸도록 한다. --%>
+            <span class="account-profile-rank-frame my-info-profile-rank-frame ${myInfoRankClass}">
+                <c:choose>
+                    <c:when test="${not empty member.profile}">
+                        <img class="my-info-profile-image"
+                             src="${pageContext.request.contextPath}${member.profile}"
+                             onerror="this.onerror=null; this.src='${defaultProfileUrl}';"
+                             alt="프로필 이미지">
+                    </c:when>
+                    <c:otherwise>
+                        <img class="my-info-profile-image"
+                             src="${defaultProfileUrl}"
+                             alt="기본 프로필 이미지">
+                    </c:otherwise>
+                </c:choose>
+            </span>
 
             <div class="my-info-identity">
                 <h2><c:out value="${member.nickname}"/></h2>
