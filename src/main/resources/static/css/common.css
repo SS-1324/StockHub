@@ -2279,6 +2279,43 @@ body.member-profile-modal-open{
     font-size: 11px;
 }
 
+/* [팔로우토글-7] 기본은 파란 팔로우 버튼, 연결된 상태는 연한 배경의 팔로잉 버튼으로 구분한다. */
+.member-profile-follow-toggle{
+    min-width: 68px;
+    padding: 7px 11px;
+    border: 1px solid #5281fb;
+    border-radius: 9px;
+    background: #5281fb;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.member-profile-follow-toggle:hover,
+.member-profile-follow-toggle:focus-visible{
+    border-color: #3f6fe0;
+    background: #3f6fe0;
+    outline: none;
+}
+
+.member-profile-follow-toggle.is-following{
+    border-color: #b9caff;
+    background: #eef3ff;
+    color: #315fcf;
+}
+
+.member-profile-follow-toggle:disabled{
+    cursor: wait;
+    opacity: .62;
+}
+
+html[data-theme="dark"] .member-profile-follow-toggle.is-following{
+    border-color: #506ba8;
+    background: #273755;
+    color: #b9ccff;
+}
+
 .member-profile-stats{
     flex-wrap: nowrap;
     gap: 10px;

@@ -129,6 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const content = modalOverlay.querySelector("[data-profile-content]");
     const panel = modalOverlay.querySelector("[data-profile-panel]");
     const inquiryTab = modalOverlay.querySelector("[data-profile-inquiry-tab]");
+    const followToggle = modalOverlay.querySelector("[data-profile-follow-toggle]");
     const profileApi = modalOverlay.dataset.profileApi;
     const contextPath = modalOverlay.dataset.contextPath || "";
     const defaultProfile = modalOverlay.dataset.defaultProfile;
@@ -263,6 +264,13 @@ document.addEventListener("DOMContentLoaded", () => {
             profile.ownProfile ? "내 정보" : "회원 정보";
         modalOverlay.querySelector("[data-profile-edit-link]").hidden = !profile.ownProfile;
 
+        /* [팔로우토글-5] 서버 상태를 기준으로 버튼 문구·색상·접근성 상태를 함께 갱신한다. */
+        followToggle.hidden = !profile.canFollow;
+        followToggle.disabled = false;
+        followToggle.textContent = profile.followingTarget ? "팔로잉" : "팔로우";
+        followToggle.setAttribute("aria-pressed", String(profile.followingTarget));
+        followToggle.classList.toggle("is-following", profile.followingTarget);
+
         const badge = modalOverlay.querySelector("[data-profile-badge]");
         /* [프로필순위-6] 서버가 계산한 기준을 배지 문구에도 명시하여 두 랭킹을 혼동하지 않게 한다. */
         const rankLabel = profile.rankType === "profit" ? "수익금 RANKER" : "수익률 RANKER";
@@ -336,6 +344,36 @@ document.addEventListener("DOMContentLoaded", () => {
         currentTrigger = null;
         if (lastFocusedElement instanceof HTMLElement) lastFocusedElement.focus();
     };
+
+    followToggle.addEventListener("click", async () => {
+        if (!currentProfile || !currentProfile.canFollow || followToggle.disabled) return;
+
+        followToggle.disabled = true;
+        try {
+            /*
+             * [팔로우토글-6] 페이지 이동 없이 POST 요청으로 관계를 반전한다.
+             * 서버가 반환한 최신 프로필 전체를 다시 그려 팔로워 수와 목록까지 같은 상태로 맞춘다.
+             */
+            const memberId = encodeURIComponent(currentProfile.memberId);
+            const query = new URLSearchParams({ rankType: currentProfile.rankType || "returnRate" });
+            const response = await fetch(
+                profileApi + memberId + "/follow?" + query.toString(),
+                {
+                    method: "POST",
+                    headers: { Accept: "application/json" }
+                }
+            );
+            const payload = await response.json();
+            if (!response.ok || !payload.success) {
+                throw new Error(payload.message || "팔로우 상태를 변경하지 못했습니다.");
+            }
+            fillProfile(payload.data);
+            requestAnimationFrame(positionProfilePopover);
+        } catch (followError) {
+            followToggle.disabled = false;
+            alert(followError.message || "팔로우 상태를 변경하지 못했습니다.");
+        }
+    });
 
     /* 캡처 단계에서 처리해 커뮤니티 카드 이동 및 랭킹 아코디언 클릭과 충돌하지 않게 한다. */
     document.addEventListener("click", (event) => {
