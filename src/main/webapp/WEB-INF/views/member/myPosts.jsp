@@ -10,9 +10,15 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
+<%-- 본인 메뉴에서는 기존 문구를, 프로필 숫자로 들어온 경우에는 해당 회원 닉네임을 표시한다. --%>
+<c:set var="postsPageTitle" value="내가 쓴 글" />
+<c:if test="${not empty profileOwner and not ownProfile}">
+    <c:set var="postsPageTitle" value="${profileOwner.nickname}님의 작성글" />
+</c:if>
+
 <section class="my-posts-page" aria-labelledby="my-posts-title">
     <header class="my-posts-header">
-        <h1 id="my-posts-title">내가 쓴 글</h1>
+        <h1 id="my-posts-title"><c:out value="${postsPageTitle}"/></h1>
         <span><c:out value="${totalCount}"/>개</span>
     </header>
 
@@ -53,7 +59,14 @@
         </c:otherwise>
     </c:choose>
 
-    <a class="my-posts-back" href="${myInfoUrl}">내 정보로 돌아가기</a>
+    <c:choose>
+        <c:when test="${not empty profileOwner and not ownProfile}">
+            <a class="my-posts-back" href="${communityUrl}">커뮤니티로 돌아가기</a>
+        </c:when>
+        <c:otherwise>
+            <a class="my-posts-back" href="${myInfoUrl}">내 정보로 돌아가기</a>
+        </c:otherwise>
+    </c:choose>
 </section>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

@@ -32,10 +32,16 @@
         </c:when>
     </c:choose>
 
-    <a class="board-card"
+    <%-- 사진 유무별로 본문 노출 줄 수와 미리보기 영역을 일정하게 제어한다. --%>
+    <a class="board-card ${not empty board.imageList ? 'has-image' : 'has-no-image'}"
        href="${communityUrl}/${board.boardId}">
 
-        <div class="board-card-header ${boardRankClass}">
+        <%-- [프로필연결-1] 카드 이동과 구분하여 작성자 영역을 누르면 공통 프로필 모달을 연다. --%>
+        <div class="board-card-header ${boardRankClass}"
+             data-user-profile="${board.memberId}"
+             role="button"
+             tabindex="0"
+             aria-label="작성자 프로필 보기">
 
             <c:choose>
 

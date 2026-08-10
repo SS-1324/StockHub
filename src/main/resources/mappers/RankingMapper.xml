@@ -99,4 +99,40 @@
           AND ranked.rank_position &lt;= 3
     </select>
 
+    <!--
+        [프로필순위-4] 팝업 전용 기준별 순위 조회.
+        공개 회원만 순위에 포함하며, 랭킹 화면과 동일하게 합산값 내림차순과 회원 ID를
+        보조 정렬 기준으로 사용한다. 팝업 배지는 상위 3명에게만 표시한다.
+    -->
+    <select id="selectProfileRankPosition" resultType="int">
+        SELECT ranked.rank_position
+        FROM (
+            SELECT m.member_id,
+                   ROW_NUMBER() OVER (
+                       ORDER BY
+                       <choose>
+                           <when test="sortByProfit">
+                               COALESCE(SUM(a.profit_amount), 0) DESC,
+                           </when>
+                           <otherwise>
+                               COALESCE(SUM(a.return_rate), 0) DESC,
+                           </otherwise>
+                       </choose>
+                       m.member_id ASC
+                   ) AS rank_position
+            FROM member m
+            LEFT JOIN settings s
+                   ON s.member_id = m.member_id
+            LEFT JOIN account_link al
+                   ON al.member_id = m.member_id
+            LEFT JOIN account a
+                   ON a.account_id = al.account_id
+            WHERE m.member_role = 'USER'
+              AND COALESCE(s.is_stock_public, FALSE) = TRUE
+            GROUP BY m.member_id
+        ) ranked
+        WHERE ranked.member_id = #{memberId}
+          AND ranked.rank_position &lt;= 3
+    </select>
+
 </mapper>

@@ -376,6 +376,103 @@ html[data-theme="dark"] .my-posts-empty{
     background: #172033;
 }
 
+/* 프로필의 문의글 숫자를 눌렀을 때 표시하는 공개 문의 목록 */
+.public-inquiry-list{
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.public-inquiry-card{
+    padding: 22px 24px;
+    border: 1px solid #e1e8f5;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 10px 26px rgba(40, 73, 128, 0.07);
+}
+
+.public-inquiry-card > header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.public-inquiry-card time{
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+.public-inquiry-status{
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #fff7df;
+    color: #a16207;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.public-inquiry-status.is-answered{
+    background: #eaf8f0;
+    color: #16834c;
+}
+
+.public-inquiry-card h2{
+    margin: 14px 0 8px;
+    color: #172033;
+    font-size: 18px;
+}
+
+.public-inquiry-content,
+.public-inquiry-answer p{
+    margin: 0;
+    color: #52627a;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+.public-inquiry-answer{
+    margin-top: 18px;
+    padding: 16px;
+    border-radius: 12px;
+    background: #f5f8ff;
+}
+
+.public-inquiry-answer strong{
+    display: block;
+    margin-bottom: 7px;
+    color: #1769df;
+}
+
+.public-inquiry-answer time{
+    display: block;
+    margin-top: 9px;
+}
+
+.public-inquiry-waiting{
+    margin: 16px 0 0;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+html[data-theme="dark"] .public-inquiry-card{
+    border-color: #334155;
+    background: #172033;
+}
+
+html[data-theme="dark"] .public-inquiry-card h2{
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] .public-inquiry-content,
+html[data-theme="dark"] .public-inquiry-answer p{
+    color: #cbd5e1;
+}
+
+html[data-theme="dark"] .public-inquiry-answer{
+    background: #202c43;
+}
+
 @media (max-width: 720px){
     .my-info-page{
         margin-top: 4px;

@@ -129,7 +129,7 @@ html[data-theme="dark"]{
     align-items: flex-end;
     justify-content: space-between;
     gap: 20px;
-    margin-bottom: 18px;
+    margin-bottom: 14px;
 }
 
 .board-heading-copy{ min-width: 0; }
@@ -193,10 +193,28 @@ html[data-theme="dark"]{
 /* 카테고리와 검색창 */
 .board-toolbar{
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 210px;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: 14px;
     margin-bottom: 14px;
+}
+
+/* [게시판도구-2] 검색창과 글쓰기 버튼을 하나의 오른쪽 도구 모음으로 정렬한다. */
+.board-toolbar-actions{
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 9px;
+    min-width: 0;
+}
+
+.board-toolbar-actions .search-form{
+    width: 210px;
+}
+
+.board-toolbar-actions .btn-write{
+    min-height: 34px;
+    padding: 6px 12px;
 }
 
 .board-toolbar .category-filter{
@@ -292,19 +310,27 @@ html[data-theme="dark"]{
 
 .search-reset:hover{ text-decoration: underline; }
 
-/* 게시글 목록과 카드 */
+/*
+    게시글 목록은 홈 커뮤니티와 같은 2열 카드 구조로 표시한다.
+    1300px 바깥 폭은 유지하면서 카드 한 장의 읽기 폭을 절반으로 줄여 긴 문장이 퍼지지 않게 한다.
+*/
 .board-list{
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 20px;
     margin-bottom: 24px;
 }
 
 .board-card{
-    display: block;
-    padding: 16px 17px 12px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: 360px;
+    overflow: hidden;
+    padding: 18px 18px 14px;
     border: 1px solid var(--board-border);
-    border-radius: 13px;
+    border-radius: 18px;
     background: var(--board-surface);
     color: var(--board-text);
     box-shadow: var(--board-shadow);
@@ -353,9 +379,12 @@ html[data-theme="dark"]{
 }
 
 .board-card-title{
+    overflow: hidden;
     margin-bottom: 5px;
     font-size: 14px;
     font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .board-card-snippet{
@@ -371,6 +400,11 @@ html[data-theme="dark"]{
     -webkit-box-orient: vertical;
 }
 
+/* 사진 카드도 텍스트가 미리보기 영역을 밀어내지 않도록 본문은 한 줄만 노출한다. */
+.board-card.has-image .board-card-snippet{
+    -webkit-line-clamp: 1;
+}
+
 .board-card-snippet.expanded{
     overflow: visible;
     -webkit-line-clamp: unset;
@@ -378,20 +412,27 @@ html[data-theme="dark"]{
 
 .board-card-more-btn{
     display: block;
+    /* [카드본문-2] flex 카드에서 버튼이 가로 전체로 늘어나 글자가 가운데 놓이지 않도록 왼쪽에 고정한다. */
+    align-self: flex-start;
+    width: auto;
     padding: 0;
     margin-bottom: 10px;
     border: 0;
     background: transparent;
     color: var(--board-primary);
     font-size: 12px;
+    text-align: left;
     cursor: pointer;
 }
 
 /* 여러 이미지는 가로 스크롤 필름스트립으로 표시한다. */
 .board-card-image-strip{
     display: flex;
+    /* [카드이미지-1] 기준 캡처와 비슷한 높이를 고정해 카드마다 썸네일 크기가 달라지지 않게 한다. */
+    flex: 0 0 165px;
     gap: 5px;
     overflow-x: auto;
+    height: 165px;
     margin: 10px 0;
     border-radius: 10px;
     cursor: grab;
@@ -408,8 +449,10 @@ html[data-theme="dark"]{
     display: block;
     flex: 0 0 auto;
     width: auto;
-    height: 190px;
+    height: 165px;
     border-radius: 8px;
+    /* [카드이미지-2] 원본 비율 전체를 표시하여 가로·세로 이미지의 가장자리가 잘리지 않게 한다. */
+    object-fit: contain;
     user-select: none;
     -webkit-user-drag: none;
 }
@@ -420,7 +463,8 @@ html[data-theme="dark"]{
     이미지 로딩 완료 순간 아래 게시글들이 밀려나는 레이아웃 이동을 줄인다.
 */
 .board-card-image-single{
-    aspect-ratio: 16 / 9;
+    flex: 0 0 165px;
+    height: 165px;
     margin: 10px 0;
     overflow: hidden;
     border-radius: 10px;
@@ -432,16 +476,19 @@ html[data-theme="dark"]{
     width: 100%;
     height: 100%;
     border-radius: 10px;
-    object-fit: cover;
+    /* [카드이미지-3] 빈 여백이 생기더라도 이미지를 확대·절단하지 않고 원본 전체를 보여준다. */
+    object-fit: contain;
     user-select: none;
     -webkit-user-drag: none;
 }
 /* 카드 하단 정보 */
 .board-card-footer{
     display: flex;
+    flex: 0 0 auto;
     align-items: center;
     gap: 12px;
-    margin-top: 10px;
+    /* [카드비율-3] 남는 공간을 위쪽 여백으로 사용해 구분선과 지표를 항상 카드 하단에 고정한다. */
+    margin-top: auto;
     padding-top: 10px;
     border-top: 1px solid var(--board-divider);
 }
@@ -499,6 +546,18 @@ html[data-theme="dark"]{
    반응형 목록 레이아웃
    좁은 화면에서는 검색창을 위로 올리고 카테고리는 가로 스크롤한다.
    ========================================================= */
+/* 두 카드의 실사용 폭이 좁아지는 태블릿부터는 다시 읽기 편한 1열로 전환한다. */
+@media (max-width: 900px){
+    .board-list{
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .board-card{
+        height: auto;
+        min-height: 320px;
+    }
+}
+
 @media (max-width: 760px){
     .board-list-header,
     .board-toolbar,
@@ -507,7 +566,16 @@ html[data-theme="dark"]{
     #feed-sentinel{ width: 100%; }
 
     .board-toolbar{ grid-template-columns: 1fr; }
-    .search-form{ grid-row: 1; }
+    .board-toolbar-actions{
+        grid-row: 1;
+        width: 100%;
+    }
+
+    .board-toolbar-actions .search-form{
+        flex: 1 1 auto;
+        width: auto;
+        min-width: 0;
+    }
 
     .category-filter{
         overflow-x: auto;
@@ -529,7 +597,13 @@ html[data-theme="dark"]{
     .board-page-description{ display: none; }
     .btn-write{ padding: 8px 11px; }
     .board-card{ padding: 14px 14px 11px; }
-    .board-card-image-strip img{ height: 160px; }
+    /* 컨테이너와 이미지 높이를 동일하게 유지해 모바일에서도 위아래가 잘리지 않게 한다. */
+    .board-card-image-strip,
+    .board-card-image-strip img,
+    .board-card-image-single{ height: 150px; }
+
+    .board-card-image-strip,
+    .board-card-image-single{ flex-basis: 150px; }
 }
 
 /* 상세 */
@@ -799,6 +873,83 @@ html[data-theme="dark"]{
     background: #f5f5f5;
 }
 
+/* =========================================================
+   [게시글메뉴-2] 상세 카드 내부의 수정·삭제 컨텍스트 메뉴
+   ========================================================= */
+.board-post-menu{
+    position: absolute;
+    top: 17px;
+    right: 20px;
+    z-index: 8;
+}
+
+.board-post-menu-toggle{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0 0 8px;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background: transparent;
+    color: #718096;
+    font-size: 25px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.board-post-menu-toggle:hover,
+.board-post-menu-toggle:focus-visible,
+.board-post-menu-toggle[aria-expanded="true"]{
+    border-color: #d8e0ed;
+    background: #f4f7fc;
+    color: #34435b;
+    outline: none;
+}
+
+.board-post-menu-panel{
+    position: absolute;
+    top: 39px;
+    right: 0;
+    width: 104px;
+    overflow: hidden;
+    border: 1px solid #dce3ee;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 10px 28px rgba(32, 48, 82, 0.16);
+}
+
+.board-post-menu-panel form{
+    margin: 0;
+}
+
+.board-post-menu-item{
+    display: block;
+    width: 100%;
+    padding: 10px 13px;
+    border: 0;
+    background: transparent;
+    color: #33415a;
+    font: inherit;
+    font-size: 13px;
+    line-height: 1.3;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.board-post-menu-item:hover,
+.board-post-menu-item:focus-visible{
+    background: #f4f7fc;
+    outline: none;
+}
+
+.board-post-menu-item.is-danger{
+    color: #dc3545;
+}
+
 /*
     좋아요·북마크 아이콘은 path에 색을 직접 적지 않고 currentColor를 사용한다.
     그래서 버튼의 color만 바꿔도 SVG의 선과 채움이 함께 바뀌며,
@@ -920,9 +1071,45 @@ html[data-theme="dark"]{
     바깥 모양은 .board-thread-card가 담당하므로 여기에는 본문 안쪽 여백과 글자색만 둔다.
 */
 .board-detail-card{
+    position: relative;
     padding: 24px 26px;
     margin: 0;
     color: #222222;
+}
+
+/* 긴 제목만 메뉴와 겹치지 않게 하고 본문 전체 폭은 기존대로 유지한다. */
+.board-detail-card > .board-title{
+    padding-right: 46px;
+}
+
+html[data-theme="dark"] .board-post-menu-toggle{
+    color: #aebbd0;
+}
+
+html[data-theme="dark"] .board-post-menu-toggle:hover,
+html[data-theme="dark"] .board-post-menu-toggle:focus-visible,
+html[data-theme="dark"] .board-post-menu-toggle[aria-expanded="true"]{
+    border-color: #44516a;
+    background: #253047;
+    color: #f1f5ff;
+}
+
+html[data-theme="dark"] .board-post-menu-panel{
+    border-color: #3d4a62;
+    background: #1d273b;
+}
+
+html[data-theme="dark"] .board-post-menu-item{
+    color: #e8eefb;
+}
+
+html[data-theme="dark"] .board-post-menu-item:hover,
+html[data-theme="dark"] .board-post-menu-item:focus-visible{
+    background: #2a3650;
+}
+
+html[data-theme="dark"] .board-post-menu-item.is-danger{
+    color: #ff7d88;
 }
 
 /*
