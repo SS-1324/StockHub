@@ -384,22 +384,30 @@ function setupVoteWidget(initialStockCode) {
             alert('로그인이 필요합니다.');
             return;
         }
+        // 이미 선택된 의견을 다시 누르면 투표를 취소함
+        const selectedBtn = voteType === 'UP' ? upBtn : downBtn;
+        const isCancel = selectedBtn.classList.contains('selected');
+
         upBtn.disabled = true;
         downBtn.disabled = true;
-        fetch(`/api/hub/vote/${encodeURIComponent(currentStockCode)}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ voteType }),
-        })
+        const request = isCancel
+            ? fetch(`/api/hub/vote/${encodeURIComponent(currentStockCode)}`, { method: 'DELETE' })
+            : fetch(`/api/hub/vote/${encodeURIComponent(currentStockCode)}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ voteType }),
+            });
+
+        request
             .then((res) => res.json())
             .then((res) => {
                 if (!res.success) {
-                    alert(res.message || '투표에 실패했습니다.');
+                    alert(res.message || '투표 처리에 실패했습니다.');
                     return;
                 }
                 render(res.data);
             })
-            .catch(() => alert('투표에 실패했습니다.'))
+            .catch(() => alert('투표 처리에 실패했습니다.'))
             .finally(() => {
                 upBtn.disabled = false;
                 downBtn.disabled = false;

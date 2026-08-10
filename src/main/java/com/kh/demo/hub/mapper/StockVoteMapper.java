@@ -18,4 +18,7 @@ public interface StockVoteMapper {
     int upsertVote(@Param("stockCode") String stockCode,
                     @Param("memberId") String memberId,
                     @Param("voteType") String voteType);
+
+    // 투표 취소. 투표한 적이 없으면 0행 삭제(오류 아님)
+    int deleteVote(@Param("stockCode") String stockCode, @Param("memberId") String memberId);
 }

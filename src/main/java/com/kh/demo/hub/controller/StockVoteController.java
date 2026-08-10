@@ -8,6 +8,7 @@ import com.kh.demo.hub.service.StockVoteService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,6 +54,21 @@ public class StockVoteController {
             return ResponseEntity.ok(ApiResponse.success(result));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.fail(e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{stockCode}")
+    public ResponseEntity<ApiResponse<StockVoteResultDto>> cancel(@PathVariable String stockCode,
+                                                                     HttpSession session) {
+        String memberId = SessionUtil.currentMemberId(session);
+        if (memberId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail("로그인이 필요합니다."));
+        }
+        try {
+            StockVoteResultDto result = stockVoteService.cancelVote(stockCode, memberId);
+            return ResponseEntity.ok(ApiResponse.success(result));
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.fail(e.getMessage()));
         }
