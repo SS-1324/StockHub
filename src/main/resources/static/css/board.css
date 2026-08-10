@@ -610,6 +610,35 @@ html[data-theme="dark"]{
     margin-bottom: 20px;
 }
 
+/* [하이퍼링크-5]
+    게시글 본문의 하이퍼링크만 상태에 따라 구분한다.
+    기본 링크는 본문 색을 유지하고, 마우스를 올리면 파란색과 밑줄을 표시한다.
+    한 번 방문한 링크는 브라우저의 :visited 상태를 이용해 보라색으로 표시한다.
+*/
+.board-content a:link{
+    color: inherit !important;
+    text-decoration: none !important;
+    cursor: pointer;
+}
+
+/* 방문하지 않은 링크에 커서를 올리거나 키보드로 선택하면 파란색과 밑줄을 표시한다. */
+.board-content a:link:hover,
+.board-content a:link:focus-visible{
+    color: #0066ff !important;
+    text-decoration: underline !important;
+    text-underline-offset: 3px;
+}
+
+/* 방문한 링크는 커서를 떼어도 보라색으로 남기고, hover 시에는 밑줄을 추가한다. */
+.board-content a:visited,
+.board-content a:visited:hover,
+.board-content a:visited:focus-visible{
+    color: #800080 !important;
+    text-decoration: underline !important;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
 /*
     p는 paragraph(문단)의 약자다.
     Quill에서 일반 문장을 입력하고 Enter를 누르면 보통 문장 하나가 <p>로 저장된다.
@@ -957,6 +986,8 @@ html[data-theme="dark"]{
     margin: 0;
     padding: 20px 22px;
     border-top: 1px solid #edf0f5;
+    /* 흰색 댓글 카드가 다크 모드의 밝은 전역 글자색을 상속하지 않게 한다. */
+    color: var(--board-text);
 }
 
 .comment-section-title{
@@ -998,6 +1029,13 @@ html[data-theme="dark"]{
     line-height: 1.5;
     resize: none;
     box-sizing: border-box;
+}
+
+.comment-form textarea::placeholder,
+.reply-form textarea::placeholder,
+.comment-edit-form textarea::placeholder{
+    color: #64748b;
+    opacity: 1;
 }
 
 /*
@@ -1166,6 +1204,7 @@ html[data-theme="dark"]{
     width: 100%;
     min-height: 84px;
     background: #fff;
+    color: #222;
 }
 
 .comment-edit-actions{
@@ -1211,6 +1250,60 @@ html[data-theme="dark"]{
 
 .reply-form.hidden{
     display: none;
+}
+
+/* [다크댓글-1]
+    댓글 카드는 다크 모드에서도 흰색 표면을 유지하므로 글자 역시 라이트 표면용 고대비 색을 사용한다.
+    댓글·대댓글·수정 입력창과 보조 동작까지 명시하여 전역 다크 모드 색상 상속으로 흐려지지 않게 한다.
+*/
+html[data-theme="dark"] .comment-section-title,
+html[data-theme="dark"] .comment-nickname,
+html[data-theme="dark"] .comment-body{
+    color: #000000 !important;
+    opacity: 1 !important;
+}
+
+html[data-theme="dark"] .comment-item-reply{
+    --thread-line-color: #cbd5e1;
+    background: #f8fafc;
+    color: #000000 !important;
+    opacity: 1 !important;
+}
+
+html[data-theme="dark"] .comment-mention{
+    color: #1d4ed8;
+}
+
+html[data-theme="dark"] .comment-meta,
+html[data-theme="dark"] .comment-meta button,
+html[data-theme="dark"] .comment-input-wrap .char-counter{
+    color: #64748b;
+}
+
+html[data-theme="dark"] .comment-meta button:hover,
+html[data-theme="dark"] .comment-meta button:focus-visible,
+html[data-theme="dark"] .comment-meta button.active{
+    color: #1d4ed8;
+}
+
+html[data-theme="dark"] .comment-form textarea,
+html[data-theme="dark"] .reply-form textarea,
+html[data-theme="dark"] .comment-edit-form textarea{
+    border-color: #cbd5e1;
+    background: #ffffff;
+    color: #111827;
+    caret-color: #111827;
+}
+
+html[data-theme="dark"] .comment-form textarea::placeholder,
+html[data-theme="dark"] .reply-form textarea::placeholder,
+html[data-theme="dark"] .comment-edit-form textarea::placeholder{
+    color: #64748b;
+    opacity: 1;
+}
+
+html[data-theme="dark"] .comment-edit-form{
+    background: #f1f5f9;
 }
 
 /*

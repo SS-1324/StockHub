@@ -11,6 +11,7 @@ import org.springframework.web.util.HtmlUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -65,14 +66,57 @@ public class TermHighlightServiceImpl implements TermHighlightService {
         return applyHighlight(linkified, bucketsByFirstChar);
     }
 
-    // 이스케이프된 텍스트에서 URL을 찾아 <a> 태그로 감싼다. 문장 끝 마침표/괄호 등은 링크에서 빼고 뒤에 그대로 남긴다.
+    // [하이퍼링크-4] HTML 태그 밖의 일반 텍스트 URL만 <a> 태그로 감싼다.
+    // Quill이 이미 만든 <a href="..."> 내부까지 다시 링크화하면 href와 링크 태그가 깨지므로
+    // 태그 속성과 기존 링크의 표시 문구는 반드시 원문 그대로 통과시킨다.
     private String linkifyUrls(String escapedText) {
-        Matcher matcher = URL_PATTERN.matcher(escapedText);
         StringBuilder result = new StringBuilder(escapedText.length());
+        int index = 0;
+        int anchorDepth = 0;
+
+        while (index < escapedText.length()) {
+            if (escapedText.charAt(index) == '<') {
+                int tagEnd = escapedText.indexOf('>', index);
+                if (tagEnd == -1) {
+                    result.append(escapedText.substring(index));
+                    break;
+                }
+
+                String tag = escapedText.substring(index, tagEnd + 1);
+                String normalizedTag = tag.trim().toLowerCase(Locale.ROOT);
+
+                if (normalizedTag.equals("<a>") || normalizedTag.startsWith("<a ")) {
+                    anchorDepth++;
+                } else if (normalizedTag.startsWith("</a")) {
+                    anchorDepth = Math.max(0, anchorDepth - 1);
+                }
+
+                result.append(tag);
+                index = tagEnd + 1;
+                continue;
+            }
+
+            int nextTag = escapedText.indexOf('<', index);
+            int textEnd = nextTag == -1 ? escapedText.length() : nextTag;
+            String textSegment = escapedText.substring(index, textEnd);
+
+            result.append(anchorDepth > 0
+                    ? textSegment
+                    : linkifyPlainTextSegment(textSegment));
+            index = textEnd;
+        }
+
+        return result.toString();
+    }
+
+    // 태그가 없는 일반 텍스트 조각에서 URL을 찾아 링크로 변환한다.
+    private String linkifyPlainTextSegment(String text) {
+        Matcher matcher = URL_PATTERN.matcher(text);
+        StringBuilder result = new StringBuilder(text.length());
         int lastEnd = 0;
 
         while (matcher.find()) {
-            result.append(escapedText, lastEnd, matcher.start());
+            result.append(text, lastEnd, matcher.start());
 
             String rawMatch = matcher.group(1);
             int trimEnd = rawMatch.length();
@@ -92,7 +136,7 @@ public class TermHighlightServiceImpl implements TermHighlightService {
 
             lastEnd = matcher.end();
         }
-        result.append(escapedText, lastEnd, escapedText.length());
+        result.append(text, lastEnd, text.length());
         return result.toString();
     }
 

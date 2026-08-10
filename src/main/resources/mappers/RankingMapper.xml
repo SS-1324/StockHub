@@ -72,4 +72,31 @@
 
     </select>
 
+    <!--
+        공통 헤더는 로그인 회원 한 명의 금·은·동 여부만 필요하므로 전체 랭킹 DTO를 만들지 않는다.
+        랭킹 페이지와 동일하게 공개 회원만 대상으로 수익률 순위를 계산하고 1~3위만 반환한다.
+    -->
+    <select id="selectHeaderRankPosition" resultType="int">
+        SELECT ranked.rank_position
+        FROM (
+            SELECT m.member_id,
+                   ROW_NUMBER() OVER (
+                       ORDER BY COALESCE(SUM(a.return_rate), 0) DESC,
+                                m.member_id ASC
+                   ) AS rank_position
+            FROM member m
+            LEFT JOIN settings s
+                   ON s.member_id = m.member_id
+            LEFT JOIN account_link al
+                   ON al.member_id = m.member_id
+            LEFT JOIN account a
+                   ON a.account_id = al.account_id
+            WHERE m.member_role = 'USER'
+              AND COALESCE(s.is_stock_public, FALSE) = TRUE
+            GROUP BY m.member_id
+        ) ranked
+        WHERE ranked.member_id = #{memberId}
+          AND ranked.rank_position &lt;= 3
+    </select>
+
 </mapper>

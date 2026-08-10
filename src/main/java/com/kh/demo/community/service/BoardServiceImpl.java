@@ -34,7 +34,6 @@ public class BoardServiceImpl implements BoardService {
 
     static {
         CATEGORY_LABELS.put("free", "자유");
-        CATEGORY_LABELS.put("trade", "살까?팔까?");
         CATEGORY_LABELS.put("tip", "팁 공유");
         CATEGORY_LABELS.put("profit", "수익인증");
         CATEGORY_LABELS.put("review", "반성");
@@ -46,7 +45,8 @@ public class BoardServiceImpl implements BoardService {
     private static final int MAX_TITLE_LENGTH = 200;
     private static final int MAX_CONTENT_LENGTH = 3000;
 
-    // Quill 에디터에서 허용할 HTML 태그와 속성
+    // [하이퍼링크-3] Quill 에디터에서 허용할 HTML 태그와 속성.
+    // a 태그의 href/target/rel만 허용하고 http(s) 주소만 통과시켜 스크립트 링크를 차단한다.
     private static final Safelist CONTENT_SAFELIST = Safelist.none()
             .addTags(
                     "p",

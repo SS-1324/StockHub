@@ -25,4 +25,9 @@ public class RankingServiceImpl implements RankingService {
                 sortByProfit
         );
     }
+
+    @Override
+    public Integer getHeaderRankPosition(String memberId) {
+        return rankingMapper.selectHeaderRankPosition(memberId);
+    }
 }
