@@ -9,6 +9,7 @@ import com.kh.demo.member.dto.MemberProfileModalDto;
 import com.kh.demo.member.service.FollowService;
 import com.kh.demo.member.service.MemberService;
 import com.kh.demo.ranking.service.RankingService;
+import com.kh.demo.ranking.dto.RankingDto;
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.ConcurrentModel;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -44,15 +49,24 @@ class MemberProfileModalControllerTest {
     @Test
     void 공개프로필은팔로워와팔로잉숫자를반환한다() {
         prepareProfile("target", "viewer");
+        when(boardService.getMemberPostCount("target")).thenReturn(5L);
         when(followService.getFollowerCount("target")).thenReturn(3L);
         when(followService.getFollowingCount("target")).thenReturn(4L);
+        RankingDto summary = new RankingDto();
+        summary.setReturnRate(new BigDecimal("12.34"));
+        summary.setProfit(141013L);
+        when(rankingService.getProfileInvestmentSummary("target")).thenReturn(summary);
 
         ResponseEntity<ApiResponse<MemberProfileModalDto>> response =
                 controller.profile("target", "returnRate", session);
 
         MemberProfileModalDto data = response.getBody().getData();
+        assertThat(data.detailsPublic()).isTrue();
+        assertThat(data.postCount()).isEqualTo(5L);
         assertThat(data.followerCount()).isEqualTo(3L);
         assertThat(data.followingCount()).isEqualTo(4L);
+        assertThat(data.returnRate()).isEqualByComparingTo("12.34");
+        assertThat(data.profit()).isEqualTo(141013L);
     }
 
     @Test
@@ -100,30 +114,88 @@ class MemberProfileModalControllerTest {
     }
 
     @Test
-    void 타인은작성글과문의글전용페이지에접근할수없다() {
+    void 타인은문의글전용페이지에접근할수없다() {
         MemberDto viewer = new MemberDto();
         viewer.setMemberId("viewer");
         when(session.getAttribute(SessionConst.LOGIN_MEMBER)).thenReturn(viewer);
 
-        assertThatThrownBy(() -> controller.memberPosts("target", session, null))
-                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
         assertThatThrownBy(() -> controller.memberInquiries("target", session, null))
                 .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
     }
 
     @Test
-    void 비공개회원은프로필정보를반환하지않는다() {
+    void 공개회원의작성글페이지는타인도볼수있다() {
         MemberDto target = new MemberDto();
         target.setMemberId("target");
+        target.setStockPublic(true);
+        MemberDto viewer = new MemberDto();
+        viewer.setMemberId("viewer");
+        when(memberService.getMemberProfile("target")).thenReturn(target);
+        when(session.getAttribute(SessionConst.LOGIN_MEMBER)).thenReturn(viewer);
+        when(boardService.getMemberPosts("target", "viewer")).thenReturn(List.of());
+
+        String view = controller.memberPosts("target", session, new ConcurrentModel());
+
+        assertThat(view).isEqualTo("member/myPosts");
+    }
+
+    @Test
+    void 비공개회원도기본프로필을반환하고세부수치는감춘다() {
+        MemberDto target = new MemberDto();
+        target.setMemberId("target");
+        target.setNickname("비공개회원");
         target.setStockPublic(false);
         when(memberService.getMemberProfile("target")).thenReturn(target);
+        when(boardService.getMemberPostCount("target")).thenReturn(6L);
+        when(followService.getFollowerCount("target")).thenReturn(1L);
+        when(followService.getFollowingCount("target")).thenReturn(2L);
 
         ResponseEntity<ApiResponse<MemberProfileModalDto>> response =
                 controller.profile("target", "returnRate", session);
 
-        assertThat(response.getStatusCode()).isEqualTo(org.springframework.http.HttpStatus.FORBIDDEN);
-        assertThat(response.getBody().isSuccess()).isFalse();
-        assertThat(response.getBody().getData()).isNull();
+        assertThat(response.getStatusCode()).isEqualTo(org.springframework.http.HttpStatus.OK);
+        assertThat(response.getBody().isSuccess()).isTrue();
+        MemberProfileModalDto data = response.getBody().getData();
+        assertThat(data.detailsPublic()).isFalse();
+        assertThat(data.nickname()).isEqualTo("비공개회원");
+        assertThat(data.postCount()).isEqualTo(6L);
+        assertThat(data.followerCount()).isEqualTo(1L);
+        assertThat(data.followingCount()).isEqualTo(2L);
+        assertThat(data.returnRate()).isNull();
+        assertThat(data.profit()).isNull();
+    }
+
+    @Test
+    void privateMemberPublicPostsCanBeViewedByAnotherMember() {
+        MemberDto target = new MemberDto();
+        target.setMemberId("target");
+        target.setStockPublic(false);
+        MemberDto viewer = new MemberDto();
+        viewer.setMemberId("viewer");
+        when(memberService.getMemberProfile("target")).thenReturn(target);
+        when(session.getAttribute(SessionConst.LOGIN_MEMBER)).thenReturn(viewer);
+        when(boardService.getMemberPosts("target", "viewer")).thenReturn(List.of());
+
+        String view = controller.memberPosts("target", session, new ConcurrentModel());
+
+        assertThat(view).isEqualTo("member/myPosts");
+    }
+
+    @Test
+    void 관리자회원은공개여부와관계없이ADMIN배지를반환한다() {
+        MemberDto admin = new MemberDto();
+        admin.setMemberId("admin01");
+        admin.setNickname("스톡허브");
+        admin.setMemberRole("ADMIN");
+        admin.setStockPublic(false);
+        when(memberService.getMemberProfile("admin01")).thenReturn(admin);
+
+        MemberProfileModalDto data =
+                controller.profile("admin01", "returnRate", session).getBody().getData();
+
+        assertThat(data.badge()).isEqualTo("ADMIN");
+        assertThat(data.rankPosition()).isNull();
+        assertThat(data.detailsPublic()).isFalse();
     }
 
     private void prepareProfile(String targetId, String viewerId) {

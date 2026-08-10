@@ -13,7 +13,7 @@
     v 값은 CSS 내용을 바꾼 뒤 브라우저가 예전 파일을 재사용하지 않고 새로 받게 하는 캐시 갱신 번호다.
 --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css?v=29">
+      href="${pageContext.request.contextPath}/css/board.css?v=31">
 
 <c:if test="${not empty error}">
     <p class="alert alert-error">${error}</p>
@@ -158,43 +158,6 @@
     <span class="category-badge">${allowedCategories[board.category]}</span>
 </div>
 
-<%--
-    이전글·다음글은 같은 카테고리 안에서만 이동한다.
-    이동할 글이 없는 방향도 숨기지 않고 비활성 안내를 보여줘서
-    사용자가 기능 누락이 아니라 목록의 처음/끝이라는 사실을 알 수 있게 한다.
---%>
-<div class="board-adjacent-nav" aria-label="이전글 및 다음글">
-    <c:choose>
-        <c:when test="${not empty board.prevBoardId}">
-            <a class="board-adjacent-link" href="${communityUrl}/${board.prevBoardId}">
-                <span class="board-adjacent-label">이전글</span>
-                <span class="board-adjacent-title"><c:out value="${board.prevTitle}" /></span>
-            </a>
-        </c:when>
-        <c:otherwise>
-            <span class="board-adjacent-link is-disabled" aria-disabled="true">
-                <span class="board-adjacent-label">이전글</span>
-                <span class="board-adjacent-title">이전글이 없습니다</span>
-            </span>
-        </c:otherwise>
-    </c:choose>
-
-    <c:choose>
-        <c:when test="${not empty board.nextBoardId}">
-            <a class="board-adjacent-link" href="${communityUrl}/${board.nextBoardId}">
-                <span class="board-adjacent-label">다음글</span>
-                <span class="board-adjacent-title"><c:out value="${board.nextTitle}" /></span>
-            </a>
-        </c:when>
-        <c:otherwise>
-            <span class="board-adjacent-link is-disabled" aria-disabled="true">
-                <span class="board-adjacent-label">다음글</span>
-                <span class="board-adjacent-title">다음글이 없습니다</span>
-            </span>
-        </c:otherwise>
-    </c:choose>
-</div>
-
 </div>
 
 <div class="comment-section" id="comment-section">
@@ -294,5 +257,5 @@
 
 </div>
 
-<script src="${pageContext.request.contextPath}/js/board.js?v=4"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=5"></script>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

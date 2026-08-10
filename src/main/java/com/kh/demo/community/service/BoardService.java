@@ -28,6 +28,12 @@ public interface BoardService {
     // 카테고리와 검색 조건에 맞는 전체 게시글 수
     long getTotalCount(String category, String keyword);
 
+    // 커뮤니티 사이드바 HOT 글(좋아요·댓글·조회수 참여도 순)
+    List<BoardDto> getHotBoards(int size);
+
+    // 커뮤니티 사이드바 인기글(누적 조회수 순)
+    List<BoardDto> getPopularBoards(int size);
+
     // 내 정보 화면에서 로그인 회원이 작성한 게시글만 조회
     List<BoardDto> getMemberPosts(String memberId, String loginMemberId);
 

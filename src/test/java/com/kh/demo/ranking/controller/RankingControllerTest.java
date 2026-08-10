@@ -1,7 +1,5 @@
 package com.kh.demo.ranking.controller;
 
-import com.kh.demo.common.SessionConst;
-import com.kh.demo.member.dto.MemberDto;
 import com.kh.demo.ranking.dto.RankingDto;
 import com.kh.demo.ranking.service.RankingService;
 import jakarta.servlet.http.HttpSession;
@@ -36,21 +34,16 @@ class RankingControllerTest {
     }
 
     @Test
-    void adminCanRequestPrivateRankingDetails() {
-        MemberDto admin = new MemberDto();
-        admin.setMemberId("admin");
-        admin.setMemberRole("ADMIN");
-
+    void adminCannotBypassPrivateRankingDetails() {
         List<RankingDto> returnRateRankings =
                 List.of(new RankingDto());
         List<RankingDto> profitRankings =
                 List.of(new RankingDto());
         ExtendedModelMap model = new ExtendedModelMap();
 
-        when(session.getAttribute(SessionConst.LOGIN_MEMBER)).thenReturn(admin);
-        when(rankingService.getRankingBoard(true, false))
+        when(rankingService.getRankingBoard(false, false))
                 .thenReturn(returnRateRankings);
-        when(rankingService.getRankingBoard(true, true))
+        when(rankingService.getRankingBoard(false, true))
                 .thenReturn(profitRankings);
 
         String viewName = rankingController.rankingBoard(model, session);
@@ -64,19 +57,14 @@ class RankingControllerTest {
                 profitRankings,
                 model.get("profitRankingList")
         );
-        verify(rankingService).getRankingBoard(true, false);
-        verify(rankingService).getRankingBoard(true, true);
+        verify(rankingService).getRankingBoard(false, false);
+        verify(rankingService).getRankingBoard(false, true);
     }
 
     @Test
     void regularUserCannotRequestPrivateRankingDetailsFromDataEndpoint() {
-        MemberDto member = new MemberDto();
-        member.setMemberId("member1");
-        member.setMemberRole("USER");
-
         List<RankingDto> rankings = List.of(new RankingDto());
 
-        when(session.getAttribute(SessionConst.LOGIN_MEMBER)).thenReturn(member);
         when(rankingService.getRankingBoard(false)).thenReturn(rankings);
 
         List<RankingDto> response = rankingController.getRanking(session);

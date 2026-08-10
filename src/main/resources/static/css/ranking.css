@@ -378,6 +378,16 @@
     color: #ff304d;
 }
 
+/* [랭킹비공개보호-3] 비공개 회원 행에는 실제 숫자 대신 중립적인 비공개 상태만 표시한다. */
+.ranking-profit.is-private strong {
+    color: #8999b1;
+    font-size: 13px;
+}
+
+html[data-theme="dark"] .ranking-profit.is-private strong {
+    color: #8f9db2;
+}
+
 .ranking-profit.is-negative,
 .ranking-profit .is-negative,
 .ranking-detail-stat strong.is-negative {
@@ -590,6 +600,13 @@ html[data-theme="dark"] .ranking-item.is-open .ranking-row {
     background: #162033;
 }
 
+/* [랭킹다크구분선-1]
+ * 라이트모드의 밝은 inset 선을 덮어 어두운 카드에서 튀지 않는 회청색 구분선으로 낮춘다.
+ */
+html[data-theme="dark"] .ranking-item.is-open .ranking-row {
+    box-shadow: inset 0 -1px 0 #2b384d;
+}
+
 html[data-theme="dark"] .ranking-member strong {
     color: #f1f5f9;
 }
@@ -622,6 +639,25 @@ html[data-theme="dark"] .ranking-detail-stat {
 
 html[data-theme="dark"] .ranking-detail-stat > strong {
     color: #e5edf8;
+}
+
+/* [랭킹다크손익색상-1]
+ * 위의 상세 숫자 기본색보다 뒤에서 선언해 상승·하락 상태가 흰색으로 덮이지 않게 한다.
+ * 0은 상승이나 하락이 아니므로 중립 회색을 사용한다.
+ */
+html[data-theme="dark"] .ranking-profit .is-positive,
+html[data-theme="dark"] .ranking-detail-stat > strong.is-positive {
+    color: #ff4d67;
+}
+
+html[data-theme="dark"] .ranking-profit .is-negative,
+html[data-theme="dark"] .ranking-detail-stat > strong.is-negative {
+    color: #4f8cff;
+}
+
+html[data-theme="dark"] .ranking-profit .is-neutral,
+html[data-theme="dark"] .ranking-detail-stat > strong.is-neutral {
+    color: #a8b4c7;
 }
 
 html[data-theme="dark"] .ranking-empty strong {

@@ -56,9 +56,4 @@ public class BoardDto {
     // 업로드 파일들을 이 필드(List<BoardImageDto>)에 억지로 바인딩하려다 타입이 안 맞아 400 에러가 났었음.
     private List<BoardImageDto> imageList;
 
-    // 상세 화면 하단의 이전글/다음글 네비게이션용 (서비스에서 채워주는 표시용 필드, DB 매핑 대상 아님, 없으면 null)
-    private Long prevBoardId;
-    private String prevTitle;
-    private Long nextBoardId;
-    private String nextTitle;
 }

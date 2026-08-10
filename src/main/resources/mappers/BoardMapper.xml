@@ -62,6 +62,54 @@
         </where>
     </select>
 
+    <!-- [커뮤니티위젯-3]
+         HOT 글은 반응 의도가 강한 좋아요(5점)·댓글(3점)에 높은 가중치를 두고
+         조회수도 보조 점수로 합산한다. 숨김 글과 폐지 카테고리는 공통으로 제외한다. -->
+    <select id="selectHotBoards" resultType="com.kh.demo.community.dto.BoardDto">
+        SELECT b.board_id,
+               b.category,
+               b.title,
+               b.content,
+               b.count,
+               b.like_count,
+               COALESCE(c.comment_count, 0) AS comment_count,
+               b.create_at,
+               DATE_FORMAT(b.create_at, '%Y-%m-%d %H:%i') AS create_at_str
+        FROM board b
+        LEFT JOIN (
+            SELECT board_id, COUNT(*) AS comment_count
+            FROM board_comment
+            GROUP BY board_id
+        ) c ON c.board_id = b.board_id
+        WHERE b.is_hidden = FALSE
+          AND b.category &lt;&gt; 'trade'
+        ORDER BY (
+                     COALESCE(b.like_count, 0) * 5
+                   + COALESCE(c.comment_count, 0) * 3
+                   + COALESCE(b.count, 0) / 20
+                 ) DESC,
+                 b.create_at DESC
+        LIMIT #{size}
+    </select>
+
+    <!-- 인기글은 의미가 명확하도록 누적 조회수만으로 정렬한다. -->
+    <select id="selectPopularBoards" resultType="com.kh.demo.community.dto.BoardDto">
+        SELECT b.board_id,
+               b.category,
+               b.title,
+               b.content,
+               b.count,
+               b.like_count,
+               (SELECT COUNT(*) FROM board_comment bc WHERE bc.board_id = b.board_id) AS comment_count,
+               b.create_at,
+               DATE_FORMAT(b.create_at, '%Y-%m-%d %H:%i') AS create_at_str
+        FROM board b
+        WHERE b.is_hidden = FALSE
+          AND b.category &lt;&gt; 'trade'
+        ORDER BY b.count DESC, b.create_at DESC
+        LIMIT #{size}
+    </select>
+
     <!-- 로그인 회원이 작성한 숨김 처리되지 않은 게시글만 최신순으로 조회 -->
     <select id="selectBoardListByMemberId"
             resultType="com.kh.demo.community.dto.BoardDto">
@@ -184,33 +232,4 @@
     <select id="selectLikeCount" resultType="long">
         SELECT like_count FROM board WHERE board_id = #{boardId}
     </select>
-    <!-- 현재 게시글보다 이전에 작성된 같은 카테고리 게시글 -->
-    <select id="selectPrevBoard"
-            resultType="com.kh.demo.community.dto.BoardDto">
-        SELECT
-        board_id AS boardId,
-        title
-        FROM board
-        WHERE category = #{category}
-        AND board_id &lt; #{boardId}
-        AND is_hidden = FALSE
-        ORDER BY board_id DESC
-        LIMIT 1
-    </select>
-
-    <!-- 현재 게시글보다 나중에 작성된 같은 카테고리 게시글 -->
-    <select id="selectNextBoard"
-            resultType="com.kh.demo.community.dto.BoardDto">
-        SELECT
-        board_id AS boardId,
-        title
-        FROM board
-        WHERE category = #{category}
-        AND board_id &gt; #{boardId}
-        AND is_hidden = FALSE
-        ORDER BY board_id ASC
-        LIMIT 1
-    </select>
-
-
 </mapper>

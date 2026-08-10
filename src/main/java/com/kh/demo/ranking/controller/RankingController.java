@@ -1,6 +1,5 @@
 package com.kh.demo.ranking.controller;
 
-import com.kh.demo.common.util.SessionUtil;
 import com.kh.demo.ranking.dto.RankingDto;
 import com.kh.demo.ranking.service.RankingService;
 import jakarta.servlet.http.HttpSession;
@@ -31,8 +30,11 @@ public class RankingController {
             Model model,
             HttpSession session
     ) {
-        boolean includePrivateDetails =
-                SessionUtil.isAdmin(session);
+        /* [랭킹비공개보호-4]
+         * 관리자도 회원의 is_stock_public 설정을 우회하지 않는다.
+         * 기존 서비스 인자는 호환성을 위해 유지하되 항상 false로 전달한다.
+         */
+        boolean includePrivateDetails = false;
 
         /*
          * 같은 회원 데이터를 정렬 기준만 다르게 하여 두 번 조회한다.
@@ -74,8 +76,7 @@ public class RankingController {
     public List<RankingDto> getRanking(
             HttpSession session
     ) {
-        return rankingService.getRankingBoard(
-                SessionUtil.isAdmin(session)
-        );
+        /* JSON 응답도 화면과 동일하게 비공개 투자정보를 요청하지 않는다. */
+        return rankingService.getRankingBoard(false);
     }
 }
