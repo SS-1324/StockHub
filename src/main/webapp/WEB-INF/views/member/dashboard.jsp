@@ -12,21 +12,31 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
+<%-- [전체프로필프레임-3] 대시보드도 공통 프로필 프레임 판정값을 그대로 사용한다. --%>
+<c:set var="dashboardRankClass" value="" />
+<c:choose>
+    <c:when test="${headerRankPosition eq 1}"><c:set var="dashboardRankClass" value="rank-first" /></c:when>
+    <c:when test="${headerRankPosition eq 2}"><c:set var="dashboardRankClass" value="rank-second" /></c:when>
+    <c:when test="${headerRankPosition eq 3}"><c:set var="dashboardRankClass" value="rank-third" /></c:when>
+</c:choose>
+
 <section class="dashboard-page" aria-labelledby="dashboard-title">
     <header class="dashboard-profile">
-        <c:choose>
-            <c:when test="${not empty member.profile}">
-                <img class="dashboard-profile-image"
-                     src="${pageContext.request.contextPath}${member.profile}"
-                     onerror="this.onerror=null; this.src='${defaultProfileUrl}';"
-                     alt="프로필 이미지">
-            </c:when>
-            <c:otherwise>
-                <img class="dashboard-profile-image"
-                     src="${defaultProfileUrl}"
-                     alt="기본 프로필 이미지">
-            </c:otherwise>
-        </c:choose>
+        <span class="account-profile-rank-frame dashboard-profile-rank-frame ${dashboardRankClass}">
+            <c:choose>
+                <c:when test="${not empty member.profile}">
+                    <img class="dashboard-profile-image"
+                         src="${pageContext.request.contextPath}${member.profile}"
+                         onerror="this.onerror=null; this.src='${defaultProfileUrl}';"
+                         alt="프로필 이미지">
+                </c:when>
+                <c:otherwise>
+                    <img class="dashboard-profile-image"
+                         src="${defaultProfileUrl}"
+                         alt="기본 프로필 이미지">
+                </c:otherwise>
+            </c:choose>
+        </span>
 
         <div class="dashboard-profile-info">
             <p class="dashboard-eyebrow">MY DASHBOARD</p>
