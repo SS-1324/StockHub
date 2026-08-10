@@ -21,7 +21,7 @@
               <div class="autocomplete-search">
 
                 <input type="text"
-                       id="glossary-keyword"
+                       id="glossary-keyword"    
                        name="keyword"
                        value="${fn:escapeXml(keyword)}"
                        placeholder="검색"
