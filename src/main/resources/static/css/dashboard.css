@@ -77,9 +77,14 @@
     font-weight: 600;
 }
 
-.dashboard-profile-image{
+.dashboard-profile-rank-frame{
     width: 84px;
     height: 84px;
+}
+
+.dashboard-profile-image{
+    width: 100%;
+    height: 100%;
     flex: 0 0 auto;
     border: 4px solid #eaf2ff;
     border-radius: 50%;
@@ -829,7 +834,7 @@ html[data-theme="dark"] .dashboard-portfolio-legend-name{
         border-radius: 16px;
     }
 
-    .dashboard-profile-image{
+    .dashboard-profile-rank-frame{
         width: 68px;
         height: 68px;
     }

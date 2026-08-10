@@ -365,48 +365,121 @@ body.auth-page{
     .auth-page-join .auth-content-scroll{
         display: flex;
         align-items: center;
-        padding-top: clamp(16px, 2vh, 24px);
-        padding-bottom: clamp(16px, 2vh, 24px);
+        padding-top: clamp(8px, 1vh, 12px);
+        padding-bottom: clamp(8px, 1vh, 12px);
     }
 
     .auth-page-join .auth-heading{
-        margin-bottom: clamp(14px, 1.7vh, 20px);
+        margin-bottom: 8px;
     }
 
     .auth-page-join .auth-heading h1{
-        font-size: clamp(30px, 2.4vw, 40px);
+        font-size: clamp(28px, 2vw, 34px);
+        line-height: 1.12;
     }
 
     .auth-page-join .auth-heading > p:last-child{
-        margin-top: 6px;
-        font-size: 14px;
+        margin-top: 4px;
+        font-size: 13px;
     }
 
     .auth-page-join .auth-join-form{
-        gap: clamp(6px, 0.75vh, 9px);
+        gap: clamp(4px, 0.5vh, 6px);
     }
 
     .auth-page-join input[type="text"],
     .auth-page-join input[type="password"],
-    .auth-page-join select,
+    .auth-page-join select{
+        min-height: 38px;
+        padding: 7px 11px;
+        border-radius: 10px;
+        font-size: 13px;
+    }
+
     .auth-page-join .btn{
-        min-height: 44px;
+        min-height: 38px;
+        padding-top: 7px;
+        padding-bottom: 7px;
+        border-radius: 10px;
+        font-size: 13px;
     }
 
     .auth-page-join .auth-primary-button{
-        min-height: 48px;
+        min-height: 42px;
     }
 
     .auth-page-join .auth-switch{
-        margin-top: 12px;
+        margin-top: 7px;
+        font-size: 12px;
     }
 
     .auth-page-join .auth-home-logo{
-        margin-top: 14px;
+        margin-top: 7px;
     }
 
     .auth-page-join .auth-home-logo img{
-        width: 120px;
+        width: 104px;
+    }
+
+    .auth-page-join .auth-field-profile{
+        gap: 3px 10px;
+        padding: 6px 9px;
+        border-radius: 12px;
+    }
+
+    .auth-page-join .auth-field-profile .profile-preview{
+        width: 50px;
+        height: 50px;
+    }
+
+    .auth-page-join .auth-field-profile .file-label{
+        padding: 5px 9px;
+        font-size: 12px;
+    }
+
+    .auth-page-join label{
+        font-size: 12px;
+        line-height: 1.2;
+    }
+
+    .auth-page-join .form-row{
+        gap: 3px;
+    }
+
+    .auth-page-join .form-tip{
+        font-size: 10px;
+        line-height: 1.25;
+    }
+
+    .auth-page-join .input-with-button,
+    .auth-page-join .email-auth-row{
+        gap: 6px;
+    }
+
+    .auth-page-join .email-input-group{
+        gap: 5px;
+    }
+
+    .auth-page-join .email-code-area{
+        margin-top: 4px;
+    }
+}
+
+/* 충분한 높이의 데스크톱에서는 인증코드 입력 후에도 페이지 스크롤을 만들지 않음 */
+@media (min-width: 1041px) and (min-height: 900px){
+    body.auth-page-join{
+        overflow-y: hidden;
+    }
+
+    .auth-page-join .auth-shell,
+    .auth-page-join .auth-content,
+    .auth-page-join .auth-content-scroll{
+        height: 100vh;
+        min-height: 0;
+    }
+
+    .auth-page-join .auth-content-scroll{
+        overflow: hidden;
     }
 }
 
@@ -492,12 +565,19 @@ body.auth-page{
 }
 
 .auth-page-join .email-input-group{
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) minmax(105px, 0.75fr);
 }
 
-.auth-page-join .email-domain-select,
 .auth-page-reset .email-domain-select{
     grid-column: 1 / -1;
+}
+
+/* 검사 결과가 표시되면 같은 내용을 설명하던 기본 안내문은 숨겨 높이를 유지 */
+.auth-page-join #check-id-result:not(:empty) + .form-tip,
+.auth-page-join #check-nickname-result:not(:empty) + .form-tip,
+.auth-page-join #password-rule-result:not(:empty) + .form-tip,
+.auth-page-join #email-result:not(:empty) + .form-tip{
+    display: none;
 }
 
 .auth-page .password-reset-fields{
@@ -627,6 +707,10 @@ body.auth-page{
     }
 
     .auth-page-reset .email-domain-select{
+        grid-column: 1 / -1;
+    }
+
+    .auth-page-join .email-domain-select{
         grid-column: 1 / -1;
     }
 }

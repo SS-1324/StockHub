@@ -17,7 +17,6 @@
 <c:url var="commonCssUrl" value="/css/common.css" />
 <c:url var="headerJsUrl" value="/js/header.js" />
 <c:url var="memberProfileApiUrl" value="/member/profile/" />
-<c:url var="profileEditUrl" value="/member/mypage/password-check" />
 <c:set var="requestUri" value="${pageContext.request.requestURI}" />
 
 <%-- 커뮤니티용 주소 --%>
@@ -60,12 +59,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap"
           rel="stylesheet">
 
-    <link rel="stylesheet" href="${commonCssUrl}?v=25">
+    <link rel="stylesheet" href="${commonCssUrl}?v=29">
     <%-- 현재 화면에서 요청한 전용 CSS를 head 안에서 불러옴 --%>
     <c:if test="${not empty requestScope.pageCssUrl}">
         <link rel="stylesheet" href="${requestScope.pageCssUrl}">
     </c:if>
-    <script src="${headerJsUrl}?v=15" defer></script>
+    <script src="${headerJsUrl}?v=17" defer></script>
 </head>
 <body>
 <%-- 로고, 페이지 이동 메뉴, 회원 메뉴를 표시하는 공통 헤더 --%>
@@ -226,10 +225,13 @@
 
             <div class="member-profile-card">
                 <header class="member-profile-summary">
-                    <img class="member-profile-avatar"
-                         data-profile-avatar
-                         src="${defaultProfileUrl}"
-                         alt="프로필 이미지">
+                    <%-- [프로필랭커프레임-1] JS가 순위에 따라 금·은·동 클래스를 이 프레임에 붙인다. --%>
+                    <span class="member-profile-avatar-frame" data-profile-avatar-frame>
+                        <img class="member-profile-avatar"
+                             data-profile-avatar
+                             src="${defaultProfileUrl}"
+                             alt="프로필 이미지">
+                    </span>
                     <div class="member-profile-identity">
                         <h3 data-profile-nickname></h3>
                         <p data-profile-member-id></p>
@@ -242,33 +244,18 @@
                                 data-profile-follow-toggle
                                 aria-pressed="false"
                                 hidden>팔로우</button>
-                        <a class="member-profile-edit-link"
-                           data-profile-edit-link
-                           href="${profileEditUrl}"
-                           hidden>프로필 수정</a>
                     </div>
                 </header>
 
-                <%-- 원형 지표를 누르면 같은 팝업 아래쪽에서 해당 목록으로 전환한다. --%>
+                <%-- [프로필간소화-1] 본인·타인 모두 동일하게 팔로워·팔로잉 숫자만 표시한다. --%>
                 <nav class="member-profile-stats" aria-label="회원 활동 정보">
-                    <button type="button" data-profile-tab="posts">
-                        <span data-profile-post-label>내가 쓴 글</span><strong data-profile-post-count>0</strong>
-                    </button>
-                    <button type="button" data-profile-tab="followers">
+                    <div class="member-profile-stat">
                         <span>팔로워</span><strong data-profile-follower-count>0</strong>
-                    </button>
-                    <button type="button" data-profile-tab="following">
+                    </div>
+                    <div class="member-profile-stat">
                         <span>팔로잉</span><strong data-profile-following-count>0</strong>
-                    </button>
-                    <button type="button" data-profile-tab="inquiries" data-profile-inquiry-tab>
-                        <span data-profile-inquiry-label>문의글</span><strong data-profile-inquiry-count>0</strong>
-                    </button>
+                    </div>
                 </nav>
-
-                <section class="member-profile-panel"
-                         data-profile-panel
-                         aria-live="polite"
-                         hidden></section>
             </div>
         </div>
     </section>

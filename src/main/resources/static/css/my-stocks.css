@@ -29,9 +29,14 @@
     gap: 22px;
 }
 
-.my-info-profile-image{
+.my-info-profile-rank-frame{
     width: 104px;
     height: 104px;
+}
+
+.my-info-profile-image{
+    width: 100%;
+    height: 100%;
     flex: 0 0 auto;
     border: 4px solid #eaf2ff;
     border-radius: 50%;
@@ -492,7 +497,7 @@ html[data-theme="dark"] .public-inquiry-answer{
         flex-wrap: wrap;
     }
 
-    .my-info-profile-image{
+    .my-info-profile-rank-frame{
         width: 78px;
         height: 78px;
     }

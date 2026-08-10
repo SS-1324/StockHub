@@ -7,6 +7,14 @@
 <c:url var="currentProfileUrl"
        value="${empty member.profile ? '/images/common_member.png' : member.profile}" />
 
+<%-- [전체프로필프레임-4] 프로필 수정 화면의 미리보기에도 현재 순위 프레임을 유지한다. --%>
+<c:set var="profileEditRankClass" value="" />
+<c:choose>
+    <c:when test="${headerRankPosition eq 1}"><c:set var="profileEditRankClass" value="rank-first" /></c:when>
+    <c:when test="${headerRankPosition eq 2}"><c:set var="profileEditRankClass" value="rank-second" /></c:when>
+    <c:when test="${headerRankPosition eq 3}"><c:set var="profileEditRankClass" value="rank-third" /></c:when>
+</c:choose>
+
 <h2 class="page-title profile-page-title">프로필 수정</h2>
 
 <%-- 프로필 수정 실패 메시지를 표시 --%>
@@ -39,7 +47,7 @@
 
     <%-- 현재 프로필 이미지와 새 이미지 선택 영역 --%>
     <div class="form-row form-row-center">
-        <div class="profile-preview-wrap">
+        <div class="profile-preview-wrap account-profile-rank-frame profile-edit-rank-frame ${profileEditRankClass}">
             <c:choose>
                 <c:when test="${not empty member.profile}">
                     <img id="profile-preview" class="profile-preview"

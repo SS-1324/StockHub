@@ -127,8 +127,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const loading = modalOverlay.querySelector("[data-profile-loading]");
     const error = modalOverlay.querySelector("[data-profile-error]");
     const content = modalOverlay.querySelector("[data-profile-content]");
-    const panel = modalOverlay.querySelector("[data-profile-panel]");
-    const inquiryTab = modalOverlay.querySelector("[data-profile-inquiry-tab]");
     const followToggle = modalOverlay.querySelector("[data-profile-follow-toggle]");
     const profileApi = modalOverlay.dataset.profileApi;
     const contextPath = modalOverlay.dataset.contextPath || "";
@@ -187,82 +185,29 @@ document.addEventListener("DOMContentLoaded", () => {
         return contextPath + (path.startsWith("/") ? path : "/" + path);
     };
 
-    const createTextElement = (tagName, className, text) => {
-        const element = document.createElement(tagName);
-        if (className) element.className = className;
-        element.textContent = text ?? "";
-        return element;
-    };
-
-    const showMessage = (message) => {
-        panel.replaceChildren(createTextElement("p", "member-profile-empty", message));
-    };
-
-    const setActiveTab = (tabName) => {
-        modalOverlay.querySelectorAll("[data-profile-tab]").forEach((button) => {
-            button.classList.toggle("is-active", button.dataset.profileTab === tabName);
-        });
-    };
-
-    const renderFollowList = (members, emptyMessage) => {
-        if (!members.length) {
-            showMessage(emptyMessage);
-            return;
-        }
-
-        const list = document.createElement("ul");
-        list.className = "member-profile-list member-profile-follow-list";
-        members.forEach((member) => {
-            const item = document.createElement("li");
-            const button = document.createElement("button");
-            button.type = "button";
-            button.dataset.userProfile = member.memberId;
-            button.className = "member-profile-follow-member";
-
-            const image = document.createElement("img");
-            image.src = assetUrl(member.profile);
-            image.alt = "";
-            image.addEventListener("error", () => {
-                image.src = defaultProfile;
-            }, { once: true });
-
-            const identity = document.createElement("span");
-            identity.append(
-                createTextElement("strong", "", member.nickname),
-                createTextElement("small", "", "@" + member.memberId)
-            );
-            button.append(image, identity);
-            item.append(button);
-            list.append(item);
-        });
-        panel.replaceChildren(list);
-    };
-
-    const renderPanel = (tabName) => {
-        if (!currentProfile) return;
-        setActiveTab(tabName);
-        if (tabName === "followers") {
-            renderFollowList(currentProfile.followers, "팔로우한 회원이 없습니다.");
-        }
-        if (tabName === "following") {
-            renderFollowList(currentProfile.following, "팔로잉 중인 회원이 없습니다.");
-        }
-        requestAnimationFrame(positionProfilePopover);
-    };
-
     const fillProfile = (profile) => {
         currentProfile = profile;
         const avatar = modalOverlay.querySelector("[data-profile-avatar]");
+        const avatarFrame = modalOverlay.querySelector("[data-profile-avatar-frame]");
         avatar.src = assetUrl(profile.profile);
         avatar.onerror = () => {
             avatar.onerror = null;
             avatar.src = defaultProfile;
         };
+
+        /* [프로필랭커프레임-2] 현재 랭킹 기준의 1~3위에 맞춰 팝업 사진에도 금·은·동 프레임을 적용한다. */
+        avatarFrame.classList.remove("rank-first", "rank-second", "rank-third");
+        if (profile.badge === "RANKER" && profile.rankPosition >= 1 && profile.rankPosition <= 3) {
+            avatarFrame.classList.add([
+                "rank-first",
+                "rank-second",
+                "rank-third"
+            ][profile.rankPosition - 1]);
+        }
         modalOverlay.querySelector("[data-profile-nickname]").textContent = profile.nickname;
         modalOverlay.querySelector("[data-profile-member-id]").textContent = "@" + profile.memberId;
-        modalOverlay.querySelector("[data-profile-heading]").textContent =
-            profile.ownProfile ? "내 정보" : "회원 정보";
-        modalOverlay.querySelector("[data-profile-edit-link]").hidden = !profile.ownProfile;
+        /* [프로필간소화-2] 본인·타인 여부와 관계없이 같은 제목과 같은 정보 구조를 사용한다. */
+        modalOverlay.querySelector("[data-profile-heading]").textContent = "회원 정보";
 
         /* [팔로우토글-5] 서버 상태를 기준으로 버튼 문구·색상·접근성 상태를 함께 갱신한다. */
         followToggle.hidden = !profile.canFollow;
@@ -279,18 +224,8 @@ document.addEventListener("DOMContentLoaded", () => {
             : "USER";
         badge.classList.toggle("is-ranker", profile.badge === "RANKER");
 
-        modalOverlay.querySelector("[data-profile-post-count]").textContent = profile.postCount;
-        modalOverlay.querySelector("[data-profile-post-label]").textContent =
-            profile.ownProfile ? "내가 쓴 글" : "작성글";
         modalOverlay.querySelector("[data-profile-follower-count]").textContent = profile.followerCount;
         modalOverlay.querySelector("[data-profile-following-count]").textContent = profile.followingCount;
-        modalOverlay.querySelector("[data-profile-inquiry-count]").textContent = profile.inquiryCount;
-        modalOverlay.querySelector("[data-profile-inquiry-label]").textContent =
-            profile.ownProfile ? "내 문의글" : "문의글";
-        inquiryTab.hidden = false;
-        /* [프로필UI-1] 처음에는 참고 화면처럼 원형 지표까지만 보이고, 선택할 때 목록을 펼친다. */
-        panel.hidden = true;
-        setActiveTab("");
     };
 
     const openProfile = async (memberId, trigger) => {
@@ -352,7 +287,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             /*
              * [팔로우토글-6] 페이지 이동 없이 POST 요청으로 관계를 반전한다.
-             * 서버가 반환한 최신 프로필 전체를 다시 그려 팔로워 수와 목록까지 같은 상태로 맞춘다.
+             * 서버가 반환한 최신 프로필 전체를 다시 그려 팔로워 숫자도 같은 상태로 맞춘다.
              */
             const memberId = encodeURIComponent(currentProfile.memberId);
             const query = new URLSearchParams({ rankType: currentProfile.rankType || "returnRate" });
@@ -395,26 +330,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (event.key === "Escape" && !modalOverlay.hidden) closeProfile();
     }, true);
 
-    modalOverlay.querySelectorAll("[data-profile-tab]").forEach((button) => {
-        button.addEventListener("click", () => {
-            if (button.dataset.profileTab === "posts") {
-                /* [프로필게시글-2] 작성글 숫자는 모달 목록 대신 전용 공개 게시글 페이지로 이동한다. */
-                const memberId = encodeURIComponent(currentProfile.memberId);
-                window.location.href = currentProfile.ownProfile
-                    ? contextPath + "/member/stocks/posts"
-                    : contextPath + "/member/profile/" + memberId + "/posts";
-                return;
-            }
-            if (button.dataset.profileTab === "inquiries") {
-                /* [프로필문의-2] 문의 숫자도 작성글처럼 공개 목록 페이지로 이동한다. */
-                const memberId = encodeURIComponent(currentProfile.memberId);
-                window.location.href = contextPath + "/member/profile/" + memberId + "/inquiries";
-                return;
-            }
-            panel.hidden = false;
-            renderPanel(button.dataset.profileTab);
-        });
-    });
     closeButton.addEventListener("click", closeProfile);
     modalOverlay.addEventListener("click", (event) => {
         if (event.target === modalOverlay) closeProfile();
