@@ -260,6 +260,7 @@ html[data-theme="dark"] .chat-panel {
 .chart-wrapper:-webkit-full-screen .chart-body {
     flex: 1;
     height: auto;
+    min-height: 0;
 }
 
 /* 종목별 "살까?팔까?" 실시간 투표 카드. 색/배경은 .chart-wrapper와 같은 규칙을 그대로 씀 */
