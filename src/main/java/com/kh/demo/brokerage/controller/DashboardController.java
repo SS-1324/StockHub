@@ -15,27 +15,35 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /*
-*   DashboardController : 헤더의 '내 대시보드' 메뉴에서 사용하는 화면 요청을 처리.
+*   DashboardController : 헤더의 '내 금융거래' 메뉴에서 사용하는 화면 요청을 처리.
 *
-*   원래는 '내 주식'(주식 보유내역만) 화면이었는데, 상품(펀드/채권/ELS)·입출금·목표 도달률까지
-*   포함하는 통합 자산 대시보드로 확장했다. 증권사가 여럿이어도 한 화면에서 다 보인다는 게
-*   StockHub의 핵심 가치라는 판단에 따른 것.
+*   원래는 '내 주식'(주식 보유내역만) 화면이었는데, 상품(펀드/채권/ELS)·입출금·목표 도달률·
+*   계좌 연동·매매 손익 내역까지 포함하는 통합 자산 대시보드로 확장했다. 증권사가 여럿이어도
+*   한 화면에서 다 보인다는 게 StockHub의 핵심 가치라는 판단에 따른 것.
 * */
 @Controller
 public class DashboardController {
 
-    private static final int TIMELINE_LIMIT = 15;
+    // 대시보드 최근 활동은 화면에서 15개씩 페이지로 나눠 보여주므로, 페이징할 여지가 있도록 넉넉히 가져온다
+    private static final int TIMELINE_LIMIT = 90;
 
     private final MyStockService myStockService;
     private final MyProductService myProductService;
     private final TradeService tradeService;
     private final ProductTransactionService productTransactionService;
     private final CashTransactionService cashTransactionService;
+    private final RealizedProfitService realizedProfitService;
+    private final AccountService accountService;
+    private final BrokerageService brokerageService;
     private final GoalService goalService;
     private final MemberService memberService;
 
@@ -44,6 +52,9 @@ public class DashboardController {
                                 TradeService tradeService,
                                 ProductTransactionService productTransactionService,
                                 CashTransactionService cashTransactionService,
+                                RealizedProfitService realizedProfitService,
+                                AccountService accountService,
+                                BrokerageService brokerageService,
                                 GoalService goalService,
                                 MemberService memberService) {
         this.myStockService = myStockService;
@@ -51,6 +62,9 @@ public class DashboardController {
         this.tradeService = tradeService;
         this.productTransactionService = productTransactionService;
         this.cashTransactionService = cashTransactionService;
+        this.realizedProfitService = realizedProfitService;
+        this.accountService = accountService;
+        this.brokerageService = brokerageService;
         this.goalService = goalService;
         this.memberService = memberService;
     }
@@ -61,14 +75,7 @@ public class DashboardController {
 
         MyStockSummaryDto stockSummary = myStockService.getMyStockSummary(memberId);
         MyProductSummaryDto productSummary = myProductService.getMyProductSummary(memberId);
-        GoalDto goal = goalService.getMyGoal(memberId);
-
-        model.addAttribute("member", memberService.getMemberProfile(memberId));
-        model.addAttribute("stockSummary", stockSummary);
-        model.addAttribute("productSummary", productSummary);
-        model.addAttribute("timeline", buildTimeline(memberId));
-        model.addAttribute("goal", goal);
-        model.addAttribute("goalProgress", computeGoalProgress(goal, stockSummary, productSummary));
+        List<GoalDto> activeGoals = goalService.getMyActiveGoals(memberId);
 
         // 총 자산 = 현금 잔고 + 주식 평가금액(매입금액+평가손익) + 상품 평가금액
         long stockCurrentValue = (stockSummary.getTotalPurchaseAmount() == null ? 0L : stockSummary.getTotalPurchaseAmount())
@@ -76,27 +83,95 @@ public class DashboardController {
         long totalAsset = (stockSummary.getCurrentBalance() == null ? 0L : stockSummary.getCurrentBalance())
                 + stockCurrentValue
                 + (productSummary.getTotalCurrentValue() == null ? 0L : productSummary.getTotalCurrentValue());
+
+        // 총손익 = 총자산 - 총투자원금 (실현손익까지 자동으로 포함되는, 실제 증권사와 동일한 정의)
+        PeriodProfitDto periodProfit = realizedProfitService.getMyPeriodProfit(memberId, totalAsset);
+        long totalProfit = periodProfit.getAll();
+        BigDecimal totalReturnRate = periodProfit.getTotalPrincipal() <= 0
+                ? BigDecimal.ZERO
+                : BigDecimal.valueOf(totalProfit * 100)
+                        .divide(BigDecimal.valueOf(periodProfit.getTotalPrincipal()), 2, RoundingMode.HALF_UP);
+
+        model.addAttribute("member", memberService.getMemberProfile(memberId));
+        model.addAttribute("myAccounts", accountService.getMyAccounts(memberId));
+        model.addAttribute("brokerages", brokerageService.getAllBrokerages());
+        model.addAttribute("stockSummary", stockSummary);
+        model.addAttribute("productSummary", productSummary);
+        model.addAttribute("timeline", buildTimeline(memberId));
+        model.addAttribute("activeGoals", activeGoals);
+        model.addAttribute("goalProgress", computeGoalProgress(activeGoals, stockSummary, productSummary));
+        model.addAttribute("periodProfit", periodProfit);
         model.addAttribute("totalAsset", totalAsset);
-        model.addAttribute("totalProfit",
-                (stockSummary.getProfitAmount() == null ? 0L : stockSummary.getProfitAmount())
-                        + (productSummary.getProfitAmount() == null ? 0L : productSummary.getProfitAmount()));
+        model.addAttribute("totalProfit", totalProfit);
+        model.addAttribute("totalReturnRate", totalReturnRate);
 
         return "member/dashboard";
+    }
+
+    // 계좌번호+예금주명으로 증권사에 본인확인 요청 -> 이미 있던 이력이 그대로 딸려온다
+    @PostMapping("/member/dashboard/link-account")
+    public String linkAccount(@RequestParam Long brokerageId,
+                               @RequestParam String accountNo,
+                               @RequestParam String ownerName,
+                               HttpSession session,
+                               RedirectAttributes ra) {
+        String memberId = SessionUtil.requireLoginMemberId(session);
+        AccountLinkRequestDto request = new AccountLinkRequestDto();
+        request.setBrokerageId(brokerageId);
+        request.setAccountNo(accountNo);
+        request.setOwnerName(ownerName);
+        try {
+            accountService.linkAccount(memberId, request);
+            ra.addFlashAttribute("linkSuccess", true);
+        } catch (IllegalStateException e) {
+            ra.addFlashAttribute("linkError", e.getMessage());
+        }
+        return "redirect:/member/dashboard";
     }
 
     @PostMapping("/member/dashboard/goal")
     public String setGoal(@RequestParam String goalType,
                            @RequestParam String title,
                            @RequestParam BigDecimal targetValue,
+                           @RequestParam(required = false) LocalDate targetDate,
                            HttpSession session,
                            RedirectAttributes ra) {
         String memberId = SessionUtil.requireLoginMemberId(session);
         try {
-            goalService.setGoal(memberId, goalType, title, targetValue);
+            goalService.setGoal(memberId, goalType, title, targetValue, targetDate);
         } catch (IllegalArgumentException e) {
             ra.addFlashAttribute("goalError", e.getMessage());
         }
         return "redirect:/member/dashboard";
+    }
+
+    @PostMapping("/member/dashboard/goal/cancel")
+    public String cancelGoal(@RequestParam Long goalId, HttpSession session, RedirectAttributes ra) {
+        String memberId = SessionUtil.requireLoginMemberId(session);
+        try {
+            goalService.cancelGoal(memberId, goalId);
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("goalError", e.getMessage());
+        }
+        return "redirect:/member/dashboard";
+    }
+
+    // 지난 목표(기한+유예기간이 지나 대시보드에서 빠진 것) 모아보기
+    @GetMapping("/member/dashboard/goals/history")
+    public String goalHistory(HttpSession session, Model model) {
+        String memberId = SessionUtil.requireLoginMemberId(session);
+        model.addAttribute("member", memberService.getMemberProfile(memberId));
+        model.addAttribute("goalHistory", goalService.getMyGoalHistory(memberId));
+        return "member/goalHistory";
+    }
+
+    // "언제 사서 얼마에 팔아 얼마 벌었나" 매매 손익 내역 전체보기
+    @GetMapping("/member/dashboard/history")
+    public String tradeHistory(HttpSession session, Model model) {
+        String memberId = SessionUtil.requireLoginMemberId(session);
+        model.addAttribute("member", memberService.getMemberProfile(memberId));
+        model.addAttribute("realizedProfits", realizedProfitService.getMyRealizedProfits(memberId));
+        return "member/tradeHistory";
     }
 
     // trade/product_transaction/cash_transaction을 한 타임라인으로 합쳐서 최신순 상위 N개만 반환
@@ -127,31 +202,33 @@ public class DashboardController {
                 .toList();
     }
 
-    // 목표 대비 도달률(%) 계산 - 0~100 사이로 잘라서 프로그레스 바에 바로 쓸 수 있게 한다
-    private int computeGoalProgress(GoalDto goal, MyStockSummaryDto stockSummary, MyProductSummaryDto productSummary) {
-        if (goal == null) {
-            return 0;
+    // 목표별 대비 도달률(%) 계산 - 0~100 사이로 잘라서 원형 그래프에 바로 쓸 수 있게 한다 (goalId -> 퍼센트)
+    private Map<Long, Integer> computeGoalProgress(List<GoalDto> goals, MyStockSummaryDto stockSummary, MyProductSummaryDto productSummary) {
+        Map<Long, Integer> result = new HashMap<>();
+        if (goals.isEmpty()) {
+            return result;
         }
         long combinedProfit = (stockSummary.getProfitAmount() == null ? 0L : stockSummary.getProfitAmount())
                 + (productSummary.getProfitAmount() == null ? 0L : productSummary.getProfitAmount());
+        long combinedPurchase = (stockSummary.getTotalPurchaseAmount() == null ? 0L : stockSummary.getTotalPurchaseAmount())
+                + (productSummary.getTotalPurchaseAmount() == null ? 0L : productSummary.getTotalPurchaseAmount());
 
-        BigDecimal current;
-        if ("PROFIT_AMOUNT".equals(goal.getGoalType())) {
-            current = BigDecimal.valueOf(combinedProfit);
-        } else {
-            long combinedPurchase = (stockSummary.getTotalPurchaseAmount() == null ? 0L : stockSummary.getTotalPurchaseAmount())
-                    + (productSummary.getTotalPurchaseAmount() == null ? 0L : productSummary.getTotalPurchaseAmount());
-            current = combinedPurchase <= 0
-                    ? BigDecimal.ZERO
-                    : BigDecimal.valueOf(combinedProfit * 100).divide(BigDecimal.valueOf(combinedPurchase), 2, java.math.RoundingMode.HALF_UP);
+        for (GoalDto goal : goals) {
+            BigDecimal current;
+            if ("PROFIT_AMOUNT".equals(goal.getGoalType())) {
+                current = BigDecimal.valueOf(combinedProfit);
+            } else {
+                current = combinedPurchase <= 0
+                        ? BigDecimal.ZERO
+                        : BigDecimal.valueOf(combinedProfit * 100).divide(BigDecimal.valueOf(combinedPurchase), 2, RoundingMode.HALF_UP);
+            }
+            int percent = (goal.getTargetValue() == null || goal.getTargetValue().signum() <= 0)
+                    ? 0
+                    : current.multiply(BigDecimal.valueOf(100))
+                            .divide(goal.getTargetValue(), 0, RoundingMode.HALF_UP)
+                            .intValue();
+            result.put(goal.getGoalId(), Math.max(0, Math.min(100, percent)));
         }
-
-        if (goal.getTargetValue() == null || goal.getTargetValue().signum() <= 0) {
-            return 0;
-        }
-        int percent = current.multiply(BigDecimal.valueOf(100))
-                .divide(goal.getTargetValue(), 0, java.math.RoundingMode.HALF_UP)
-                .intValue();
-        return Math.max(0, Math.min(100, percent));
+        return result;
     }
 }

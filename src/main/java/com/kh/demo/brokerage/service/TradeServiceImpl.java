@@ -79,17 +79,18 @@ public class TradeServiceImpl implements TradeService {
             accountMapper.updateBalance(accountId, account.getBalance() - totalCost);
 
             // 보유내역 갱신(신규 매수면 insert, 추가 매수면 수량/평단가 재계산 후 update)
+            // 평단가(매입원가)에는 매수수수료도 포함시킨다 - 실제 증권사도 수수료를 원가에 얹어서 평가손익을 계산함
             if (holding == null) {
                 HoldingDto newHolding = new HoldingDto();
                 newHolding.setAccountId(accountId);
                 newHolding.setStockCode(stock.getStockCode());
                 newHolding.setQuantity(quantity);
-                newHolding.setAvgPrice(price);
+                newHolding.setAvgPrice((int) (totalCost / quantity));
                 holdingMapper.insertHolding(newHolding);
             } else {
                 long newQuantity = holding.getQuantity() + quantity;
-                // 가중평균 평단가 = (기존수량*기존평단가 + 신규수량*체결가) / 총수량
-                long newAvgPrice = (holding.getQuantity() * holding.getAvgPrice() + quantity * price) / newQuantity;
+                // 가중평균 평단가 = (기존수량*기존평단가 + 이번 매수원가(체결금액+수수료)) / 총수량
+                long newAvgPrice = (holding.getQuantity() * holding.getAvgPrice() + totalCost) / newQuantity;
                 holding.setQuantity(newQuantity);
                 holding.setAvgPrice((int) newAvgPrice);
                 holdingMapper.updateHolding(holding);

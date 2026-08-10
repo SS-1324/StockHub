@@ -50,4 +50,33 @@
         DELETE FROM cash_transaction WHERE account_id = #{accountId}
     </delete>
 
+    <select id="sumNetDeposits" resultType="long">
+        SELECT COALESCE(SUM(CASE WHEN ct.transaction_type = 'DEPOSIT' THEN ct.amount ELSE -ct.amount END), 0)
+        FROM cash_transaction ct
+        JOIN account_link al ON al.account_id = ct.account_id
+        <where>
+            al.member_id = #{memberId}
+            <if test="since != null">
+                AND ct.transaction_at &gt;= #{since}
+            </if>
+        </where>
+    </select>
+
+    <!-- 계좌별로 "그 기간 시작일 <= 기준" 조건을 만족하는 가장 최근 스냅샷 날짜를 찾고,
+         그 날짜보다 뒤(당일 제외)에 일어난 입출금만 합산한다.
+         스냅샷이 하나도 없는 계좌(기간이 계좌 생성보다 더 과거인 경우)는 전체 이력을 다 합산한다. -->
+    <select id="sumNetDepositsSinceBaseline" resultType="long">
+        SELECT COALESCE(SUM(CASE WHEN ct.transaction_type = 'DEPOSIT' THEN ct.amount ELSE -ct.amount END), 0)
+        FROM cash_transaction ct
+        JOIN account_link al ON al.account_id = ct.account_id
+        LEFT JOIN (
+            SELECT asn.account_id, MAX(asn.snapshot_date) AS baseline_date
+            FROM asset_snapshot asn
+            WHERE asn.snapshot_date &lt;= #{periodStart}
+            GROUP BY asn.account_id
+        ) baseline ON baseline.account_id = ct.account_id
+        WHERE al.member_id = #{memberId}
+          AND (baseline.baseline_date IS NULL OR DATE(ct.transaction_at) &gt; baseline.baseline_date)
+    </select>
+
 </mapper>

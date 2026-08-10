@@ -3,7 +3,9 @@ package com.kh.demo.goal.dto;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /*
 *   GoalDto : goal 테이블과 1:1로 대응되는 클래스
@@ -24,5 +26,15 @@ public class GoalDto {
     private String goalType;        // 목표 종류("RETURN_RATE" / "PROFIT_AMOUNT")
     private String title;           // 목표 이름
     private BigDecimal targetValue; // 목표치(수익률=%, 수익금=원)
+    private LocalDate targetDate;   // 목표 기한(없으면 무기한)
     private LocalDateTime createAt; // 목표 설정일시
+
+    // JSP(JSTL fmt 태그는 java.time을 못 다룸)에서 그대로 출력할 포맷된 문자열
+    public String getTargetDateText() {
+        return targetDate == null ? null : targetDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"));
+    }
+
+    public String getCreateAtText() {
+        return createAt == null ? null : createAt.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"));
+    }
 }

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kh.demo.brokerage.mapper.AssetSnapshotMapper">
+
+    <insert id="insertSnapshot">
+        INSERT INTO asset_snapshot(account_id, snapshot_date, total_asset)
+        VALUES(#{accountId}, #{snapshotDate}, #{totalAsset})
+    </insert>
+
+    <delete id="deleteSnapshotsByAccount" parameterType="long">
+        DELETE FROM asset_snapshot WHERE account_id = #{accountId}
+    </delete>
+
+    <select id="selectTotalAssetAsOf" resultType="long">
+        SELECT COALESCE(SUM(latest.total_asset), 0)
+        FROM (
+            SELECT asn.account_id, asn.total_asset,
+                   ROW_NUMBER() OVER (PARTITION BY asn.account_id ORDER BY asn.snapshot_date DESC) AS rn
+            FROM asset_snapshot asn
+            JOIN account_link al ON al.account_id = asn.account_id
+            WHERE al.member_id = #{memberId}
+              AND asn.snapshot_date &lt;= #{date}
+        ) latest
+        WHERE latest.rn = 1
+    </select>
+
+</mapper>
