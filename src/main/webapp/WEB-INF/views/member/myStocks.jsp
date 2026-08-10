@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <c:url var="myStocksCssUrl" value="/css/my-stocks.css">
-    <c:param name="v" value="3" />
+    <c:param name="v" value="4" />
 </c:url>
 <c:set var="pageCssUrl" value="${myStocksCssUrl}" scope="request" />
 <c:url var="defaultProfileUrl" value="/images/common_member.png" />
