@@ -2,6 +2,8 @@ package com.kh.demo.brokerage.controller;
 
 import com.kh.demo.common.dto.ApiResponse;
 import com.kh.demo.common.util.SessionUtil;
+import com.kh.demo.community.service.BoardBookmarkService;
+import com.kh.demo.community.service.BoardCommentService;
 import com.kh.demo.community.service.BoardService;
 import com.kh.demo.inquiry.service.InquiryService;
 import com.kh.demo.member.dto.FollowDto;
@@ -22,15 +24,21 @@ public class MyStockController {
 
     private final MemberService memberService;
     private final BoardService boardService;
+    private final BoardCommentService boardCommentService;
+    private final BoardBookmarkService boardBookmarkService;
     private final FollowService followService;
     private final InquiryService inquiryService;
 
     public MyStockController(MemberService memberService,
                              BoardService boardService,
+                             BoardCommentService boardCommentService,
+                             BoardBookmarkService boardBookmarkService,
                              FollowService followService,
                              InquiryService inquiryService) {
         this.memberService = memberService;
         this.boardService = boardService;
+        this.boardCommentService = boardCommentService;
+        this.boardBookmarkService = boardBookmarkService;
         this.followService = followService;
         this.inquiryService = inquiryService;
     }
@@ -46,6 +54,8 @@ public class MyStockController {
 
         model.addAttribute("member", memberService.getMemberProfile(memberId));
         model.addAttribute("myPostCount", boardService.getMemberPostCount(memberId));
+        model.addAttribute("myCommentCount", boardCommentService.getMemberCommentCount(memberId));
+        model.addAttribute("bookmarkCount", boardBookmarkService.getBookmarkedBoardCount(memberId));
         model.addAttribute("followerCount", followService.getFollowerCount(memberId));
         model.addAttribute("followingCount", followService.getFollowingCount(memberId));
         model.addAttribute(
@@ -71,6 +81,45 @@ public class MyStockController {
         model.addAttribute("totalCount", boardService.getMemberPostCount(memberId));
         model.addAttribute("allowedCategories", boardService.getAllowedCategories());
         return "member/myPosts";
+    }
+
+    // 로그인 회원 본인이 작성한 댓글과 답글만 별도 페이지에 표시
+    @GetMapping("/member/stocks/comments")
+    public String myComments(HttpSession session, Model model) {
+        if (SessionUtil.isAdmin(session)) {
+            return "redirect:/admin";
+        }
+
+        String memberId = SessionUtil.requireLoginMemberId(session);
+        model.addAttribute(
+                "commentList",
+                boardCommentService.getMemberComments(memberId)
+        );
+        model.addAttribute(
+                "totalCount",
+                boardCommentService.getMemberCommentCount(memberId)
+        );
+        return "member/myComments";
+    }
+
+    // 로그인 회원이 북마크한 공개 게시글만 별도 페이지에 표시
+    @GetMapping("/member/stocks/bookmarks")
+    public String bookmarkedPosts(HttpSession session, Model model) {
+        if (SessionUtil.isAdmin(session)) {
+            return "redirect:/admin";
+        }
+
+        String memberId = SessionUtil.requireLoginMemberId(session);
+        model.addAttribute(
+                "boardList",
+                boardBookmarkService.getBookmarkedBoards(memberId)
+        );
+        model.addAttribute(
+                "totalCount",
+                boardBookmarkService.getBookmarkedBoardCount(memberId)
+        );
+        model.addAttribute("allowedCategories", boardService.getAllowedCategories());
+        return "member/bookmarkedPosts";
     }
 
     // 나를 팔로우하는 회원 목록을 모달에 전달

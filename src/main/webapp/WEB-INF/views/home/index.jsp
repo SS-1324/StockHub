@@ -61,7 +61,7 @@
         </div>
     </section>
 
-    <%-- 최신 커뮤니티 게시글 5개를 처음 사용한 3개/2개 방식으로 배치 --%>
+    <%-- 최신 커뮤니티 게시글 6개를 왼쪽 3개, 오른쪽 3개로 배치 --%>
     <section class="home-section" aria-labelledby="home-community-title">
         <div class="home-section-heading">
             <div>
@@ -321,8 +321,8 @@
     const resolvedCode = "AAPL";
     const resolvedPeriod = "day";
 </script>
-<script src="${pageContext.request.contextPath}/js/tradingview-chart.js?v=1"></script>
-<script src="${pageContext.request.contextPath}/js/stockhub.js?v=5"></script>
+<script src="${pageContext.request.contextPath}/js/tradingview-chart.js"></script>
+<script src="${pageContext.request.contextPath}/js/stockhub.js?v=6"></script>
 
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

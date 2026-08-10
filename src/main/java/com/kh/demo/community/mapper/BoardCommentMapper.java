@@ -18,6 +18,11 @@ public interface BoardCommentMapper {
     // 게시글에 달린 댓글+답글 전체 조회 (부모 댓글 바로 뒤에 그 답글들이 시간순으로 이어지도록 정렬됨)
     List<BoardCommentDto> selectByBoardId(@Param("boardId") Long boardId);
 
+    // 로그인 회원이 작성한 공개 댓글과 답글을 최신순으로 조회
+    List<BoardCommentDto> selectByMemberId(@Param("memberId") String memberId);
+
+    long countByMemberId(@Param("memberId") String memberId);
+
     // 댓글 삭제 (작성자 본인만 삭제 가능하도록 memberId도 함께 조건으로 사용)
     // parent_comment_id/board_id FK 모두 ON DELETE CASCADE라 답글/좋아요는 DB가 함께 정리해준다.
     int deleteById(@Param("boardId") Long boardId,

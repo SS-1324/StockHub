@@ -2,7 +2,6 @@ package com.kh.demo.admin.service;
 
 import com.kh.demo.admin.dto.AdminDashboardDto;
 import com.kh.demo.admin.dto.AdminLogDto;
-import com.kh.demo.brokerage.dto.StockDto;
 import com.kh.demo.community.dto.BoardCommentDto;
 import com.kh.demo.community.dto.BoardDto;
 import com.kh.demo.dictionary.dto.GlossaryDto;
@@ -23,8 +22,6 @@ public interface AdminService {
     List<BoardCommentDto> getComments();
 
     List<InquiryDto> getInquiries();
-
-    List<StockDto> getStocks();
 
     List<GlossaryDto> getGlossaryTerms();
 
@@ -47,19 +44,6 @@ public interface AdminService {
     void completeInquiry(String adminId, Long inquiryId);
 
     void deleteInquiry(String adminId, Long inquiryId);
-
-    void createStock(String adminId,
-                     String stockCode,
-                     String stockName,
-                     Integer currentPrice);
-
-    void updateStock(String adminId,
-                     String currentStockCode,
-                     String stockCode,
-                     String stockName,
-                     Integer currentPrice);
-
-    void deleteStock(String adminId, String stockCode);
 
     void createGlossary(String adminId, GlossaryDto glossaryDto);
 
