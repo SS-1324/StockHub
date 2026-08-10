@@ -14,11 +14,11 @@
 
 <%-- 커뮤니티 전용 CSS --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css?v=18">
+      href="${pageContext.request.contextPath}/css/board.css?v=24">
 
 
 <%-- =========================================================
-     게시판 제목과 글쓰기 버튼
+     게시판 제목
      ========================================================= --%>
 <div class="board-list-header">
 
@@ -29,31 +29,6 @@
             투자 이야기를 편하게 나눠보세요.
         </p>
     </div>
-
-    <%-- 로그인 여부에 따라 글쓰기 버튼 문구를 변경한다. --%>
-    <c:choose>
-        <c:when test="${empty loginMemberId}">
-            <a class="btn-write"
-               href="${communityUrl}/write">
-
-                <span class="btn-write-icon"
-                      aria-hidden="true">+</span>
-
-                로그인하고 글쓰기
-            </a>
-        </c:when>
-
-        <c:otherwise>
-            <a class="btn-write"
-               href="${communityUrl}/write">
-
-                <span class="btn-write-icon"
-                      aria-hidden="true">+</span>
-
-                글쓰기
-            </a>
-        </c:otherwise>
-    </c:choose>
 
 </div>
 
@@ -86,10 +61,12 @@
     </div>
 
 
-    <%-- 게시글 검색 --%>
-    <form class="search-form"
-          action="${communityUrl}"
-          method="get">
+    <%-- [게시판도구-1] 검색과 글쓰기를 같은 묶음에 두어 목록 조작 기능의 위치를 통일한다. --%>
+    <div class="board-toolbar-actions">
+        <%-- 게시글 검색 --%>
+        <form class="search-form"
+              action="${communityUrl}"
+              method="get">
 
         <%-- 선택한 카테고리를 유지한 상태에서 검색한다. --%>
         <c:if test="${not empty category}">
@@ -133,7 +110,24 @@
             </button>
 
         </div>
-    </form>
+        </form>
+
+        <%-- 로그인 여부에 따라 글쓰기 버튼 문구를 변경한다. --%>
+        <c:choose>
+            <c:when test="${empty loginMemberId}">
+                <a class="btn-write" href="${communityUrl}/write">
+                    <span class="btn-write-icon" aria-hidden="true">+</span>
+                    로그인하고 글쓰기
+                </a>
+            </c:when>
+            <c:otherwise>
+                <a class="btn-write" href="${communityUrl}/write">
+                    <span class="btn-write-icon" aria-hidden="true">+</span>
+                    글쓰기
+                </a>
+            </c:otherwise>
+        </c:choose>
+    </div>
 
 </div>
 
@@ -200,7 +194,7 @@
 
 
 <%-- 게시판 전용 JavaScript --%>
-<script src="${pageContext.request.contextPath}/js/board.js"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=3"></script>
 
 <%-- 공통 푸터 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

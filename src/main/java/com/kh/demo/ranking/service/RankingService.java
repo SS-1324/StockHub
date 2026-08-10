@@ -29,4 +29,7 @@ public interface RankingService {
 
     // 공통 헤더의 금·은·동 프로필 프레임에 사용할 현재 수익률 순위(1~3위, 그 외 null)
     Integer getHeaderRankPosition(String memberId);
+
+    /* [프로필순위-3] 팝업을 연 랭킹보드의 기준에 맞는 1~3위만 반환한다. */
+    Integer getProfileRankPosition(String memberId, boolean sortByProfit);
 }
