@@ -314,10 +314,11 @@
 <%-- 거래 허브와 동일한 기본 종목·일봉 차트를 메인 화면에 마운트 --%>
 <script>
     const resolvedCode = "AAPL";
+    const resolvedExchange = "NASDAQ";
     const resolvedPeriod = "day";
 </script>
-<script src="${pageContext.request.contextPath}/js/tradingview-chart.js"></script>
-<script src="${pageContext.request.contextPath}/js/stockhub.js?v=6"></script>
+<script src="${pageContext.request.contextPath}/js/tradingview-chart.js?v=2"></script>
+<script src="${pageContext.request.contextPath}/js/stockhub.js?v=7"></script>
 
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

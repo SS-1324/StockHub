@@ -2,6 +2,7 @@ package com.kh.demo.brokerage.mapper;
 
 import com.kh.demo.brokerage.dto.StockDto;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -13,4 +14,7 @@ public interface StockMapper {
 
     // 종목코드로 상품 단건 조회 (매매 체결시 현재가 조회에 사용)
     StockDto selectStockByCode(String stockCode);
+
+    // 거래 허브 종목 검색 자동완성용: 코드/이름에 keyword가 포함된 해외 종목만 검색 (exchange가 NULL인 국내 종목은 제외)
+    List<StockDto> searchStocks(@Param("keyword") String keyword);
 }

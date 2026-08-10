@@ -135,6 +135,7 @@ CREATE TABLE IF NOT EXISTS password_reset_token (
 CREATE TABLE IF NOT EXISTS stock (
     stock_code     VARCHAR(20)      NOT NULL COMMENT '종목 코드(PK, 예: NVDA)',
     stock_name     VARCHAR(100)     NOT NULL COMMENT '종목 이름',
+    exchange       VARCHAR(20)      NULL COMMENT '거래소 코드(NASDAQ/NYSE 등). 국내 종목은 NULL — 트레이딩뷰 무료 위젯이 KRX 데이터를 지원하지 않아 검색 대상에서 제외',
     description    TEXT             NULL COMMENT '기업 정보 및 설명',
     listing_date   DATE             NULL COMMENT '상장일',
     stock_value    BIGINT UNSIGNED  NULL COMMENT '시가총액',
@@ -143,8 +144,153 @@ CREATE TABLE IF NOT EXISTS stock (
     news           VARCHAR(500)     NULL COMMENT '대표 뉴스 또는 뉴스 요약',
 
     CONSTRAINT PK_STOCK PRIMARY KEY (stock_code),
-    INDEX IDX_STOCK_NAME (stock_name)
+    INDEX IDX_STOCK_NAME (stock_name),
+    INDEX IDX_STOCK_EXCHANGE (exchange)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='주식 종목';
+
+-- 기존 stock 테이블에도 거래소 컬럼이 없을 때만 추가
+SET @add_stock_exchange_sql = (
+    SELECT IF(
+        COUNT(*) = 0,
+        'ALTER TABLE stock ADD COLUMN exchange VARCHAR(20) NULL COMMENT ''거래소 코드(NASDAQ/NYSE 등, 국내 종목은 NULL)'' AFTER stock_name, ADD INDEX IDX_STOCK_EXCHANGE (exchange)',
+        'SELECT 1'
+    )
+    FROM information_schema.columns
+    WHERE table_schema = DATABASE()
+      AND table_name = 'stock'
+      AND column_name = 'exchange'
+);
+PREPARE add_stock_exchange_stmt FROM @add_stock_exchange_sql;
+EXECUTE add_stock_exchange_stmt;
+DEALLOCATE PREPARE add_stock_exchange_stmt;
+
+-- 종목 검색 자동완성 대상 해외 종목 시드 (기존 8개 upsert + 신규 약 47개, 총 55개)
+-- 국내 종목(NAVER/SK하이닉스/삼성전자/카카오)은 건드리지 않으므로 exchange가 계속 NULL로 남아 검색 대상에서 자동 제외됨
+INSERT INTO `stock` (`stock_code`, `stock_name`, `exchange`)
+VALUES
+    ('AAPL', 'Apple', 'NASDAQ'),
+    ('MSFT', 'Microsoft', 'NASDAQ'),
+    ('NVDA', 'NVIDIA', 'NASDAQ'),
+    ('TSLA', 'Tesla', 'NASDAQ'),
+    ('GOOGL', 'Alphabet', 'NASDAQ'),
+    ('AMZN', 'Amazon', 'NASDAQ'),
+    ('META', 'Meta Platforms', 'NASDAQ'),
+    ('NFLX', 'Netflix', 'NASDAQ'),
+    ('AVGO', 'Broadcom', 'NASDAQ'),
+    ('COST', 'Costco', 'NASDAQ'),
+    ('PEP', 'PepsiCo', 'NASDAQ'),
+    ('ADBE', 'Adobe', 'NASDAQ'),
+    ('CSCO', 'Cisco', 'NASDAQ'),
+    ('INTC', 'Intel', 'NASDAQ'),
+    ('AMD', 'AMD', 'NASDAQ'),
+    ('QCOM', 'Qualcomm', 'NASDAQ'),
+    ('TXN', 'Texas Instruments', 'NASDAQ'),
+    ('INTU', 'Intuit', 'NASDAQ'),
+    ('AMAT', 'Applied Materials', 'NASDAQ'),
+    ('BKNG', 'Booking Holdings', 'NASDAQ'),
+    ('SBUX', 'Starbucks', 'NASDAQ'),
+    ('GILD', 'Gilead Sciences', 'NASDAQ'),
+    ('MDLZ', 'Mondelez', 'NASDAQ'),
+    ('ADP', 'ADP', 'NASDAQ'),
+    ('ISRG', 'Intuitive Surgical', 'NASDAQ'),
+    ('REGN', 'Regeneron', 'NASDAQ'),
+    ('VRTX', 'Vertex Pharmaceuticals', 'NASDAQ'),
+    ('PANW', 'Palo Alto Networks', 'NASDAQ'),
+    ('PYPL', 'PayPal', 'NASDAQ'),
+    ('MU', 'Micron Technology', 'NASDAQ'),
+    ('JPM', 'JPMorgan Chase', 'NYSE'),
+    ('V', 'Visa', 'NYSE'),
+    ('MA', 'Mastercard', 'NYSE'),
+    ('JNJ', 'Johnson & Johnson', 'NYSE'),
+    ('WMT', 'Walmart', 'NYSE'),
+    ('PG', 'Procter & Gamble', 'NYSE'),
+    ('HD', 'Home Depot', 'NYSE'),
+    ('XOM', 'Exxon Mobil', 'NYSE'),
+    ('BAC', 'Bank of America', 'NYSE'),
+    ('KO', 'Coca-Cola', 'NYSE'),
+    ('DIS', 'Disney', 'NYSE'),
+    ('CVX', 'Chevron', 'NYSE'),
+    ('ABBV', 'AbbVie', 'NYSE'),
+    ('MRK', 'Merck', 'NYSE'),
+    ('PFE', 'Pfizer', 'NYSE'),
+    ('CRM', 'Salesforce', 'NYSE'),
+    ('ORCL', 'Oracle', 'NYSE'),
+    ('MCD', 'McDonald''s', 'NYSE'),
+    ('NKE', 'Nike', 'NYSE'),
+    ('WFC', 'Wells Fargo', 'NYSE'),
+    ('T', 'AT&T', 'NYSE'),
+    ('VZ', 'Verizon', 'NYSE'),
+    ('UNH', 'UnitedHealth Group', 'NYSE'),
+    ('IBM', 'IBM', 'NYSE'),
+    ('GE', 'General Electric', 'NYSE'),
+    ('CAT', 'Caterpillar', 'NYSE'),
+    ('BA', 'Boeing', 'NYSE')
+ON DUPLICATE KEY UPDATE
+    `stock_name` = VALUES(`stock_name`),
+    `exchange` = VALUES(`exchange`);
+
+-- 시가총액 상위 종목 추가 시드 (위 55개와 합쳐 약 100개 종목). 웹 검색으로 확인한 티커만 반영했고,
+-- 비상장/실제 거래 안 되는 종목(예: SpaceX)이나 미국 상장 여부가 불확실한 종목은 제외함
+INSERT INTO `stock` (`stock_code`, `stock_name`, `exchange`)
+VALUES
+    ('TSM', 'Taiwan Semiconductor', 'NYSE'),
+    ('BRK.B', 'Berkshire Hathaway', 'NYSE'),
+    ('LLY', 'Eli Lilly', 'NYSE'),
+    ('PLTR', 'Palantir Technologies', 'NASDAQ'),
+    ('LRCX', 'Lam Research', 'NASDAQ'),
+    ('HSBC', 'HSBC Holdings', 'NYSE'),
+    ('MS', 'Morgan Stanley', 'NYSE'),
+    ('GS', 'Goldman Sachs', 'NYSE'),
+    ('ARM', 'Arm Holdings', 'NASDAQ'),
+    ('RTX', 'RTX Corporation', 'NYSE'),
+    ('NVS', 'Novartis', 'NYSE'),
+    ('PM', 'Philip Morris International', 'NYSE'),
+    ('RY', 'Royal Bank of Canada', 'NYSE'),
+    ('DELL', 'Dell Technologies', 'NYSE'),
+    ('BABA', 'Alibaba Group', 'NYSE'),
+    ('GEV', 'GE Vernova', 'NYSE'),
+    ('KLAC', 'KLA Corporation', 'NASDAQ'),
+    ('MUFG', 'Mitsubishi UFJ Financial Group', 'NYSE'),
+    ('AZN', 'AstraZeneca', 'NASDAQ'),
+    ('SHEL', 'Shell', 'NYSE'),
+    ('ANET', 'Arista Networks', 'NYSE'),
+    ('SAP', 'SAP', 'NYSE'),
+    ('AXP', 'American Express', 'NYSE'),
+    ('C', 'Citigroup', 'NYSE'),
+    ('BHP', 'BHP Group', 'NYSE'),
+    ('LIN', 'Linde', 'NASDAQ'),
+    ('TM', 'Toyota Motor', 'NYSE'),
+    ('AMGN', 'Amgen', 'NASDAQ'),
+    ('TMO', 'Thermo Fisher Scientific', 'NYSE'),
+    ('CRWD', 'CrowdStrike', 'NASDAQ'),
+    ('SAN', 'Banco Santander', 'NYSE'),
+    ('NVO', 'Novo Nordisk', 'NYSE'),
+    ('APH', 'Amphenol', 'NYSE'),
+    ('TD', 'Toronto-Dominion Bank', 'NYSE'),
+    ('SHOP', 'Shopify', 'NYSE'),
+    ('MRVL', 'Marvell Technology', 'NASDAQ'),
+    ('TTE', 'TotalEnergies', 'NYSE'),
+    ('TMUS', 'T-Mobile US', 'NASDAQ'),
+    ('ADI', 'Analog Devices', 'NASDAQ'),
+    ('ABT', 'Abbott Laboratories', 'NYSE'),
+    ('SCHW', 'Charles Schwab', 'NYSE'),
+    ('BLK', 'BlackRock', 'NYSE'),
+    ('STX', 'Seagate Technology', 'NASDAQ'),
+    ('SNDK', 'Sandisk', 'NASDAQ'),
+    ('TJX', 'TJX Companies', 'NYSE'),
+    ('NEE', 'NextEra Energy', 'NYSE'),
+    ('ETN', 'Eaton', 'NYSE'),
+    ('UNP', 'Union Pacific', 'NYSE'),
+    ('RIO', 'Rio Tinto', 'NYSE'),
+    ('WELL', 'Welltower', 'NYSE'),
+    ('BX', 'Blackstone', 'NYSE'),
+    ('DE', 'Deere & Company', 'NYSE'),
+    ('SCCO', 'Southern Copper', 'NYSE'),
+    ('BUD', 'Anheuser-Busch InBev', 'NYSE'),
+    ('ASML', 'ASML Holding', 'NASDAQ')
+ON DUPLICATE KEY UPDATE
+    `stock_name` = VALUES(`stock_name`),
+    `exchange` = VALUES(`exchange`);
 
 -- 증권사(가상)
 CREATE TABLE IF NOT EXISTS brokerage (

@@ -5,10 +5,12 @@
 // 없으면 서버가 정해준 기본 종목(resolvedCode)을 사용
 const code = new URLSearchParams(window.location.search).get('code')
     || (typeof resolvedCode !== 'undefined' ? resolvedCode : null);
-// 트레이딩뷰 위젯이 지원하지 않는 코드(예: 국내 종목 코드)면 위젯이 내부적으로
-// 기본 종목으로 대체해서 보여주므로, 왜 다른 종목이 보이는지 헷갈리지 않도록 콘솔에 남겨둠
-if (code && typeof isSupportedCode === 'function' && !isSupportedCode(code)) {
-    console.warn(`'${code}'는 트레이딩뷰 위젯이 지원하지 않는 종목이라 기본 종목으로 대체됩니다.`);
+// 서버(StockController)가 code에 대해 조회한 거래소 정보. 국내 종목이거나 존재하지 않는
+// 코드면 빈 문자열로 내려오는데, 이 경우 위젯이 내부적으로 기본 종목으로 대체해서 보여주므로
+// 왜 다른 종목이 보이는지 헷갈리지 않도록 콘솔에 남겨둠
+const exchange = typeof resolvedExchange !== 'undefined' && resolvedExchange ? resolvedExchange : null;
+if (code && !exchange) {
+    console.warn(`'${code}'는 지원하지 않는 종목이라 기본 종목으로 대체됩니다.`);
 }
 // 캔들 주기(minute/day/week/month)도 같은 방식으로 결정
 const period = new URLSearchParams(window.location.search).get('period')
@@ -69,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const tvChart = new StockHubTradingViewChart('tv-chart-container');
-    tvChart.mount(code, period);
+    tvChart.mount(code, period, exchange);
 
     // 사이트 테마 토글(header.js가 <html data-theme>를 바꿈)에 맞춰 위젯도 재생성
     // TradingView 공개 위젯 API는 생성 후 테마를 즉시 바꾸는 기능이 없어 재마운트로 처리함
@@ -78,12 +80,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const chat = setupChatPanel(code);
     const voteWidget = setupVoteWidget(code);
-    setupChartHeader(tvChart, code, chat, voteWidget);
+    const quickSwitchExchangesData = typeof quickSwitchExchanges !== 'undefined' ? quickSwitchExchanges : {};
+    setupChartHeader(tvChart, code, chat, voteWidget, quickSwitchExchangesData);
     setupFullscreenToggle();
 });
 
-// 헤더 왼쪽 종목명 표시 + 오른쪽 빠른 종목 전환 버튼 5개를 구성
-function setupChartHeader(tvChart, initialCode, chat, voteWidget) {
+// 헤더 왼쪽 종목명 표시 + 오른쪽 빠른 종목 전환 버튼 5개 + 종목 검색을 구성
+function setupChartHeader(tvChart, initialCode, chat, voteWidget, quickSwitchExchanges) {
     const nameEl = document.getElementById('chart-symbol-name');
     const buttonsWrap = document.getElementById('chart-symbol-buttons');
     if (!nameEl || !buttonsWrap || typeof StockHubTradingViewChart === 'undefined') return;
@@ -97,6 +100,24 @@ function setupChartHeader(tvChart, initialCode, chat, voteWidget) {
         });
     }
 
+    // 빠른전환 버튼과 검색 결과 클릭이 공통으로 쓰는 "종목 전환" 절차:
+    // 차트 재마운트 -> 헤더 활성 표시 -> 채팅/투표 위젯 전환 -> URL 갱신(새로고침/공유 시 유지)
+    function switchTo(newCode, newExchange) {
+        tvChart.setSymbol(newCode, tvChart.getCurrentPeriod(), newExchange);
+        setActiveCode(newCode);
+
+        if (chat) {
+            chat.switchStock(newCode);
+        }
+        if (voteWidget) {
+            voteWidget.switchStock(newCode);
+        }
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('code', newCode);
+        window.history.replaceState(null, '', url);
+    }
+
     quickSwitchCodes.forEach((quickCode) => {
         const btn = document.createElement('button');
         btn.type = 'button';
@@ -104,28 +125,87 @@ function setupChartHeader(tvChart, initialCode, chat, voteWidget) {
         btn.textContent = quickCode;
         btn.dataset.code = quickCode;
 
-        // 버튼을 누르면 해당 종목으로 차트를 다시 불러오고, URL도 같이 갱신해 새로고침/공유 시 유지되게 함
         btn.addEventListener('click', () => {
-            tvChart.setSymbol(quickCode, tvChart.getCurrentPeriod());
-            setActiveCode(quickCode);
-
-            // 채팅과 투표 카드도 지금 보고 있는 종목으로 갈아탐
-            if (chat) {
-                chat.switchStock(quickCode);
-            }
-            if (voteWidget) {
-                voteWidget.switchStock(quickCode);
-            }
-
-            const url = new URL(window.location.href);
-            url.searchParams.set('code', quickCode);
-            window.history.replaceState(null, '', url);
+            switchTo(quickCode, quickSwitchExchanges[quickCode]);
         });
 
         buttonsWrap.appendChild(btn);
     });
 
     setActiveCode(initialCode);
+    setupSymbolSearch(switchTo);
+}
+
+// 해외 종목 검색 자동완성. 입력마다 /api/hub/stock-search를 200ms 디바운스로 호출해
+// 드롭다운에 후보를 보여주고, 클릭하면 switchTo로 그 종목으로 전환한다.
+// (dictionary.js의 용어사전 자동완성과 동일한 디바운스/드롭다운 패턴)
+function setupSymbolSearch(switchTo) {
+    const wrap = document.getElementById('chart-symbol-search');
+    const input = document.getElementById('chart-symbol-search-input');
+    const list = document.getElementById('chart-symbol-search-list');
+    if (!wrap || !input || !list) return;
+
+    let debounceTimer = null;
+
+    function closeList() {
+        list.classList.remove('show');
+        list.replaceChildren();
+    }
+
+    function renderResults(stocks) {
+        list.replaceChildren();
+        if (!stocks || stocks.length === 0) {
+            closeList();
+            return;
+        }
+
+        stocks.forEach((stock) => {
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'chart-symbol-search-item';
+            item.textContent = `${stock.stockCode} · ${stock.stockName} (${stock.exchange})`;
+            item.addEventListener('click', () => {
+                switchTo(stock.stockCode, stock.exchange);
+                input.value = '';
+                closeList();
+            });
+            list.appendChild(item);
+        });
+
+        list.classList.add('show');
+    }
+
+    input.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        const keyword = input.value.trim();
+        if (!keyword) {
+            closeList();
+            return;
+        }
+
+        debounceTimer = setTimeout(() => {
+            fetch(`/api/hub/stock-search?keyword=${encodeURIComponent(keyword)}`)
+                .then((res) => res.json())
+                .then((res) => {
+                    if (!res.success) return;
+                    renderResults(res.data);
+                })
+                .catch(() => closeList());
+        }, 200);
+    });
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeList();
+            input.blur();
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!wrap.contains(e.target)) {
+            closeList();
+        }
+    });
 }
 
 // 말풍선 아이콘으로 여닫는 종목 채팅 패널. WebSocket(STOMP)으로 실시간 송수신하고,

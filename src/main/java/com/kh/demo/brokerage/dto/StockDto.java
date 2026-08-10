@@ -24,4 +24,5 @@ public class StockDto {
     private Integer currentPrice;   // 현재가
     private String description;     // 기업정보 및 설명
     private LocalDateTime createAt; // 상장(등록)일시
+    private String exchange;        // 거래소 코드(NASDAQ/NYSE 등). 국내 종목은 null — 검색/트레이딩뷰 심볼 조합 대상 아님
 }
