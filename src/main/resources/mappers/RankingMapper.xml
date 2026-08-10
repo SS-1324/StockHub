@@ -54,6 +54,13 @@
         ON a.account_id = al.account_id
 
         WHERE m.member_role = 'USER'
+        <!--
+            주식정보 공개 설정을 켠 회원만 랭킹 대상에 포함한다.
+            WHERE 단계에서 먼저 제외하므로 비공개 회원은 ROW_NUMBER 순위 계산,
+            랭킹 페이지, /ranking/data API, 홈 화면의 상위 랭킹에 모두 노출되지 않는다.
+            settings 행이 없는 회원은 기본값 FALSE로 처리하여 비공개로 간주한다.
+        -->
+        AND COALESCE(s.is_stock_public, FALSE) = TRUE
 
         GROUP BY
         m.member_id,
