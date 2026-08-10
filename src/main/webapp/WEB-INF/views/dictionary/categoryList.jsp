@@ -24,7 +24,7 @@
                        id="glossary-keyword"
                        name="keyword"
                        value="${fn:escapeXml(keyword)}"
-                       placeholder="용어를 검색하세요"
+                       placeholder="검색"
                        autocomplete="off">
 
                 <button type="submit"

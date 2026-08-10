@@ -70,13 +70,6 @@
 
                </div>
 
-               <c:if test="${not empty keyword}">
-                   <a href="${pageContext.request.contextPath}/dictionary"
-                      class="search-reset">
-                       초기화
-                   </a>
-               </c:if>
-
            </form>
 
        </header>
