@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
     new MutationObserver(syncTickerTapeTheme)
         .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
-    // 최신글 5개를 왼쪽 열부터 채우고, 나머지를 오른쪽 열에 배치한다.
+    // 최신글 6개를 왼쪽 3개, 오른쪽 3개 순서로 배치한다.
     const communityGrid = document.querySelector('.home-community-grid');
     if (communityGrid && !communityGrid.querySelector('.home-community-column')) {
         const cards = Array.from(

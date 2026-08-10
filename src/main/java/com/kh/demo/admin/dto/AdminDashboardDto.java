@@ -14,5 +14,7 @@ public class AdminDashboardDto {
 
     private Long memberCount;
     private Long boardCount;
+    private Long commentCount;
+    private Long glossaryCount;
     private Long pendingInquiryCount;
 }

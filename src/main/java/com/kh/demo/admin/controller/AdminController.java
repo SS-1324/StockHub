@@ -31,7 +31,6 @@ public class AdminController {
         model.addAttribute("boards", adminService.getBoards());
         model.addAttribute("comments", adminService.getComments());
         model.addAttribute("inquiries", adminService.getInquiries());
-        model.addAttribute("stocks", adminService.getStocks());
         model.addAttribute("glossaryTerms", adminService.getGlossaryTerms());
         model.addAttribute("adminLogs", adminService.getAdminLogs());
         return "admin/index";
@@ -115,38 +114,6 @@ public class AdminController {
                                 RedirectAttributes ra) {
         return handle("inquiries", "문의를 삭제했습니다.", ra,
                 () -> adminService.deleteInquiry(adminId(session), inquiryId));
-    }
-
-    @PostMapping("/admin/stock/create")
-    public String createStock(@RequestParam String stockCode,
-                              @RequestParam String stockName,
-                              @RequestParam Integer currentPrice,
-                              HttpSession session,
-                              RedirectAttributes ra) {
-        return handle("stocks", "종목을 추가했습니다.", ra,
-                () -> adminService.createStock(
-                        adminId(session), stockCode, stockName, currentPrice));
-    }
-
-    @PostMapping("/admin/stock/{currentStockCode}/update")
-    public String updateStock(@PathVariable String currentStockCode,
-                              @RequestParam String stockCode,
-                              @RequestParam String stockName,
-                              @RequestParam Integer currentPrice,
-                              HttpSession session,
-                              RedirectAttributes ra) {
-        return handle("stocks", "종목 정보를 수정했습니다.", ra,
-                () -> adminService.updateStock(
-                        adminId(session), currentStockCode,
-                        stockCode, stockName, currentPrice));
-    }
-
-    @PostMapping("/admin/stock/{stockCode}/delete")
-    public String deleteStock(@PathVariable String stockCode,
-                              HttpSession session,
-                              RedirectAttributes ra) {
-        return handle("stocks", "종목을 삭제했습니다.", ra,
-                () -> adminService.deleteStock(adminId(session), stockCode));
     }
 
     @PostMapping("/admin/glossary/create")

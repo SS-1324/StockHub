@@ -1,10 +1,14 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-<c:url var="myStocksCssUrl" value="/css/my-stocks.css" />
+<c:url var="myStocksCssUrl" value="/css/my-stocks.css">
+    <c:param name="v" value="3" />
+</c:url>
 <c:set var="pageCssUrl" value="${myStocksCssUrl}" scope="request" />
 <c:url var="defaultProfileUrl" value="/images/common_member.png" />
 <c:url var="myPostsUrl" value="/member/stocks/posts" />
+<c:url var="myCommentsUrl" value="/member/stocks/comments" />
+<c:url var="bookmarkedPostsUrl" value="/member/stocks/bookmarks" />
 <c:url var="profileEditUrl" value="/member/mypage/password-check" />
 <c:url var="followersUrl" value="/member/stocks/followers" />
 <c:url var="followingUrl" value="/member/stocks/following" />
@@ -46,6 +50,10 @@
                 <span>내가 쓴 글</span>
                 <strong><c:out value="${myPostCount}"/></strong>
             </a>
+            <a class="my-info-action" href="${myCommentsUrl}">
+                <span>내가 쓴 댓글</span>
+                <strong><c:out value="${myCommentCount}"/></strong>
+            </a>
             <button class="my-info-action" type="button"
                     data-modal-target="followers-modal"
                     data-load-follow-list="true">
@@ -64,6 +72,10 @@
                 <span>내 문의</span>
                 <strong><c:out value="${inquiryCount}"/></strong>
             </button>
+            <a class="my-info-action" href="${bookmarkedPostsUrl}">
+                <span>북마크한 글</span>
+                <strong><c:out value="${bookmarkCount}"/></strong>
+            </a>
         </nav>
     </div>
 </section>

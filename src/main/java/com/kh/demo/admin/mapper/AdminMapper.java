@@ -2,7 +2,6 @@ package com.kh.demo.admin.mapper;
 
 import com.kh.demo.admin.dto.AdminDashboardDto;
 import com.kh.demo.admin.dto.AdminLogDto;
-import com.kh.demo.brokerage.dto.StockDto;
 import com.kh.demo.community.dto.BoardCommentDto;
 import com.kh.demo.community.dto.BoardDto;
 import com.kh.demo.dictionary.dto.GlossaryDto;
@@ -40,26 +39,6 @@ public interface AdminMapper {
 
     int completeInquiry(@Param("inquiryId") Long inquiryId,
                         @Param("adminId") String adminId);
-
-    List<StockDto> selectStocks();
-
-    int countStockCodeExceptCurrent(@Param("stockCode") String stockCode,
-                                    @Param("currentStockCode") String currentStockCode);
-
-    int countStockCode(@Param("stockCode") String stockCode);
-
-    int insertStock(@Param("stockCode") String stockCode,
-                    @Param("stockName") String stockName,
-                    @Param("currentPrice") Integer currentPrice);
-
-    int updateStock(@Param("currentStockCode") String currentStockCode,
-                    @Param("stockCode") String stockCode,
-                    @Param("stockName") String stockName,
-                    @Param("currentPrice") Integer currentPrice);
-
-    int countStockReferences(@Param("stockCode") String stockCode);
-
-    int deleteStock(@Param("stockCode") String stockCode);
 
     List<GlossaryDto> selectGlossaryTerms();
 

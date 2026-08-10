@@ -53,6 +53,29 @@
         ORDER BY COALESCE(c.parent_comment_id, c.comment_id) ASC, c.create_at ASC
     </select>
 
+    <!-- 로그인 회원이 작성한 댓글과 답글을 게시글 제목과 함께 최신순으로 조회 -->
+    <select id="selectByMemberId"
+            resultType="com.kh.demo.community.dto.BoardCommentDto">
+        SELECT <include refid="commentColumns"/>,
+               b.title AS board_title
+        FROM board_comment c
+        <include refid="commentJoins"/>
+        JOIN board b ON b.board_id = c.board_id
+        WHERE c.member_id = #{memberId}
+          AND c.is_hidden = FALSE
+          AND b.is_hidden = FALSE
+        ORDER BY c.create_at DESC, c.comment_id DESC
+    </select>
+
+    <select id="countByMemberId" resultType="long">
+        SELECT COUNT(*)
+        FROM board_comment c
+        JOIN board b ON b.board_id = c.board_id
+        WHERE c.member_id = #{memberId}
+          AND c.is_hidden = FALSE
+          AND b.is_hidden = FALSE
+    </select>
+
     <!--
         board_comment.parent_comment_id와 board_id FK 모두 ON DELETE CASCADE로 걸려있어서
         (comment_like도 마찬가지) 자신의 행 하나만 지우면 답글/좋아요는 DB가 알아서 정리해준다.

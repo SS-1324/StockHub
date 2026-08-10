@@ -5,11 +5,13 @@
 
 <mapper namespace="com.kh.demo.admin.mapper.AdminMapper">
 
-    <!-- 대시보드에서 필요한 세 가지 핵심 집계 -->
+    <!-- 대시보드에서 필요한 다섯 가지 핵심 집계 -->
     <select id="selectDashboard"
             resultType="com.kh.demo.admin.dto.AdminDashboardDto">
         SELECT (SELECT COUNT(*) FROM member) AS member_count,
                (SELECT COUNT(*) FROM board) AS board_count,
+               (SELECT COUNT(*) FROM board_comment) AS comment_count,
+               (SELECT COUNT(*) FROM glossary) AS glossary_count,
                (SELECT COUNT(*) FROM inquiry WHERE status = 'PENDING')
                    AS pending_inquiry_count
     </select>
@@ -101,50 +103,6 @@
         WHERE inquiry_id = #{inquiryId}
           AND status = 'ANSWERED'
     </update>
-
-    <!-- 종목 관리 목록과 추가·수정·삭제 -->
-    <select id="selectStocks" resultType="com.kh.demo.brokerage.dto.StockDto">
-        SELECT stock_code, stock_name, current_price
-        FROM stock
-        ORDER BY stock_name ASC, stock_code ASC
-        LIMIT 300
-    </select>
-
-    <select id="countStockCodeExceptCurrent" resultType="int">
-        SELECT COUNT(*)
-        FROM stock
-        WHERE stock_code = #{stockCode}
-          AND stock_code != #{currentStockCode}
-    </select>
-
-    <select id="countStockCode" resultType="int">
-        SELECT COUNT(*)
-        FROM stock
-        WHERE stock_code = #{stockCode}
-    </select>
-
-    <insert id="insertStock">
-        INSERT INTO stock (stock_code, stock_name, current_price)
-        VALUES (#{stockCode}, #{stockName}, #{currentPrice})
-    </insert>
-
-    <update id="updateStock">
-        UPDATE stock
-        SET stock_code = #{stockCode},
-            stock_name = #{stockName},
-            current_price = #{currentPrice}
-        WHERE stock_code = #{currentStockCode}
-    </update>
-
-    <select id="countStockReferences" resultType="int">
-        SELECT (SELECT COUNT(*) FROM holding WHERE stock_code = #{stockCode})
-             + (SELECT COUNT(*) FROM trade WHERE stock_code = #{stockCode})
-    </select>
-
-    <delete id="deleteStock">
-        DELETE FROM stock
-        WHERE stock_code = #{stockCode}
-    </delete>
 
     <!-- 용어사전 관리 -->
     <select id="selectGlossaryTerms"

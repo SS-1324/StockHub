@@ -26,4 +26,38 @@
         </foreach>
     </select>
 
+    <!-- 로그인 회원이 북마크한 공개 게시글을 최근 북마크 순서로 조회 -->
+    <select id="selectBookmarkedBoards"
+            resultType="com.kh.demo.community.dto.BoardDto">
+        SELECT b.board_id,
+               b.member_id,
+               b.category,
+               b.title,
+               b.content,
+               b.count,
+               b.like_count,
+               (SELECT COUNT(*)
+                FROM board_comment bc
+                WHERE bc.board_id = b.board_id) AS comment_count,
+               b.create_at,
+               DATE_FORMAT(b.create_at, '%Y-%m-%d %H:%i') AS create_at_str,
+               b.update_at,
+               m.nickname,
+               COALESCE(NULLIF(m.profile, ''), '/images/common_member.png') AS profile
+        FROM board_bookmark bb
+        JOIN board b ON b.board_id = bb.board_id
+        LEFT JOIN member m ON m.member_id = b.member_id
+        WHERE bb.member_id = #{memberId}
+          AND b.is_hidden = FALSE
+        ORDER BY bb.bookmark_at DESC, bb.bookmark_id DESC
+    </select>
+
+    <select id="countBookmarkedBoards" resultType="long">
+        SELECT COUNT(*)
+        FROM board_bookmark bb
+        JOIN board b ON b.board_id = bb.board_id
+        WHERE bb.member_id = #{memberId}
+          AND b.is_hidden = FALSE
+    </select>
+
 </mapper>

@@ -10,9 +10,9 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
-<section class="my-posts-page" aria-labelledby="my-posts-title">
+<section class="my-posts-page" aria-labelledby="bookmarked-posts-title">
     <header class="my-posts-header">
-        <h1 id="my-posts-title">내가 쓴 글</h1>
+        <h1 id="bookmarked-posts-title">북마크한 글</h1>
         <span><c:out value="${totalCount}"/>개</span>
     </header>
 
@@ -45,7 +45,7 @@
         </c:when>
         <c:otherwise>
             <div class="my-posts-empty">
-                <p>아직 작성한 게시글이 없습니다.</p>
+                <p>아직 북마크한 게시글이 없습니다.</p>
                 <a class="my-posts-back" href="${communityUrl}">
                     커뮤니티 둘러보기
                 </a>

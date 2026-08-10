@@ -32,6 +32,9 @@ public class BoardCommentDto {
     private String nickname;
     private String profile;
 
+    // 내가 쓴 댓글 목록에서 댓글이 달린 게시글 제목을 표시하기 위한 필드
+    private String boardTitle;
+
     // 답글인 경우 부모 댓글 작성자 닉네임(@멘션 표시용). 최상위 댓글이면 null.
     private String parentNickname;
 

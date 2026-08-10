@@ -5,7 +5,7 @@
 
 <%-- 관리자 전용 CSS를 공통 헤더의 head 안에서 불러오도록 전달 --%>
 <c:url var="adminCssUrl" value="/css/admin.css">
-    <c:param name="v" value="7" />
+    <c:param name="v" value="9" />
 </c:url>
 <c:set var="pageCssUrl" value="${adminCssUrl}" scope="request" />
 
@@ -16,7 +16,7 @@
     <header class="admin-page-heading">
         <div>
             <h1 class="admin-title">관리자 페이지</h1>
-            <p>회원과 콘텐츠, 문의, 서비스 데이터를 한곳에서 관리합니다.</p>
+            <p>회원과 콘텐츠, 문의, 용어사전을 한곳에서 관리합니다.</p>
         </div>
         <span class="admin-current-user">
             <strong><c:out value="${sessionScope.loginMember.nickname}" /></strong>
@@ -35,7 +35,7 @@
         </p>
     </c:if>
 
-    <%-- 여덟 개 관리 영역을 한 페이지 안에서 전환 --%>
+    <%-- 일곱 개 관리 영역을 한 페이지 안에서 전환 --%>
     <nav class="admin-tabs" aria-label="관리 영역">
         <button type="button" class="admin-tab is-active"
                 data-admin-tab="dashboard">대시보드</button>
@@ -47,8 +47,6 @@
                 data-admin-tab="comments">댓글 관리</button>
         <button type="button" class="admin-tab"
                 data-admin-tab="inquiries">문의 관리</button>
-        <button type="button" class="admin-tab"
-                data-admin-tab="stocks">주식 · 종목</button>
         <button type="button" class="admin-tab"
                 data-admin-tab="glossary">용어사전</button>
         <button type="button" class="admin-tab"
@@ -65,34 +63,46 @@
         </div>
 
         <div class="admin-stats">
-            <article class="admin-stat-card">
+            <a class="admin-stat-card"
+               href="${pageContext.request.contextPath}/admin?tab=members">
                 <div>
                     <small>전체 회원</small>
                     <strong><fmt:formatNumber value="${dashboard.memberCount}" pattern="#,##0" /></strong>
                     <span>명</span>
                 </div>
-            </article>
-            <article class="admin-stat-card">
+            </a>
+            <a class="admin-stat-card"
+               href="${pageContext.request.contextPath}/admin?tab=boards">
                 <div>
                     <small>전체 게시글</small>
                     <strong><fmt:formatNumber value="${dashboard.boardCount}" pattern="#,##0" /></strong>
                     <span>개</span>
                 </div>
-            </article>
-            <article class="admin-stat-card is-warning">
+            </a>
+            <a class="admin-stat-card"
+               href="${pageContext.request.contextPath}/admin?tab=comments">
+                <div>
+                    <small>전체 댓글</small>
+                    <strong><fmt:formatNumber value="${dashboard.commentCount}" pattern="#,##0" /></strong>
+                    <span>개</span>
+                </div>
+            </a>
+            <a class="admin-stat-card"
+               href="${pageContext.request.contextPath}/admin?tab=glossary">
+                <div>
+                    <small>전체 용어</small>
+                    <strong><fmt:formatNumber value="${dashboard.glossaryCount}" pattern="#,##0" /></strong>
+                    <span>개</span>
+                </div>
+            </a>
+            <a class="admin-stat-card is-warning"
+               href="${pageContext.request.contextPath}/admin?tab=inquiries">
                 <div>
                     <small>미답변 문의</small>
                     <strong><fmt:formatNumber value="${dashboard.pendingInquiryCount}" pattern="#,##0" /></strong>
                     <span>건</span>
                 </div>
-            </article>
-        </div>
-
-        <div class="admin-overview-grid">
-            <article><strong>회원 관리</strong><p>이용 제한과 USER/ADMIN 권한을 변경합니다.</p></article>
-            <article><strong>콘텐츠 관리</strong><p>게시글과 댓글을 숨기거나 삭제합니다.</p></article>
-            <article><strong>문의 관리</strong><p>회원 문의에 답변하고 처리를 완료합니다.</p></article>
-            <article><strong>서비스 데이터</strong><p>종목 정보와 용어사전을 관리합니다.</p></article>
+            </a>
         </div>
     </section>
 
@@ -269,48 +279,6 @@
                     </tr>
                 </c:forEach>
                 <c:if test="${empty inquiries}"><tr><td colspan="7" class="admin-empty-cell">문의가 없습니다.</td></tr></c:if>
-                </tbody>
-            </table>
-        </div></div>
-    </section>
-
-    <%-- 주식·종목 관리 --%>
-    <section class="admin-panel" data-admin-panel="stocks" hidden>
-        <div class="admin-panel-heading">
-            <div><h2>주식 · 종목 관리</h2><p>종목명, 종목 코드와 현재가를 추가·수정·삭제합니다.</p></div>
-            <span class="admin-count"><c:out value="${fn:length(stocks)}" />개</span>
-        </div>
-
-        <form class="admin-create-form admin-stock-create-form"
-              action="${pageContext.request.contextPath}/admin/stock/create" method="post">
-            <label>종목명<input name="stockName" maxlength="100" required></label>
-            <label>종목 코드<input name="stockCode" maxlength="20" placeholder="예: 005930" required></label>
-            <label>현재가<input name="currentPrice" type="number" min="0" required></label>
-            <button type="submit" class="admin-btn admin-btn-primary">종목 추가</button>
-        </form>
-
-        <div class="admin-table-card"><div class="admin-table-scroll">
-            <table class="admin-table admin-edit-table admin-action-table admin-stock-table">
-                <thead><tr><th>종목명</th><th>종목 코드</th><th>현재가</th><th>작업</th></tr></thead>
-                <tbody>
-                <c:forEach var="stock" items="${stocks}">
-                    <c:set var="stockFormId" value="stock-form-${stock.stockCode}" />
-                    <tr>
-                        <td><input form="${stockFormId}" name="stockName" maxlength="100" required value="<c:out value='${stock.stockName}' />"></td>
-                        <td><input form="${stockFormId}" name="stockCode" maxlength="20" required value="<c:out value='${stock.stockCode}' />"></td>
-                        <td><input form="${stockFormId}" name="currentPrice" type="number" min="0" required value="${stock.currentPrice}"></td>
-                        <td><div class="admin-actions-inline">
-                            <form id="${stockFormId}" action="${pageContext.request.contextPath}/admin/stock/${stock.stockCode}/update" method="post">
-                                <button type="submit" class="admin-btn admin-btn-primary">수정</button>
-                            </form>
-                            <form action="${pageContext.request.contextPath}/admin/stock/${stock.stockCode}/delete" method="post"
-                                  data-confirm-message="보유 내역과 거래 기록이 없는 종목만 삭제할 수 있습니다. 이 종목을 삭제할까요?">
-                                <button type="submit" class="admin-btn admin-btn-danger">삭제</button>
-                            </form>
-                        </div></td>
-                    </tr>
-                </c:forEach>
-                <c:if test="${empty stocks}"><tr><td colspan="4" class="admin-empty-cell">종목이 없습니다.</td></tr></c:if>
                 </tbody>
             </table>
         </div></div>

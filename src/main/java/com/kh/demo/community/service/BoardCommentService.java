@@ -12,6 +12,12 @@ public interface BoardCommentService {
     // 게시글의 댓글+답글 전체 조회 (로그인 회원의 좋아요 여부, 용어 하이라이트까지 채워서 반환)
     List<BoardCommentDto> getList(Long boardId, String loginMemberId);
 
+    // 로그인 회원이 작성한 공개 댓글과 답글 목록
+    List<BoardCommentDto> getMemberComments(String memberId);
+
+    // 내 정보 화면에 표시할 로그인 회원의 댓글과 답글 수
+    long getMemberCommentCount(String memberId);
+
     // 댓글 삭제 (작성자 본인 확인, 최상위 댓글이면 딸린 답글까지 함께 삭제)
     void delete(Long boardId, Long commentId, String loginMemberId);
 

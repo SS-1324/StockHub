@@ -177,7 +177,9 @@
         <c:forEach var="c" items="${comments}">
             <%-- 답글(parentCommentId 있음)은 comment-item-reply 클래스로 우측으로 들여써서 부모 댓글에 속한다는 걸 시각적으로 드러낸다.
                  댓글 목록은 이미 부모 댓글 바로 뒤에 그 답글이 오도록 정렬되어 내려온다. --%>
-            <div class="comment-item ${not empty c.parentCommentId ? 'comment-item-reply' : ''}" data-comment-id="${c.commentId}">
+            <div id="comment-${c.commentId}"
+                 class="comment-item ${not empty c.parentCommentId ? 'comment-item-reply' : ''}"
+                 data-comment-id="${c.commentId}">
                 <%-- 닉네임 클릭으로 프로필 열람하는 기능은 아직 미구현 - data-member-id만 심어두고 링크는 걸지 않음 --%>
                 <div class="comment-author" data-member-id="${c.memberId}">
                     <c:choose>
