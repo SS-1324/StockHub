@@ -16,4 +16,7 @@ public interface RankingMapper {
             @Param("sortByProfit")
             boolean sortByProfit
     );
+
+    // 헤더 프로필용: 공개 회원 수익률 랭킹에서 해당 회원이 1~3위일 때만 순위를 반환한다.
+    Integer selectHeaderRankPosition(@Param("memberId") String memberId);
 }

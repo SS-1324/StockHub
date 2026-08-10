@@ -13,7 +13,7 @@
     v 값은 CSS 내용을 바꾼 뒤 브라우저가 예전 파일을 재사용하지 않고 새로 받게 하는 캐시 갱신 번호다.
 --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css?v=14">
+      href="${pageContext.request.contextPath}/css/board.css?v=17">
 
 <c:if test="${not empty error}">
     <p class="alert alert-error">${error}</p>

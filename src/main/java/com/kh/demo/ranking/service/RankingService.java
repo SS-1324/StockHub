@@ -26,4 +26,7 @@ public interface RankingService {
             boolean includePrivateDetails,
             boolean sortByProfit
     );
+
+    // 공통 헤더의 금·은·동 프로필 프레임에 사용할 현재 수익률 순위(1~3위, 그 외 null)
+    Integer getHeaderRankPosition(String memberId);
 }

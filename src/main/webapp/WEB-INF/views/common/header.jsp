@@ -22,7 +22,6 @@
 <%-- 커뮤니티용 주소 --%>
 <c:url var="communityUrl" value="/community" scope="request" />
 <c:url var="communityFreeUrl" value="/community?category=free" />
-<c:url var="communityTradeUrl" value="/community?category=trade" />
 <c:url var="communityTipUrl" value="/community?category=tip" />
 <c:url var="communityProfitUrl" value="/community?category=profit" />
 <c:url var="communityReviewUrl" value="/community?category=review" />
@@ -60,7 +59,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap"
           rel="stylesheet">
 
-    <link rel="stylesheet" href="${commonCssUrl}?v=15">
+    <link rel="stylesheet" href="${commonCssUrl}?v=16">
     <%-- 현재 화면에서 요청한 전용 CSS를 head 안에서 불러옴 --%>
     <c:if test="${not empty requestScope.pageCssUrl}">
         <link rel="stylesheet" href="${requestScope.pageCssUrl}">
@@ -87,7 +86,6 @@
                 <div class="community-dropdown">
                     <a href="${communityUrl}">전체</a>
                     <a href="${communityFreeUrl}">자유</a>
-                    <a href="${communityTradeUrl}">살까?팔까?</a>
                     <a href="${communityTipUrl}">팁 공유</a>
                     <a href="${communityProfitUrl}">수익인증</a>
                     <a href="${communityReviewUrl}">반성</a>
@@ -125,24 +123,40 @@
             <%-- 로그인 여부에 따라 로그인 버튼 또는 회원 메뉴를 표시 --%>
             <c:choose>
                 <c:when test="${not empty sessionScope.loginMember}">
+                    <%-- 공통 모델의 수익률 순위를 기존 랭킹 CSS와 같은 클래스 이름으로 변환 --%>
+                    <c:set var="headerRankClass" value="" />
+                    <c:choose>
+                        <c:when test="${headerRankPosition eq 1}">
+                            <c:set var="headerRankClass" value="rank-first" />
+                        </c:when>
+                        <c:when test="${headerRankPosition eq 2}">
+                            <c:set var="headerRankClass" value="rank-second" />
+                        </c:when>
+                        <c:when test="${headerRankPosition eq 3}">
+                            <c:set var="headerRankClass" value="rank-third" />
+                        </c:when>
+                    </c:choose>
                     <div class="header-profile-menu">
                         <button class="header-profile-toggle"
                                 type="button"
                                 aria-expanded="false"
                                 aria-controls="header-profile-dropdown">
-                            <c:choose>
-                                <c:when test="${not empty sessionScope.loginMember.profile}">
-                                    <img class="header-profile-image"
-                                         src="${pageContext.request.contextPath}${sessionScope.loginMember.profile}"
-                                         onerror="this.onerror=null; this.src='${defaultProfileUrl}';"
-                                         alt="프로필 이미지">
-                                </c:when>
-                                <c:otherwise>
-                                    <img class="header-profile-image"
-                                         src="${defaultProfileUrl}"
-                                         alt="기본 프로필 이미지">
-                                </c:otherwise>
-                            </c:choose>
+                            <%-- 랭커는 프로필 이미지 바깥에 금·은·동 원형 프레임을 표시 --%>
+                            <span class="header-profile-rank-frame ${headerRankClass}">
+                                <c:choose>
+                                    <c:when test="${not empty sessionScope.loginMember.profile}">
+                                        <img class="header-profile-image"
+                                             src="${pageContext.request.contextPath}${sessionScope.loginMember.profile}"
+                                             onerror="this.onerror=null; this.src='${defaultProfileUrl}';"
+                                             alt="프로필 이미지">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <img class="header-profile-image"
+                                             src="${defaultProfileUrl}"
+                                             alt="기본 프로필 이미지">
+                                    </c:otherwise>
+                                </c:choose>
+                            </span>
 
                             <span class="header-profile-nickname">
                                     <c:out value="${sessionScope.loginMember.nickname}"/>님

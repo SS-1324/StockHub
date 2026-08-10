@@ -12,6 +12,8 @@
 
     <sql id="boardListFilters">
         AND b.is_hidden = FALSE
+        <!-- 폐지된 '살까?팔까?' 카테고리의 기존 글은 삭제하지 않고 일반 화면에서만 제외한다. -->
+        AND b.category &lt;&gt; 'trade'
 
         <if test="category != null and category != ''">
             AND b.category = #{category}
@@ -82,6 +84,7 @@
         LEFT JOIN member m ON b.member_id = m.member_id
         WHERE b.member_id = #{memberId}
           AND b.is_hidden = FALSE
+          AND b.category &lt;&gt; 'trade'
         ORDER BY b.create_at DESC, b.board_id DESC
     </select>
 
@@ -91,6 +94,7 @@
         FROM board
         WHERE member_id = #{memberId}
           AND is_hidden = FALSE
+          AND category &lt;&gt; 'trade'
     </select>
 
     <select id="selectBoardDetail" parameterType="long" resultType="com.kh.demo.community.dto.BoardDto">
@@ -112,6 +116,7 @@
         LEFT JOIN member m ON b.member_id = m.member_id
         WHERE b.board_id = #{boardId}
           AND b.is_hidden = FALSE
+          AND b.category &lt;&gt; 'trade'
     </select>
 
     <!-- 관리자 페이지에서 숨김 게시글도 상세 화면으로 확인할 수 있도록 별도 조회 -->

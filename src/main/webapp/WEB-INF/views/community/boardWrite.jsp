@@ -60,6 +60,7 @@
             toolbar: [
                 ['bold', 'italic', 'strike'],
                 [{ 'size': ['small', false, 'large', 'huge'] }],
+                <%-- [하이퍼링크-1] 선택한 글자에 URL을 연결하는 Quill 링크 도구를 표시한다. --%>
                 ['link'],
                 [{ 'list': 'ordered' }, { 'list': 'bullet' }]
             ]
@@ -67,6 +68,7 @@
         placeholder: '내용을 입력하세요'
     });
 
+    // [하이퍼링크-2] Quill이 만든 <a href="..."> HTML을 content에 담아 AJAX FormData로 전송한다.
     // 폼이 제출되기 직전에 Quill 안의 HTML을 hidden input(content)으로 옮겨준다.
     // 이 hidden input이 없으면 Controller의 BoardDto.content가 계속 빈 값으로 넘어간다.
     document.getElementById('board-write-form').addEventListener('submit', function () {

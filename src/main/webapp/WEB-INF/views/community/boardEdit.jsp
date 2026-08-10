@@ -78,6 +78,7 @@
             toolbar: [
                 ['bold', 'italic', 'strike'],
                 [{ 'size': ['small', false, 'large', 'huge'] }],
+                <%-- [하이퍼링크-1] 작성 화면과 동일한 Quill 링크 도구를 표시한다. --%>
                 ['link'],
                 [{ 'list': 'ordered' }, { 'list': 'bullet' }]
             ]
@@ -95,7 +96,8 @@
     );
 }
 
-    // 폼이 제출되기 직전에 Quill 안의 최신 HTML을 hidden input(content)으로 다시 옮긴다.
+    // [하이퍼링크-2] 수정된 링크를 포함한 Quill HTML을 일반 POST 폼의 content로 옮긴다.
+    // 글 수정은 board.js의 AJAX가 아니라 이 폼의 기존 POST 제출 방식을 사용한다.
     document.getElementById('board-edit-form').addEventListener('submit', function () {
         document.getElementById('content').value = quill.getSemanticHTML();
     });

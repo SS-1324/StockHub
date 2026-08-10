@@ -68,7 +68,7 @@ if (typeof quill !== "undefined") {
     preventInlineEditorImages(quill);
 }
 
-/* 글쓰기 폼 제출 - 일반 폼 네비게이션 대신 fetch로 보내고, 성공하면 location.replace()로 상세 이동.
+/* [AJAX-1: 게시글 등록] 글쓰기 폼 제출 - 일반 폼 네비게이션 대신 fetch로 보내고, 성공하면 location.replace()로 상세 이동.
  * location.href가 아니라 replace()를 쓰는 이유: href는 히스토리에 새 항목을 쌓지만 replace는 현재 항목(글쓰기 폼)을
  * 대체한다. 그래야 글 등록 후 상세페이지에서 "뒤로가기"를 눌렀을 때, 이미 제출한 글쓰기 폼이 아니라
  * 그 이전 페이지(커뮤니티 목록)로 곧장 돌아간다.
@@ -76,6 +76,7 @@ if (typeof quill !== "undefined") {
 if (boardWriteForm) {
     boardWriteForm.addEventListener("submit", function(ev){
         ev.preventDefault();
+        // 이미지와 Quill 링크 HTML을 함께 보내야 하므로 multipart FormData를 그대로 AJAX 요청 본문으로 사용한다.
         fetch(boardWriteForm.getAttribute("action"), {
             method: "POST",
             headers: {"X-Requested-With": "XMLHttpRequest"},
@@ -213,7 +214,7 @@ if (existingImageList) {
     });
 }
 
-/* 서버에 상태를 바꾸는 요청을 보내는 공용 헬퍼 (좋아요/북마크/댓글좋아요 토글에서 사용) */
+/* [AJAX-2: 토글 동작] 서버에 상태를 바꾸는 요청을 보내는 공용 헬퍼 (좋아요/북마크/댓글좋아요에서 사용) */
 async function postAction(url){
     const response = await fetch(url, {
         method: "POST",
@@ -270,7 +271,7 @@ async function toggleCommentLike(commentId, button){
     }
 }
 
-// 댓글/답글 작성 - 성공하면 새로고침해서 서버가 만든 하이라이트/멘션 마크업을 그대로 받는다
+// [AJAX-3: 댓글·답글 등록] JSON으로 작성 요청을 보내고, 성공하면 서버의 최신 표시 결과를 받기 위해 새로고침한다.
 async function submitComment(boardId, content, parentCommentId) {
     try {
         const response = await fetch(`/community/${boardId}/comment`, {
@@ -291,7 +292,7 @@ async function submitComment(boardId, content, parentCommentId) {
     }
 }
 
-/* 댓글 삭제 - 성공하면 새로고침 */
+/* [AJAX-4: 댓글 삭제] 별도 페이지 이동 없이 삭제 요청을 보내고, 성공하면 현재 상세 화면을 새로고침한다. */
 async function deleteComment(boardId, commentId){
     if (!confirm("댓글을 삭제하시겠습니까?")) {
         return;
@@ -308,7 +309,7 @@ async function deleteComment(boardId, commentId){
     location.reload();
 }
 
-/* 관리자 댓글 수정 - 성공하면 하이라이트와 수정일시를 다시 받도록 새로고침 */
+/* [AJAX-5: 관리자 댓글 수정] JSON으로 수정 요청을 보내고, 성공하면 하이라이트와 수정일시를 다시 받도록 새로고침한다. */
 async function updateComment(boardId, commentId, content){
     const response = await fetch(`/community/${boardId}/comment/${commentId}/edit`, {
         method: "POST",
@@ -643,7 +644,7 @@ if (boardListEl) {
     });
 }
 
-/* 게시판 목록 무한스크롤 - 화면 바닥의 sentinel이 보이면 다음 페이지를 가져와 이어붙인다 */
+/* [AJAX-6: 무한스크롤] 화면 바닥의 sentinel이 보이면 다음 페이지 HTML 조각을 가져와 목록 뒤에 이어붙인다. */
 function initInfiniteFeed(){
     const sentinel = document.querySelector("#feed-sentinel");
     if (!sentinel || !boardListEl) {
