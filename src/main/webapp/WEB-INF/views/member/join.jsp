@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap"
           rel="stylesheet">
     <link rel="stylesheet" href="${commonCssUrl}?v=16">
-    <link rel="stylesheet" href="${authCssUrl}?v=4">
+    <link rel="stylesheet" href="${authCssUrl}?v=5">
 </head>
 <body class="auth-page auth-page-join">
 <main class="auth-shell">
