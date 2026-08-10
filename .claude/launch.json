@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "stockhub",
+      "runtimeExecutable": "C:\\workspace\\StockHub\\mvnw.cmd",
+      "runtimeArgs": ["-q", "-o", "spring-boot:run"],
+      "port": 8080
+    }
+  ]
+}

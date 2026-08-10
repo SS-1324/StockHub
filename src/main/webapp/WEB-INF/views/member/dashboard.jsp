@@ -6,6 +6,7 @@
 <c:url var="dashboardCssUrl" value="/css/dashboard.css" />
 <c:set var="pageCssUrl" value="${dashboardCssUrl}" scope="request" />
 <c:url var="defaultProfileUrl" value="/images/common_member.png" />
+<c:url var="dashboardJsUrl" value="/js/dashboard.js" />
 
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
@@ -25,9 +26,44 @@
             </c:otherwise>
         </c:choose>
 
-        <div>
+        <div class="dashboard-profile-info">
             <p class="dashboard-eyebrow">MY DASHBOARD</p>
             <h1 id="dashboard-title"><c:out value="${member.nickname}"/></h1>
+        </div>
+
+        <button type="button" class="btn btn-outline dashboard-link-account-toggle"
+                aria-expanded="false" aria-controls="link-account-panel">계좌 연동하기</button>
+
+        <div id="link-account-panel" class="dashboard-link-account-panel" hidden>
+            <c:if test="${not empty linkError}">
+                <p class="dashboard-goal-error"><c:out value="${linkError}"/></p>
+            </c:if>
+            <c:if test="${not empty linkSuccess}">
+                <p class="dashboard-link-success">계좌가 연동되었습니다.</p>
+            </c:if>
+            <c:if test="${not empty myAccounts}">
+                <p class="dashboard-link-subheading">연동된 계좌</p>
+                <ul class="dashboard-linked-accounts">
+                    <c:forEach var="acc" items="${myAccounts}">
+                        <li><c:out value="${acc.brokerageName}"/> (<c:out value="${acc.accountNo}"/>)</li>
+                    </c:forEach>
+                </ul>
+            </c:if>
+
+            <p class="dashboard-link-subheading">새로 추가하기</p>
+            <p class="dashboard-link-desc">증권사와 계좌번호, 예금주명을 입력하면 그 증권사가 이미 갖고 있던 거래 이력을 그대로 불러옵니다.</p>
+            <form class="dashboard-inline-form"
+                  action="${pageContext.request.contextPath}/member/dashboard/link-account" method="post">
+                <select name="brokerageId" required>
+                    <option value="">증권사 선택</option>
+                    <c:forEach var="b" items="${brokerages}">
+                        <option value="${b.brokerageId}"><c:out value="${b.brokerageName}"/></option>
+                    </c:forEach>
+                </select>
+                <input type="text" name="accountNo" placeholder="계좌번호" maxlength="50" required>
+                <input type="text" name="ownerName" placeholder="예금주명" maxlength="50" required>
+                <button type="submit" class="btn btn-primary">연동하기</button>
+            </form>
         </div>
     </header>
 
@@ -38,14 +74,35 @@
             <dd><fmt:formatNumber value="${totalAsset}" pattern="#,##0"/>원</dd>
         </div>
         <div class="dashboard-summary-row">
-            <dt>총 손익</dt>
-            <dd class="${totalProfit gt 0 ? 'value-positive' : (totalProfit lt 0 ? 'value-negative' : '')}">
-                <c:if test="${totalProfit gt 0}">+</c:if><fmt:formatNumber value="${totalProfit}" pattern="#,##0"/>원
+            <dt class="dashboard-profit-label">
+                총 손익
+                <span class="dashboard-period-tabs" role="tablist" aria-label="손익 조회 기간">
+                    <button type="button" class="dashboard-period-tab" data-period="week">1주</button>
+                    <button type="button" class="dashboard-period-tab" data-period="month">1달</button>
+                    <button type="button" class="dashboard-period-tab" data-period="year">1년</button>
+                    <button type="button" class="dashboard-period-tab is-active" data-period="all">전체</button>
+                </span>
+            </dt>
+            <dd id="dashboard-period-profit"
+                class="${totalProfit gt 0 ? 'value-positive' : (totalProfit lt 0 ? 'value-negative' : '')}"
+                data-week="${periodProfit.week}" data-month="${periodProfit.month}"
+                data-year="${periodProfit.year}" data-all="${periodProfit.all}"
+                data-rate="${totalReturnRate}">
+                <span id="dashboard-period-profit-amount">
+                    <c:if test="${totalProfit gt 0}">+</c:if><fmt:formatNumber value="${totalProfit}" pattern="#,##0"/>원
+                </span>
+                <span id="dashboard-period-profit-rate" class="dashboard-period-profit-rate">
+                    (<c:if test="${totalReturnRate gt 0}">+</c:if><fmt:formatNumber value="${totalReturnRate}" pattern="#,##0.00"/>%)
+                </span>
             </dd>
         </div>
         <div class="dashboard-summary-row">
             <dt>현금 잔고</dt>
             <dd><fmt:formatNumber value="${stockSummary.currentBalance}" pattern="#,##0"/>원</dd>
+        </div>
+        <div class="dashboard-summary-footer">
+            <a class="dashboard-section-link"
+               href="${pageContext.request.contextPath}/member/dashboard/history">전체 매매 손익 보기 →</a>
         </div>
     </dl>
 
@@ -53,6 +110,8 @@
     <section class="dashboard-goal" aria-labelledby="goal-title">
         <div class="dashboard-section-heading">
             <h2 id="goal-title">목표 도달률</h2>
+            <a class="dashboard-section-link"
+               href="${pageContext.request.contextPath}/member/dashboard/goals/history">목표 히스토리 →</a>
         </div>
 
         <c:if test="${not empty goalError}">
@@ -60,25 +119,38 @@
         </c:if>
 
         <c:choose>
-            <c:when test="${not empty goal}">
-                <div class="dashboard-goal-body">
-                    <div class="dashboard-goal-ring" style="--progress: ${goalProgress};">
-                        <span class="dashboard-goal-ring-value"><c:out value="${goalProgress}"/>%</span>
-                    </div>
-                    <div class="dashboard-goal-info">
-                        <p class="dashboard-goal-name"><c:out value="${goal.title}"/></p>
-                        <p class="dashboard-goal-target">
-                            목표:
-                            <c:choose>
-                                <c:when test="${goal.goalType == 'RETURN_RATE'}">
-                                    수익률 <fmt:formatNumber value="${goal.targetValue}" pattern="#,##0.##"/>%
-                                </c:when>
-                                <c:otherwise>
-                                    수익금 <fmt:formatNumber value="${goal.targetValue}" pattern="#,##0"/>원
-                                </c:otherwise>
-                            </c:choose>
-                        </p>
-                    </div>
+            <c:when test="${not empty activeGoals}">
+                <div class="dashboard-goal-list">
+                    <c:forEach var="goal" items="${activeGoals}">
+                        <div class="dashboard-goal-card">
+                            <div class="dashboard-goal-ring" style="--progress: ${goalProgress[goal.goalId]};">
+                                <span class="dashboard-goal-ring-value"><c:out value="${goalProgress[goal.goalId]}"/>%</span>
+                            </div>
+                            <div class="dashboard-goal-info">
+                                <p class="dashboard-goal-target">
+                                    <c:choose>
+                                        <c:when test="${goal.goalType == 'RETURN_RATE'}">
+                                            수익률 <fmt:formatNumber value="${goal.targetValue}" pattern="#,##0.##"/>%
+                                        </c:when>
+                                        <c:otherwise>
+                                            수익금 <fmt:formatNumber value="${goal.targetValue}" pattern="#,##0"/>원
+                                        </c:otherwise>
+                                    </c:choose>
+                                </p>
+                                <p class="dashboard-goal-name"><c:out value="${goal.title}"/></p>
+                                <c:if test="${not empty goal.targetDate}">
+                                    <p class="dashboard-goal-deadline">
+                                        <c:out value="${goal.targetDateText}"/>까지
+                                    </p>
+                                </c:if>
+                                <form class="dashboard-goal-cancel-form"
+                                      action="${pageContext.request.contextPath}/member/dashboard/goal/cancel" method="post">
+                                    <input type="hidden" name="goalId" value="${goal.goalId}">
+                                    <button type="submit" class="dashboard-goal-cancel-btn">취소</button>
+                                </form>
+                            </div>
+                        </div>
+                    </c:forEach>
                 </div>
             </c:when>
             <c:otherwise>
@@ -86,14 +158,21 @@
             </c:otherwise>
         </c:choose>
 
-        <form class="dashboard-goal-form"
+        <button type="button" class="btn btn-outline dashboard-goal-form-toggle"
+                aria-expanded="false" aria-controls="goal-form-panel">목표 설정하기</button>
+
+        <form id="goal-form-panel" class="dashboard-inline-form dashboard-goal-form" hidden
               action="${pageContext.request.contextPath}/member/dashboard/goal" method="post">
-            <input type="text" name="title" placeholder="목표 이름 (예: 이번 달 +5%)" maxlength="100" required>
             <select name="goalType">
                 <option value="RETURN_RATE">수익률(%)</option>
                 <option value="PROFIT_AMOUNT">수익금(원)</option>
             </select>
             <input type="number" name="targetValue" placeholder="목표치" min="0.01" step="0.01" required>
+            <input type="text" name="title" placeholder="목표 이름 (예: 이번 달 +5%)" maxlength="100" required>
+            <label class="dashboard-goal-date-label">
+                기한
+                <input type="date" name="targetDate">
+            </label>
             <button type="submit" class="btn btn-primary">목표 설정</button>
         </form>
     </section>
@@ -101,8 +180,27 @@
     <%-- 보유 주식 --%>
     <section class="dashboard-holdings" aria-labelledby="stock-holdings-title">
         <div class="dashboard-section-heading">
-            <h2 id="stock-holdings-title">보유 주식</h2>
-            <span><c:out value="${fn:length(stockSummary.holdings)}"/>종목</span>
+            <div class="dashboard-holdings-title-group">
+                <h2 id="stock-holdings-title">보유 주식</h2>
+                <c:if test="${not empty stockSummary.holdings}">
+                    <button type="button" id="stock-holdings-count-toggle" class="dashboard-count-toggle"
+                            data-mode="quantity"
+                            data-quantity-text="<fmt:formatNumber value='${stockSummary.totalStockQuantity}' pattern='#,##0'/>주"
+                            data-stock-text="<c:out value='${fn:length(stockSummary.holdings)}'/>종목">
+                        <fmt:formatNumber value="${stockSummary.totalStockQuantity}" pattern="#,##0"/>주
+                    </button>
+                    <button type="button" id="stock-holdings-chart-open" class="dashboard-chart-open-btn">차트로 보기</button>
+                </c:if>
+            </div>
+            <c:if test="${not empty stockSummary.holdings}">
+                <select id="stock-holdings-sort" class="dashboard-holdings-sort" aria-label="보유 주식 정렬">
+                    <option value="default">기본순</option>
+                    <option value="returnRate">수익률순</option>
+                    <option value="quantity">수량순</option>
+                    <option value="name">가나다순</option>
+                    <option value="price">현재가순</option>
+                </select>
+            </c:if>
         </div>
 
         <c:choose>
@@ -119,9 +217,13 @@
                             <th scope="col">수익률</th>
                         </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="stock-holdings-tbody">
                         <c:forEach var="holding" items="${stockSummary.holdings}">
-                            <tr>
+                            <tr data-name="<c:out value='${holding.stockName}'/>"
+                                data-quantity="${holding.quantity}"
+                                data-price="${holding.currentPrice}"
+                                data-value="${holding.currentValue}"
+                                data-return-rate="${holding.returnRate}">
                                 <td data-label="종목">
                                     <strong><c:out value="${holding.stockName}"/></strong>
                                     <span class="dashboard-code"><c:out value="${holding.stockCode}"/></span>
@@ -139,6 +241,17 @@
                         </tbody>
                     </table>
                 </div>
+                <dialog id="stock-portfolio-dialog" class="dashboard-portfolio-dialog">
+                    <div class="dashboard-portfolio-dialog-header">
+                        <h3>보유 주식 구성</h3>
+                        <button type="button" id="stock-portfolio-dialog-close"
+                                class="dashboard-portfolio-dialog-close" aria-label="닫기">&times;</button>
+                    </div>
+                    <div class="dashboard-portfolio-chart">
+                        <div class="dashboard-portfolio-donut" id="stock-portfolio-donut"></div>
+                        <ul class="dashboard-portfolio-legend" id="stock-portfolio-legend"></ul>
+                    </div>
+                </dialog>
             </c:when>
             <c:otherwise>
                 <div class="dashboard-empty">
@@ -207,7 +320,7 @@
 
         <c:choose>
             <c:when test="${not empty timeline}">
-                <ul class="dashboard-timeline-list">
+                <ul class="dashboard-timeline-list" id="dashboard-timeline-list">
                     <c:forEach var="event" items="${timeline}">
                         <li>
                             <span class="dashboard-timeline-badge dashboard-timeline-badge-${event.category}"><c:out value="${event.badge}"/></span>
@@ -217,6 +330,7 @@
                         </li>
                     </c:forEach>
                 </ul>
+                <div class="dashboard-timeline-pagination" id="dashboard-timeline-pagination"></div>
             </c:when>
             <c:otherwise>
                 <div class="dashboard-empty">
@@ -226,5 +340,7 @@
         </c:choose>
     </section>
 </section>
+
+<script src="${dashboardJsUrl}" defer></script>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

@@ -3,7 +3,6 @@ package com.kh.demo.admin.service;
 import com.kh.demo.admin.dto.AdminDashboardDto;
 import com.kh.demo.admin.dto.AdminLogDto;
 import com.kh.demo.admin.mapper.AdminMapper;
-import com.kh.demo.brokerage.dto.StockDto;
 import com.kh.demo.community.dto.BoardCommentDto;
 import com.kh.demo.community.dto.BoardDto;
 import com.kh.demo.community.service.BoardCommentService;
@@ -18,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 // 관리자 입력값 검사, 상태 변경, 작업 이력 저장을 한 곳에서 처리
 @Service
@@ -27,8 +25,6 @@ public class AdminServiceImpl implements AdminService {
 
     private static final Set<String> MEMBER_STATUSES = Set.of("ACTIVE", "RESTRICTED");
     private static final Set<String> MEMBER_ROLES = Set.of("USER", "ADMIN");
-    private static final Pattern STOCK_CODE_PATTERN =
-            Pattern.compile("^[A-Za-z0-9._-]{1,20}$");
 
     private final AdminMapper adminMapper;
     private final BoardService boardService;
@@ -68,11 +64,6 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<InquiryDto> getInquiries() {
         return inquiryService.getAllInquiries();
-    }
-
-    @Override
-    public List<StockDto> getStocks() {
-        return adminMapper.selectStocks();
     }
 
     @Override
@@ -176,64 +167,6 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public void createStock(String adminId,
-                            String stockCode,
-                            String stockName,
-                            Integer currentPrice) {
-        String normalizedCode = normalizeStockCode(stockCode);
-        String normalizedName = requireText(stockName, "종목명", 100);
-        validateCurrentPrice(currentPrice);
-
-        if (adminMapper.countStockCode(normalizedCode) > 0) {
-            throw new IllegalStateException("이미 등록된 종목 코드입니다.");
-        }
-        if (adminMapper.insertStock(
-                normalizedCode, normalizedName, currentPrice) != 1) {
-            throw new IllegalStateException("종목을 추가하지 못했습니다.");
-        }
-        log(adminId, "CREATE", "STOCK", normalizedCode,
-                normalizedName + ", 현재가 " + currentPrice + "원");
-    }
-
-    @Override
-    @Transactional
-    public void updateStock(String adminId,
-                            String currentStockCode,
-                            String stockCode,
-                            String stockName,
-                            Integer currentPrice) {
-        String oldCode = normalizeStockCode(currentStockCode);
-        String newCode = normalizeStockCode(stockCode);
-        String normalizedName = requireText(stockName, "종목명", 100);
-        validateCurrentPrice(currentPrice);
-        if (!oldCode.equals(newCode)
-                && adminMapper.countStockCodeExceptCurrent(newCode, oldCode) > 0) {
-            throw new IllegalStateException("이미 사용 중인 종목 코드입니다.");
-        }
-        if (adminMapper.updateStock(oldCode, newCode, normalizedName, currentPrice) != 1) {
-            throw new IllegalStateException("종목을 찾을 수 없습니다.");
-        }
-        log(adminId, "UPDATE", "STOCK", newCode,
-                oldCode + " → " + newCode + ", 현재가 " + currentPrice + "원");
-    }
-
-    @Override
-    @Transactional
-    public void deleteStock(String adminId, String stockCode) {
-        String normalizedCode = normalizeStockCode(stockCode);
-        if (adminMapper.countStockReferences(normalizedCode) > 0) {
-            throw new IllegalStateException(
-                    "보유 내역이나 거래 기록이 있는 종목은 삭제할 수 없습니다."
-            );
-        }
-        if (adminMapper.deleteStock(normalizedCode) != 1) {
-            throw new IllegalStateException("종목을 찾을 수 없습니다.");
-        }
-        log(adminId, "DELETE", "STOCK", normalizedCode, "종목 삭제");
-    }
-
-    @Override
-    @Transactional
     public void createGlossary(String adminId, GlossaryDto glossaryDto) {
         normalizeGlossary(glossaryDto);
         if (adminMapper.countGlossaryTermExceptCurrent(glossaryDto.getTerm(), null) > 0) {
@@ -293,22 +226,6 @@ public class AdminServiceImpl implements AdminService {
             throw new IllegalStateException(label + " 값이 올바르지 않습니다.");
         }
         return normalized;
-    }
-
-    private String normalizeStockCode(String stockCode) {
-        String normalized = stockCode == null
-                ? ""
-                : stockCode.trim().toUpperCase(Locale.ROOT);
-        if (!STOCK_CODE_PATTERN.matcher(normalized).matches()) {
-            throw new IllegalStateException("종목 코드는 영문·숫자와 . _ - 기호만 사용할 수 있습니다.");
-        }
-        return normalized;
-    }
-
-    private void validateCurrentPrice(Integer currentPrice) {
-        if (currentPrice == null || currentPrice < 0) {
-            throw new IllegalStateException("현재가는 0원 이상이어야 합니다.");
-        }
     }
 
     private String requireText(String value, String label, int maxLength) {

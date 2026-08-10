@@ -1,9 +1,12 @@
 package com.kh.demo.community.service;
 
+import com.kh.demo.community.dto.BoardDto;
 import com.kh.demo.community.mapper.BoardBookmarkMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class BoardBookmarkServiceImpl implements BoardBookmarkService {
@@ -29,5 +32,15 @@ public class BoardBookmarkServiceImpl implements BoardBookmarkService {
             return false;
         }
         return boardBookmarkMapper.existsBoardBookmark(boardId, memberId);
+    }
+
+    @Override
+    public List<BoardDto> getBookmarkedBoards(String memberId) {
+        return boardBookmarkMapper.selectBookmarkedBoards(memberId);
+    }
+
+    @Override
+    public long getBookmarkedBoardCount(String memberId) {
+        return boardBookmarkMapper.countBookmarkedBoards(memberId);
     }
 }

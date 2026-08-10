@@ -8,7 +8,6 @@
 <c:url var="rankingUrl" value="/ranking" />
 <c:url var="dictionaryUrl" value="/dictionary" />
 <c:url var="loginUrl" value="/member/login" />
-<c:url var="mypageUrl" value="/member/mypage/password-check" />
 <c:url var="myInfoUrl" value="/member/stocks" />
 <c:url var="dashboardUrl" value="/member/dashboard" />
 <c:url var="adminUrl" value="/admin" />
@@ -173,7 +172,6 @@
                                     <a href="${adminUrl}">관리자 페이지</a>
                                 </c:when>
                                 <c:otherwise>
-                                    <a href="${mypageUrl}">프로필 수정</a>
                                     <a href="${myInfoUrl}">내 정보</a>
                                     <a href="${dashboardUrl}">내 금융거래</a>
                                 </c:otherwise>

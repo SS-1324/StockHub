@@ -34,10 +34,10 @@ public class HomeController {
     // 루트 주소에서 메인 JSP를 반환
     @GetMapping("/")
     public String home(Model model){
-        // 전체 게시판에서 가장 최근에 작성된 글 5개를 이미지 정보와 함께 전달
+        // 전체 게시판에서 가장 최근에 작성된 글 6개를 이미지 정보와 함께 전달
         model.addAttribute(
                 "latestBoards",
-                boardService.getList(null, 1, 5, null)
+                boardService.getList(null, 1, 6, null)
         );
         model.addAttribute(
                 "allowedCategories",

@@ -62,6 +62,16 @@ public class BoardCommentServiceImpl implements BoardCommentService {
     }
 
     @Override
+    public List<BoardCommentDto> getMemberComments(String memberId) {
+        return boardCommentMapper.selectByMemberId(memberId);
+    }
+
+    @Override
+    public long getMemberCommentCount(String memberId) {
+        return boardCommentMapper.countByMemberId(memberId);
+    }
+
+    @Override
     @Transactional
     public void delete(Long boardId, Long commentId, String loginMemberId) {
         BoardCommentDto comment = boardCommentMapper.selectById(commentId);

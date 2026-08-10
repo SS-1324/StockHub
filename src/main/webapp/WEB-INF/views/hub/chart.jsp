@@ -55,7 +55,7 @@
         <!-- TradingView 위젯이 마운트되는 컨테이너. 채팅이 열리면 flex가 이 영역만 줄여줌 -->
         <div id="tv-chart-container"></div>
 
-        <!-- 종목 채팅 패널: 채팅 아이콘을 누르면 차트 가로폭이 줄면서 이 자리에 나타남 (UI 전용, 실제 메시지 저장/전송 기능은 아직 없음) -->
+        <!-- 종목 채팅 패널: 채팅 아이콘을 누르면 차트 가로폭이 줄면서 이 자리에 나타남. WebSocket(STOMP)으로 실시간 송수신 (stockhub.js의 setupChatPanel 참고) -->
         <aside id="chat-panel" class="chat-panel" aria-hidden="true">
             <div class="chat-panel-header">
                 <span>종목 채팅</span>
@@ -113,8 +113,8 @@
     // 채팅 입력창 활성화 여부 판단용 (비로그인 사용자는 채팅 전송 불가)
     const isLoggedIn = <c:out value="${not empty sessionScope.loginMember}"/>;
 </script>
-<script src="<c:url value='/js/tradingview-chart.js'/>"></script>
-<script src="<c:url value='/js/stockhub.js'/>"></script>
+<script src="<c:url value='/js/tradingview-chart.js?v=1'/>"></script>
+<script src="<c:url value='/js/stockhub.js?v=5'/>"></script>
 
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

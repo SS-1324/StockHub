@@ -1,3 +1,8 @@
+/* 거래 허브와 동일한 본문 너비를 사용 */
+.container{
+    max-width: 1300px;
+}
+
 /* 메인 홈 전체 영역: 공통 배경색은 건드리지 않고 콘텐츠만 배치 */
 .home-main{
     width: 100%;
@@ -441,11 +446,11 @@
     color: #1685ff;
 }
 
-/* 최신글을 왼쪽 열 위→아래, 오른쪽 열 위→아래 순서로 보여주는 2열 레이아웃 */
+/* 최신글을 왼쪽 3개, 오른쪽 3개 순서로 보여주는 독립적인 2열 레이아웃 */
 .home-community-grid{
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: stretch;
+    align-items: start;
     gap: 20px;
 }
 
@@ -473,11 +478,6 @@
     box-shadow: 0 9px 24px rgba(15, 23, 42, 0.06);
     break-inside: avoid;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-}
-
-/* 처음 배치처럼 짧은 열의 마지막 카드만 늘려 두 열의 아래쪽을 맞춘다. */
-.home-community-column .home-community-card:last-child{
-    flex-grow: 1;
 }
 
 .home-community-card:hover{

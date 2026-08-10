@@ -1,7 +1,9 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-<c:url var="myInfoCssUrl" value="/css/my-stocks.css" />
+<c:url var="myInfoCssUrl" value="/css/my-stocks.css">
+    <c:param name="v" value="2" />
+</c:url>
 <c:set var="pageCssUrl" value="${myInfoCssUrl}" scope="request" />
 <c:url var="myInfoUrl" value="/member/stocks" />
 <c:url var="communityUrl" value="/community" />
