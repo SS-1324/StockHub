@@ -270,7 +270,8 @@ html[data-theme="dark"] .chat-panel {
     padding: 24px;
     border-radius: 12px;
     background: #eef1fb;
-    transition: background-color 0.2s ease;
+    border: 1px solid rgba(128, 128, 128, 0.45);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 html[data-theme="dark"] .stock-vote-card {
