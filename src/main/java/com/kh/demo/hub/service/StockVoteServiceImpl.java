@@ -56,6 +56,18 @@ public class StockVoteServiceImpl implements StockVoteService {
         return buildResult(stock, voteType);
     }
 
+    @Override
+    @Transactional
+    public StockVoteResultDto cancelVote(String stockCode, String memberId) {
+        stockVoteMapper.deleteVote(stockCode, memberId);
+        StockDto stock = stockMapper.selectStockByCode(stockCode);
+        if (stock == null) {
+            throw new NoSuchElementException("종목을 찾을 수 없습니다: " + stockCode);
+        }
+        // 방금 지웠으므로 myVote를 다시 조회하지 않고 null로 확정
+        return buildResult(stock, null);
+    }
+
     private StockVoteResultDto buildResult(StockDto stock, String myVote) {
         VoteCountsDto counts = stockVoteMapper.selectVoteCounts(stock.getStockCode());
         long up = counts.getUpCount();

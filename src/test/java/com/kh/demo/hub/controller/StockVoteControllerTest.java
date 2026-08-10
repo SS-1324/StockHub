@@ -105,4 +105,42 @@ class StockVoteControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertSame(expected, response.getBody().getData());
     }
+
+    @Test
+    void cancelRejectsWhenNotLoggedIn() {
+        when(session.getAttribute(SessionConst.LOGIN_MEMBER)).thenReturn(null);
+
+        ResponseEntity<ApiResponse<StockVoteResultDto>> response =
+                stockVoteController.cancel("AAPL", session);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        verify(stockVoteService, never()).cancelVote(anyString(), anyString());
+    }
+
+    @Test
+    void cancelReturnsNotFoundWhenStockMissing() {
+        loggedInAs("member1");
+        when(stockVoteService.cancelVote("XXXX", "member1"))
+                .thenThrow(new NoSuchElementException("종목을 찾을 수 없습니다: XXXX"));
+
+        ResponseEntity<ApiResponse<StockVoteResultDto>> response =
+                stockVoteController.cancel("XXXX", session);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertFalse(response.getBody().isSuccess());
+    }
+
+    @Test
+    void cancelReturnsUpdatedResultOnSuccess() {
+        loggedInAs("member1");
+        StockVoteResultDto expected = new StockVoteResultDto(
+                "AAPL", "Apple", 200, 3, 1, 4, 75, 25, null);
+        when(stockVoteService.cancelVote("AAPL", "member1")).thenReturn(expected);
+
+        ResponseEntity<ApiResponse<StockVoteResultDto>> response =
+                stockVoteController.cancel("AAPL", session);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertSame(expected, response.getBody().getData());
+    }
 }
