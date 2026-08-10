@@ -306,32 +306,49 @@ async function loadFollowList(modal) {
     }
 }
 
-// 문의 전송 전에 공백 입력과 최대 길이를 다시 검사
-inquiryForm?.addEventListener("submit", function (event) {
+// 문의를 현재 화면에서 비동기로 전송하고 성공하면 모달만 닫음
+inquiryForm?.addEventListener("submit", async function (event) {
+    event.preventDefault();
+
     const title = inquiryTitle.value.trim();
     const content = inquiryContent.value.trim();
 
     if (!title || title.length > 20) {
-        event.preventDefault();
         alert("문의 제목은 20자 이내로 입력해주세요.");
         inquiryTitle.focus();
         return;
     }
 
     if (!content || content.length > 200) {
-        event.preventDefault();
         alert("문의 내용은 200자 이내로 입력해주세요.");
         inquiryContent.focus();
+        return;
+    }
+
+    const submitButton = inquiryForm.querySelector("button[type='submit']");
+    submitButton.disabled = true;
+
+    try {
+        const response = await fetch(inquiryForm.action, {
+            method: "POST",
+            body: new FormData(inquiryForm),
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || "문의 전송 중 오류가 발생했습니다.");
+        }
+
+        inquiryForm.reset();
+        updateInquiryCount();
+        closeFooterModal(inquiryForm.closest(".footer-modal-overlay"));
+        alert("문의가 전송되었습니다.");
+    } catch (error) {
+        alert(error.message || "문의 전송 중 오류가 발생했습니다.");
+    } finally {
+        submitButton.disabled = false;
     }
 });
-
-// 서버 검사 오류가 있으면 문의 모달을 다시 열어 입력 내용을 보여줌
-const initiallyOpenModal = Array.from(footerModalOverlays)
-    .find(function (overlay) {
-        return overlay.dataset.openOnLoad === "true";
-    });
-
-if (initiallyOpenModal) {
-    initiallyOpenModal.hidden = false;
-    document.body.classList.add("modal-open");
-}

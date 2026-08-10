@@ -356,50 +356,15 @@ html[data-theme="dark"] .theme-dark-icon{
     background: var(--header-soft-bg);
 }
 
-.header-profile-rank-frame{
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 38px;
-    padding: 2px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background: #bfdbfe;
-    box-sizing: border-box;
-}
-
 .header-profile-image{
     display: block;
-    width: 100%;
-    height: 100%;
+    width: 34px;
+    height: 34px;
     flex-shrink: 0;
-    border: 2px solid var(--header-bg);
+    border: 2px solid #bfdbfe;
     border-radius: 50%;
     background: var(--header-soft-bg);
     object-fit: cover;
-}
-
-/* 공통 헤더 프로필의 1위 금색 프레임 */
-.header-profile-rank-frame.rank-first{
-    padding: 3px;
-    background: linear-gradient(135deg, #8f6200 0%, #f4c64f 24%, #fff2aa 45%, #d89d13 68%, #fff0a0 82%, #9a6800 100%);
-    box-shadow: 0 0 0 2px rgba(232, 180, 44, 0.22), 0 3px 11px rgba(211, 151, 20, 0.34);
-}
-
-/* 공통 헤더 프로필의 2위 은색 프레임 */
-.header-profile-rank-frame.rank-second{
-    padding: 3px;
-    background: linear-gradient(135deg, #778292 0%, #dce3ec 25%, #ffffff 45%, #a9b5c4 68%, #edf2f7 82%, #7c8797 100%);
-    box-shadow: 0 0 0 2px rgba(159, 172, 190, 0.2), 0 3px 10px rgba(111, 128, 151, 0.27);
-}
-
-/* 공통 헤더 프로필의 3위 동색 프레임 */
-.header-profile-rank-frame.rank-third{
-    padding: 3px;
-    background: linear-gradient(135deg, #7f4325 0%, #d8915c 26%, #f2c09a 45%, #a95f37 68%, #e9a775 84%, #754026 100%);
-    box-shadow: 0 0 0 2px rgba(188, 111, 64, 0.18), 0 3px 10px rgba(156, 82, 43, 0.28);
 }
 
 .header-profile-nickname{
@@ -666,7 +631,32 @@ body.modal-open{
 
 .footer-policy-content{
     min-height: 300px;
-    white-space: pre-wrap;
+    color: #475569;
+    font-size: 14px;
+    line-height: 1.75;
+    word-break: keep-all;
+}
+
+.footer-policy-section{
+    margin-bottom: 28px;
+}
+
+.footer-policy-section:last-child{
+    margin-bottom: 0;
+}
+
+.footer-policy-section p{
+    margin: 0 0 10px;
+}
+
+.footer-policy-section p:last-child{
+    margin-bottom: 0;
+}
+
+/* 제1조, 제2조와 같은 조항 제목만 굵게 표시 */
+.footer-policy-section p > strong{
+    color: #172033;
+    font-size: 15px;
 }
 
 /* 문의 제목과 내용 입력칸을 세로로 배치 */
@@ -1353,6 +1343,14 @@ html[data-theme="dark"] .footer-link-button:hover{
 html[data-theme="dark"] .footer-modal{
     background: #111827;
     color: #e5e7eb;
+}
+
+html[data-theme="dark"] .footer-policy-content{
+    color: #cbd5e1;
+}
+
+html[data-theme="dark"] .footer-policy-section p > strong{
+    color: #f8fafc;
 }
 
 html[data-theme="dark"] .inquiry-field input,

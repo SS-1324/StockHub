@@ -5,7 +5,7 @@
 
 <%-- 홈 전용 CSS를 공통 헤더의 head 안에서 불러오도록 전달 --%>
 <c:url var="homeCssUrl" value="/css/home.css">
-    <c:param name="v" value="15" />
+    <c:param name="v" value="16" />
 </c:url>
 <c:set var="pageCssUrl" value="${homeCssUrl}" scope="request" />
 
@@ -21,11 +21,6 @@
 <%-- 회원 탈퇴 완료 메시지를 표시 --%>
 <c:if test="${not empty withdrawSuccess}">
     <p class="alert alert-success home-alert">회원 탈퇴가 완료되었습니다.</p>
-</c:if>
-
-<%-- 문의 등록 성공 메시지를 표시 --%>
-<c:if test="${not empty inquirySuccess}">
-    <p class="alert alert-success home-alert">문의가 관리자에게 전달되었습니다.</p>
 </c:if>
 
 <div class="home-main">
