@@ -93,6 +93,22 @@ class MemberProfileModalControllerTest {
         verify(rankingService).getProfileRankPosition("target", true);
     }
 
+    @Test
+    void 팔로우토글후갱신된팔로잉상태를반환한다() {
+        prepareProfile("target", "viewer");
+        when(followService.toggleFollow("viewer", "target")).thenReturn(true);
+        when(followService.isFollowing("viewer", "target")).thenReturn(true);
+
+        MemberProfileModalDto data = controller
+                .toggleFollow("target", "returnRate", session)
+                .getBody()
+                .getData();
+
+        assertThat(data.canFollow()).isTrue();
+        assertThat(data.followingTarget()).isTrue();
+        verify(followService).toggleFollow("viewer", "target");
+    }
+
     private void prepareProfile(String targetId, String viewerId) {
         MemberDto target = new MemberDto();
         target.setMemberId(targetId);

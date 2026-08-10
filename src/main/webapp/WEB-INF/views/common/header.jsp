@@ -60,12 +60,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap"
           rel="stylesheet">
 
-    <link rel="stylesheet" href="${commonCssUrl}?v=24">
+    <link rel="stylesheet" href="${commonCssUrl}?v=25">
     <%-- 현재 화면에서 요청한 전용 CSS를 head 안에서 불러옴 --%>
     <c:if test="${not empty requestScope.pageCssUrl}">
         <link rel="stylesheet" href="${requestScope.pageCssUrl}">
     </c:if>
-    <script src="${headerJsUrl}?v=14" defer></script>
+    <script src="${headerJsUrl}?v=15" defer></script>
 </head>
 <body>
 <%-- 로고, 페이지 이동 메뉴, 회원 메뉴를 표시하는 공통 헤더 --%>
@@ -236,6 +236,12 @@
                     </div>
                     <div class="member-profile-actions">
                         <span class="member-profile-badge" data-profile-badge>USER</span>
+                        <%-- [팔로우토글-1] 본인이 아닌 로그인 회원의 프로필에서만 JS가 버튼을 표시한다. --%>
+                        <button type="button"
+                                class="member-profile-follow-toggle"
+                                data-profile-follow-toggle
+                                aria-pressed="false"
+                                hidden>팔로우</button>
                         <a class="member-profile-edit-link"
                            data-profile-edit-link
                            href="${profileEditUrl}"
@@ -249,7 +255,7 @@
                         <span data-profile-post-label>내가 쓴 글</span><strong data-profile-post-count>0</strong>
                     </button>
                     <button type="button" data-profile-tab="followers">
-                        <span>팔로우</span><strong data-profile-follower-count>0</strong>
+                        <span>팔로워</span><strong data-profile-follower-count>0</strong>
                     </button>
                     <button type="button" data-profile-tab="following">
                         <span>팔로잉</span><strong data-profile-following-count>0</strong>

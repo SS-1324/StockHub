@@ -14,6 +14,8 @@ public record MemberProfileModalDto(
         Integer rankPosition,
         String rankType,
         boolean ownProfile,
+        boolean canFollow,
+        boolean followingTarget,
         long postCount,
         long followerCount,
         long followingCount,

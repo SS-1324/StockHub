@@ -46,4 +46,25 @@
         ORDER BY f.follow_at DESC, m.nickname ASC
     </select>
 
+    <!-- [팔로우토글-4] 복합 PK(follower_id, followee_id)와 같은 두 컬럼으로 관계를 확인한다. -->
+    <select id="existsFollow" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM follow
+            WHERE follower_id = #{followerId}
+              AND followee_id = #{followeeId}
+        )
+    </select>
+
+    <insert id="insertFollow">
+        INSERT INTO follow (follower_id, followee_id)
+        VALUES (#{followerId}, #{followeeId})
+    </insert>
+
+    <delete id="deleteFollow">
+        DELETE FROM follow
+        WHERE follower_id = #{followerId}
+          AND followee_id = #{followeeId}
+    </delete>
+
 </mapper>
