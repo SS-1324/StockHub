@@ -62,11 +62,23 @@ public class StockChatController {
         Object contentValue = payload.get("content");
         Object chartPriceValue = payload.get("chartPrice");
 
+        Long chartPrice = null;
+        if (chartPriceValue != null) {
+            try {
+                chartPrice = Long.valueOf(String.valueOf(chartPriceValue));
+            } catch (NumberFormatException e) {
+                // 클라이언트가 chartPrice에 숫자로 변환할 수 없는 값을 보낸 경우.
+                // 처리되지 않은 예외로 새어나가지 않도록 IllegalStateException으로 통일해
+                // handleChatError가 보낸 사람에게 에러를 돌려줄 수 있게 함
+                throw new IllegalStateException("가격 정보가 올바르지 않습니다.");
+            }
+        }
+
         ChatMessageDto saved = stockChatService.sendMessage(
                 stockCode,
                 loginMember.getMemberId(),
                 contentValue != null ? String.valueOf(contentValue) : null,
-                chartPriceValue != null ? Long.valueOf(String.valueOf(chartPriceValue)) : null
+                chartPrice
         );
 
         messagingTemplate.convertAndSend("/topic/chat/" + stockCode, saved);

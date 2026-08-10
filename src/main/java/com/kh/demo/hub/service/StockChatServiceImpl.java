@@ -33,6 +33,9 @@ public class StockChatServiceImpl implements StockChatService {
     private static final Duration LOCKOUT_DURATION = Duration.ofSeconds(3);
     // 채팅 보관 기간: 30일보다 오래된 메시지는 매일 새벽에 정리
     private static final int RETENTION_DAYS = 30;
+    // rateStateByMember 정리 기준: 이 시간 동안 채팅이 없었으면 잠금/도배 상태가 더 이상
+    // 의미가 없으므로 정리 대상으로 봄 (그래야 오래 운영해도 회원 수만큼 무한히 쌓이지 않음)
+    private static final Duration RATE_STATE_IDLE_TTL = Duration.ofHours(1);
 
     private final StockChatMapper stockChatMapper;
     // 회원별 전송 속도 상태. 단일 인스턴스 기준 도배 방지용이라 별도 저장소 없이 메모리로 충분함
@@ -127,5 +130,18 @@ public class StockChatServiceImpl implements StockChatService {
         if (deleted > 0) {
             log.info("[종목채팅 정리] {}일 지난 채팅 {}건 삭제 (기준: {})", RETENTION_DAYS, deleted, cutoff);
         }
+    }
+
+    // 1시간마다, 오랫동안 채팅이 없었던 회원의 도배 방지 상태를 메모리에서 정리
+    // (그렇지 않으면 rateStateByMember가 한 번이라도 채팅한 회원 수만큼 무한히 쌓임)
+    @Scheduled(fixedRate = 3_600_000)
+    public void cleanupStaleRateStates() {
+        Instant cutoff = Instant.now().minus(RATE_STATE_IDLE_TTL);
+        rateStateByMember.entrySet().removeIf(entry -> {
+            RateState state = entry.getValue();
+            synchronized (state) {
+                return state.lastMessageAt == null || state.lastMessageAt.isBefore(cutoff);
+            }
+        });
     }
 }

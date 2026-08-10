@@ -48,7 +48,12 @@ public class StockVoteServiceImpl implements StockVoteService {
             // stock 테이블에 없는 종목 코드로 투표를 시도한 경우(FK 위반)
             throw new NoSuchElementException("투표를 지원하지 않는 종목입니다: " + stockCode);
         }
-        return getResult(stockCode, memberId);
+        StockDto stock = stockMapper.selectStockByCode(stockCode);
+        if (stock == null) {
+            throw new NoSuchElementException("종목을 찾을 수 없습니다: " + stockCode);
+        }
+        // 방금 저장한 값을 알고 있으므로 myVote를 다시 조회하지 않고 그대로 사용
+        return buildResult(stock, voteType);
     }
 
     private StockVoteResultDto buildResult(StockDto stock, String myVote) {
