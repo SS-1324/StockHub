@@ -3,7 +3,7 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css?v=18">
 
 <!-- 글쓰기 화면에 굵게/폰트크기/링크 기능을 위한 Quill 에디터 -->
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">

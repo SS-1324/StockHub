@@ -14,7 +14,7 @@
 
 <%-- 커뮤니티 전용 CSS --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css?v=4">
+      href="${pageContext.request.contextPath}/css/board.css?v=18">
 
 
 <%-- =========================================================

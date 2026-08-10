@@ -4,7 +4,7 @@
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/ranking.css?v=8">
+      href="${pageContext.request.contextPath}/css/ranking.css?v=9">
 
 <section class="ranking-page" aria-labelledby="ranking-title">
     <div class="ranking-heading">
