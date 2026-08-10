@@ -1,10 +1,5 @@
-/* 메인 홈·거래 허브와 동일한 본문 최대 너비를 사용 */
-.container{
-    max-width: 1300px;
-}
-
 .dashboard-page{
-    width: 100%;
+    width: min(100%, 980px);
     margin: 16px auto 48px;
 }
 
@@ -22,9 +17,64 @@
 
 .dashboard-profile{
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 18px;
     padding: 28px 30px;
+}
+
+.dashboard-profile-info{
+    flex: 1 1 auto;
+}
+
+.dashboard-link-account-toggle{
+    flex: 0 0 auto;
+}
+
+.dashboard-link-account-panel{
+    flex: 1 1 100%;
+    margin-top: 6px;
+    padding-top: 18px;
+    border-top: 1px solid #edf1f7;
+}
+
+.dashboard-link-desc{
+    margin-bottom: 12px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.dashboard-link-success{
+    margin-bottom: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #0874f7;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.dashboard-link-subheading{
+    margin-bottom: 8px;
+    color: #172033;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.dashboard-linked-accounts{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+}
+
+.dashboard-linked-accounts li{
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: #f8faff;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 600;
 }
 
 .dashboard-profile-image{
@@ -77,6 +127,58 @@
     color: #0874f7;
     font-size: 12px;
     font-weight: 700;
+}
+
+.dashboard-section-link{
+    color: #0874f7;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.dashboard-page-heading{
+    margin-bottom: 18px;
+}
+
+.dashboard-page-heading h1{
+    color: #172033;
+    font-size: 22px;
+}
+
+/* 총 손익 기간 탭 - "총 손익" 라벨 옆에 딱 붙여서, 이 행만 다른 요약 행과 높이/폭이 달라지지 않게 한다 */
+
+.dashboard-profit-label{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dashboard-period-tabs{
+    display: flex;
+    gap: 3px;
+}
+
+.dashboard-period-tab{
+    padding: 3px 7px;
+    border: 1px solid #dce5f3;
+    border-radius: 999px;
+    background: #fff;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.dashboard-period-tab.is-active{
+    border-color: #0874f7;
+    background: #0874f7;
+    color: #fff;
+}
+
+.dashboard-summary-footer{
+    padding: 14px 30px;
+    text-align: right;
 }
 
 .dashboard-table-wrap{
@@ -134,6 +236,211 @@
     font-size: 11px;
 }
 
+/* 보유 주식 헤더: 제목 옆엔 주/종목 전환 · 차트 팝업 버튼, 오른쪽엔 정렬만 남긴다 */
+
+.dashboard-holdings-title-group{
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.dashboard-count-toggle{
+    min-width: 52px;
+    padding: 6px 14px;
+    border: 0;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #0874f7;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.dashboard-chart-open-btn{
+    padding: 6px 14px;
+    border: 1px solid #dce5f3;
+    border-radius: 999px;
+    background: #fff;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.dashboard-chart-open-btn:hover{
+    border-color: #0874f7;
+    color: #0874f7;
+}
+
+.dashboard-holdings-sort{
+    width: auto;
+    padding: 6px 12px;
+    border: 1px solid #dce5f3;
+    border-radius: 999px;
+    background: #fff;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+/* 보유 주식 - 원그래프(도넛) 팝업 */
+
+.dashboard-portfolio-dialog{
+    /* common.css의 전역 * { margin: 0 } 리셋이 dialog 기본 margin:auto 중앙 정렬을 깨뜨려서 명시적으로 복구 */
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: min(90vw, 460px);
+    height: fit-content;
+    padding: 24px;
+    border: 1px solid #e1e8f5;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 20px 48px rgba(40, 73, 128, 0.18);
+}
+
+.dashboard-portfolio-dialog::backdrop{
+    background: rgba(15, 23, 42, 0.45);
+}
+
+.dashboard-portfolio-dialog-header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.dashboard-portfolio-dialog-header h3{
+    color: #172033;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.dashboard-portfolio-dialog-close{
+    padding: 2px 8px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: #94a3b8;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.dashboard-portfolio-dialog-close:hover{
+    background: #f1f5f9;
+    color: #172033;
+}
+
+.dashboard-portfolio-chart{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+}
+
+.dashboard-portfolio-donut{
+    position: relative;
+    width: 200px;
+    height: 200px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+}
+
+.dashboard-portfolio-donut::after{
+    content: attr(data-center-label);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 130px;
+    height: 130px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: #fff;
+    color: #172033;
+    font-size: 15px;
+    font-weight: 800;
+    text-align: center;
+    white-space: pre-line;
+}
+
+.dashboard-portfolio-legend{
+    display: flex;
+    flex: 1 1 220px;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dashboard-portfolio-legend li{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #334155;
+}
+
+.dashboard-portfolio-legend-dot{
+    width: 10px;
+    height: 10px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+}
+
+.dashboard-portfolio-legend-name{
+    flex: 1 1 auto;
+    font-weight: 700;
+    color: #172033;
+}
+
+.dashboard-portfolio-legend-percent{
+    flex: 0 0 auto;
+    color: #64748b;
+    font-weight: 700;
+}
+
+/* 최근 활동 페이지네이션 */
+
+.dashboard-timeline-pagination{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 16px;
+}
+
+.dashboard-timeline-page-btn{
+    min-width: 30px;
+    padding: 6px 10px;
+    border: 1px solid #dce5f3;
+    border-radius: 8px;
+    background: #fff;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.dashboard-timeline-page-btn.is-active{
+    border-color: #0874f7;
+    background: #0874f7;
+    color: #fff;
+}
+
+.dashboard-timeline-page-btn:disabled{
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 .dashboard-empty,
 .dashboard-empty-inline{
     padding: 42px 20px;
@@ -185,6 +492,12 @@
     font-weight: 800;
 }
 
+.dashboard-period-profit-rate{
+    font-size: 14px;
+    font-weight: 700;
+    opacity: 0.75;
+}
+
 .dashboard-page .value-positive{
     color: #e5484d;
 }
@@ -205,11 +518,43 @@
     font-weight: 600;
 }
 
-.dashboard-goal-body{
+.dashboard-goal-list{
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;
     gap: 24px;
     margin-bottom: 20px;
+}
+
+.dashboard-goal-card{
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1 1 260px;
+}
+
+.dashboard-goal-deadline{
+    margin-top: 4px;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+.dashboard-goal-cancel-form{
+    margin-top: 8px;
+}
+
+.dashboard-goal-cancel-btn{
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.dashboard-goal-cancel-btn:hover{
+    color: #e5484d;
 }
 
 .dashboard-goal-ring{
@@ -242,27 +587,38 @@
     font-weight: 800;
 }
 
-.dashboard-goal-name{
+.dashboard-goal-target{
     color: #172033;
     font-size: 18px;
     font-weight: 800;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
-.dashboard-goal-target{
+.dashboard-goal-name{
     color: #64748b;
     font-size: 14px;
 }
 
-.dashboard-goal-form{
+.dashboard-goal-form-toggle{
+    margin-bottom: 8px;
+}
+
+.dashboard-inline-form{
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 10px;
 }
 
-.dashboard-goal-form input[type="text"],
-.dashboard-goal-form input[type="number"],
-.dashboard-goal-form select{
+/* display:flex가 [hidden]보다 우선 적용돼서 버튼을 눌러도 항상 펼쳐져 보이던 문제 수정 */
+.dashboard-inline-form[hidden]{
+    display: none;
+}
+
+.dashboard-inline-form input[type="text"],
+.dashboard-inline-form input[type="number"],
+.dashboard-inline-form input[type="date"],
+.dashboard-inline-form select{
     flex: 1 1 160px;
     padding: 10px 12px;
     border: 1px solid #dce5f3;
@@ -270,6 +626,19 @@
     font-size: 14px;
     color: #172033;
     background: #fff;
+}
+
+.dashboard-goal-date-label{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 160px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.dashboard-goal-date-label input{
+    flex: 1 1 auto;
 }
 
 .dashboard-goal-form button{
@@ -345,11 +714,18 @@ html[data-theme="dark"] .dashboard-timeline{
 
 html[data-theme="dark"] .dashboard-profile h1,
 html[data-theme="dark"] .dashboard-section-heading h2,
+html[data-theme="dark"] .dashboard-page-heading h1,
 html[data-theme="dark"] .dashboard-table td strong,
 html[data-theme="dark"] .dashboard-summary dd,
-html[data-theme="dark"] .dashboard-goal-name,
-html[data-theme="dark"] .dashboard-goal-ring-value{
+html[data-theme="dark"] .dashboard-goal-target,
+html[data-theme="dark"] .dashboard-goal-ring-value,
+html[data-theme="dark"] .dashboard-link-subheading{
     color: #f8fafc;
+}
+
+html[data-theme="dark"] .dashboard-linked-accounts li{
+    background: #1e293b;
+    color: #cbd5e1;
 }
 
 html[data-theme="dark"] .dashboard-goal-ring-value{
@@ -363,7 +739,8 @@ html[data-theme="dark"] .dashboard-table{
 html[data-theme="dark"] .dashboard-table th,
 html[data-theme="dark"] .dashboard-table td,
 html[data-theme="dark"] .dashboard-summary-row,
-html[data-theme="dark"] .dashboard-timeline-list li{
+html[data-theme="dark"] .dashboard-timeline-list li,
+html[data-theme="dark"] .dashboard-link-account-panel{
     border-color: #334155;
 }
 
@@ -373,10 +750,69 @@ html[data-theme="dark"] .dashboard-empty-inline{
     color: #cbd5e1;
 }
 
-html[data-theme="dark"] .dashboard-goal-form input,
-html[data-theme="dark"] .dashboard-goal-form select{
+html[data-theme="dark"] .dashboard-inline-form input,
+html[data-theme="dark"] .dashboard-inline-form select{
     background: #1e293b;
     border-color: #334155;
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] .dashboard-period-tab{
+    background: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1;
+}
+
+html[data-theme="dark"] .dashboard-period-tab.is-active{
+    border-color: #0874f7;
+    background: #0874f7;
+    color: #fff;
+}
+
+html[data-theme="dark"] .dashboard-holdings-sort,
+html[data-theme="dark"] .dashboard-chart-open-btn,
+html[data-theme="dark"] .dashboard-timeline-page-btn{
+    background: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1;
+}
+
+html[data-theme="dark"] .dashboard-chart-open-btn:hover{
+    border-color: #0874f7;
+    color: #0874f7;
+}
+
+html[data-theme="dark"] .dashboard-timeline-page-btn.is-active{
+    border-color: #0874f7;
+    background: #0874f7;
+    color: #fff;
+}
+
+html[data-theme="dark"] .dashboard-portfolio-dialog{
+    border-color: #334155;
+    background: #172033;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="dark"] .dashboard-portfolio-dialog-header h3{
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] .dashboard-portfolio-dialog-close:hover{
+    background: #1e293b;
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] .dashboard-portfolio-donut::after{
+    background: #172033;
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] .dashboard-portfolio-legend li{
+    color: #cbd5e1;
+}
+
+html[data-theme="dark"] .dashboard-portfolio-legend-name{
     color: #f8fafc;
 }
 
@@ -402,10 +838,19 @@ html[data-theme="dark"] .dashboard-goal-form select{
         font-size: 23px;
     }
 
-    .dashboard-goal-body{
+    .dashboard-goal-list{
         flex-direction: column;
+    }
+
+    .dashboard-goal-card{
         align-items: flex-start;
         gap: 14px;
+    }
+
+    .dashboard-summary-row-profit{
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
     }
 
     .dashboard-table thead{
@@ -469,5 +914,24 @@ html[data-theme="dark"] .dashboard-goal-form select{
     .dashboard-timeline-date{
         width: auto;
         margin-left: auto;
+    }
+
+    .dashboard-section-heading{
+        flex-wrap: wrap;
+    }
+
+    .dashboard-portfolio-dialog{
+        padding: 20px;
+    }
+
+    .dashboard-portfolio-donut{
+        width: 160px;
+        height: 160px;
+    }
+
+    .dashboard-portfolio-donut::after{
+        width: 104px;
+        height: 104px;
+        font-size: 13px;
     }
 }
