@@ -32,4 +32,7 @@ public interface RankingService {
 
     /* [프로필순위-3] 팝업을 연 랭킹보드의 기준에 맞는 1~3위만 반환한다. */
     Integer getProfileRankPosition(String memberId, boolean sortByProfit);
+
+    /* [프로필공개정보-1] 공개 프로필 팝업에 표시할 회원 한 명의 수익률·수익금 합계. */
+    RankingDto getProfileInvestmentSummary(String memberId);
 }

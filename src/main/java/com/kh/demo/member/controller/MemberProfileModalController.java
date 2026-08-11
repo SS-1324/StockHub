@@ -8,6 +8,7 @@ import com.kh.demo.member.dto.MemberDto;
 import com.kh.demo.member.dto.MemberProfileModalDto;
 import com.kh.demo.member.service.FollowService;
 import com.kh.demo.member.service.MemberService;
+import com.kh.demo.ranking.dto.RankingDto;
 import com.kh.demo.ranking.service.RankingService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
@@ -54,12 +55,8 @@ public class MemberProfileModalController {
     ) {
         try {
             MemberDto member = memberService.getMemberProfile(memberId);
-            if (!Boolean.TRUE.equals(member.getStockPublic())) {
-                /* [프로필공개-1] 기존 주식정보 공개 설정이 꺼진 회원은 프로필 JSON을 반환하지 않는다. */
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(ApiResponse.fail("비공개 프로필입니다."));
-            }
             String viewerId = SessionUtil.currentMemberId(session);
+            /* [프로필공개범위-3] 비공개 회원도 기본 프로필 응답은 반환하고 세부 수치만 감춘다. */
             return ResponseEntity.ok(ApiResponse.success(
                     buildProfileResponse(member, viewerId, rankType)
             ));
@@ -91,12 +88,9 @@ public class MemberProfileModalController {
             /*
              * [팔로우토글-2] 대상 회원이 실제로 존재하는지 먼저 확인한 후 관계를 변경한다.
              * 변경 직후 전체 프로필을 다시 구성해 버튼 상태, 팔로워 숫자와 목록을 한 번에 동기화한다.
-             */
+            */
             MemberDto member = memberService.getMemberProfile(memberId);
-            if (!Boolean.TRUE.equals(member.getStockPublic())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(ApiResponse.fail("비공개 프로필입니다."));
-            }
+            /* 주식정보 공개 여부와 팔로우 관계는 별개이므로 비공개 회원도 팔로우할 수 있다. */
             followService.toggleFollow(viewerId, memberId);
             return ResponseEntity.ok(ApiResponse.success(
                     buildProfileResponse(member, viewerId, rankType)
@@ -107,17 +101,17 @@ public class MemberProfileModalController {
         }
     }
 
-    /** [프로필공개범위-2] 작성글 전용 페이지는 프로필 소유자 본인만 볼 수 있다. */
+    /** [프로필공개범위-4] 주식정보 공개 여부와 무관하게 커뮤니티에 공개된 작성글은 누구나 볼 수 있다. */
     @GetMapping("/{memberId}/posts")
     public String memberPosts(@PathVariable String memberId,
                               HttpSession session,
                               Model model) {
-        requireProfileOwner(memberId, session);
         MemberDto profileOwner = memberService.getMemberProfile(memberId);
-
+        String viewerId = SessionUtil.currentMemberId(session);
+        boolean ownProfile = memberId.equals(viewerId);
         model.addAttribute("profileOwner", profileOwner);
-        model.addAttribute("ownProfile", true);
-        model.addAttribute("boardList", boardService.getMemberPosts(memberId, memberId));
+        model.addAttribute("ownProfile", ownProfile);
+        model.addAttribute("boardList", boardService.getMemberPosts(memberId, viewerId));
         model.addAttribute("totalCount", boardService.getMemberPostCount(memberId));
         model.addAttribute("allowedCategories", boardService.getAllowedCategories());
         return "member/myPosts";
@@ -145,6 +139,8 @@ public class MemberProfileModalController {
         String memberId = member.getMemberId();
         boolean canFollow = viewerId != null && !memberId.equals(viewerId);
         boolean followingTarget = canFollow && followService.isFollowing(viewerId, memberId);
+        boolean detailsPublic = Boolean.TRUE.equals(member.getStockPublic());
+        boolean admin = "ADMIN".equalsIgnoreCase(member.getMemberRole());
 
         /*
          * [프로필순위-2] 클라이언트 문자열을 서버가 허용하는 두 값으로 정규화한다.
@@ -152,12 +148,25 @@ public class MemberProfileModalController {
          */
         boolean sortByProfit = "profit".equalsIgnoreCase(rankType);
         String normalizedRankType = sortByProfit ? "profit" : "returnRate";
-        Integer rankPosition = rankingService.getProfileRankPosition(memberId, sortByProfit);
-        String badge = rankPosition == null ? "USER" : "RANKER";
+        /* [프로필권한배지-1]
+         * DB member_role이 ADMIN이면 랭킹 계산보다 관리자 판정을 우선한다.
+         * 일반 USER 중 랭킹에 든 회원만 RANKER, 나머지는 USER로 표시한다.
+         */
+        Integer rankPosition = detailsPublic && !admin
+                ? rankingService.getProfileRankPosition(memberId, sortByProfit)
+                : null;
+        String badge = admin ? "ADMIN" : (rankPosition == null ? "USER" : "RANKER");
 
-        /* [프로필공개-2] 본인·타인 구분 없이 공개 프로필에는 팔로워·팔로잉 숫자만 전달한다. */
+        /* [프로필공개정보-3]
+         * 주식정보 공개 여부는 투자 수치에만 적용한다.
+         * 작성글·팔로워·팔로잉은 비공개 회원도 공개 회원과 동일하게 실제 값을 반환한다.
+         */
+        long postCount = boardService.getMemberPostCount(memberId);
         long followerCount = followService.getFollowerCount(memberId);
         long followingCount = followService.getFollowingCount(memberId);
+        RankingDto investmentSummary = detailsPublic
+                ? rankingService.getProfileInvestmentSummary(memberId)
+                : null;
 
         return new MemberProfileModalDto(
                 memberId,
@@ -168,8 +177,12 @@ public class MemberProfileModalController {
                 normalizedRankType,
                 canFollow,
                 followingTarget,
+                detailsPublic,
+                postCount,
                 followerCount,
-                followingCount
+                followingCount,
+                investmentSummary == null ? null : investmentSummary.getReturnRate(),
+                investmentSummary == null ? null : investmentSummary.getProfit()
         );
     }
 

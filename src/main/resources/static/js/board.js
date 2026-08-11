@@ -571,9 +571,7 @@ function initCharCounters(container){
 
 initCharCounters(document);
 
-/* 목록 카드 - 고정된 미리보기 줄 수를 넘는 본문에만 "더보기" 버튼을 동적으로 붙인다.
- * 목록 안에서 본문을 펼치면 카드 높이와 footer 위치가 달라지므로, 더보기는 상세 화면으로 이동시킨다.
- */
+/* 목록 카드 - 고정된 미리보기 줄 수를 넘는 본문에만 "더보기" 버튼을 동적으로 붙인다. */
 function enhanceCardSnippets(container){
     container.querySelectorAll(".board-card-snippet").forEach(function(snippet){
         if (snippet.dataset.enhanced) {
@@ -584,8 +582,8 @@ function enhanceCardSnippets(container){
         const card = snippet.closest(".board-card");
         if (card && card.classList.contains("has-no-image")) {
             /* [카드본문-1]
-             * 이미지 없는 글은 빈 줄이 3줄 제한을 차지하지 않게 정리한다.
-             * 따라서 실제 내용 기준으로 첫 3줄이 모두 보이고, 넘칠 때만 더보기를 만든다.
+             * 이미지 없는 글은 빈 줄이 CSS의 6줄 제한을 차지하지 않게 정리한다.
+             * 따라서 실제 내용 기준으로 최대 6줄을 보여주고, 넘칠 때만 더보기를 만든다.
              */
             snippet.textContent = snippet.textContent
                 .replace(/\r\n?/g, "\n")
@@ -602,11 +600,15 @@ function enhanceCardSnippets(container){
         moreBtn.className = "board-card-more-btn";
         moreBtn.textContent = "더보기";
         moreBtn.addEventListener("click", function(ev){
-            // 카드 비율은 그대로 유지하고 전체 내용을 확인할 수 있는 상세 화면으로 이동한다.
+            /* [카드본문펼치기-2] 카드 이동을 막고 현재 카드의 본문만 더보기/접기 상태로 전환한다. */
             ev.preventDefault();
             ev.stopPropagation();
-            window.location.href = card.href;
+            const expanded = snippet.classList.toggle("expanded");
+            card.classList.toggle("content-expanded", expanded);
+            moreBtn.textContent = expanded ? "접기" : "더보기";
+            moreBtn.setAttribute("aria-expanded", String(expanded));
         });
+        moreBtn.setAttribute("aria-expanded", "false");
         snippet.insertAdjacentElement("afterend", moreBtn);
     });
 }
