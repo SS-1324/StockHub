@@ -4,7 +4,7 @@
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/ranking.css?v=11">
+      href="${pageContext.request.contextPath}/css/ranking.css?v=13">
 
 <section class="ranking-page" aria-labelledby="ranking-title">
     <div class="ranking-heading">
@@ -89,3 +89,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 </script>
+
+<%--
+    header.jsp가 시작한 공통 페이지 구조를 닫고, 다른 화면과 동일한 사이트 정보·링크를 표시한다.
+    랭킹 전용 푸터를 따로 만들면 공통 푸터 변경 시 이 화면만 누락될 수 있으므로 공통 JSP를 재사용한다.
+--%>
+<jsp:include page="/WEB-INF/views/common/footer.jsp" />

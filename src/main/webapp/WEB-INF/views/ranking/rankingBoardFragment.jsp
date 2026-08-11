@@ -128,18 +128,7 @@
                                     <%-- 관리자 또는 공개 회원만 실제 투자 수치를 볼 수 있다. --%>
                                     <c:choose>
                                         <c:when test="${ranking.tradeHistoryPublicYn eq 'Y'}">
-                                            <div class="ranking-details-intro">
-                                                <strong>
-                                                    <c:choose>
-                                                        <c:when test="${not empty ranking.nickname}">
-                                                            <c:out value="${ranking.nickname}" />님의 투자 정보
-                                                        </c:when>
-                                                        <c:otherwise>회원 투자 정보</c:otherwise>
-                                                    </c:choose>
-                                                </strong>
-                                                <p>현재 랭킹 집계 기준의 투자 내역입니다.</p>
-                                            </div>
-
+                                            <%-- 수익률·수익금 카드가 핵심이므로 중복되는 투자 정보 제목과 안내 문장은 표시하지 않는다. --%>
                                             <div class="ranking-details-stats">
                                                 <div class="ranking-detail-stat">
                                                     <span>수익률</span>
