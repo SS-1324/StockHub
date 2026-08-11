@@ -13,7 +13,7 @@
     v 값은 CSS 내용을 바꾼 뒤 브라우저가 예전 파일을 재사용하지 않고 새로 받게 하는 캐시 갱신 번호다.
 --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css?v=50">
+      href="${pageContext.request.contextPath}/css/board.css?v=51">
 
 <c:if test="${not empty error}">
     <p class="alert alert-error">${error}</p>
@@ -265,5 +265,5 @@
 
 </div>
 
-<script src="${pageContext.request.contextPath}/js/board.js?v=13"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=14"></script>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />
