@@ -15,7 +15,7 @@
 
 <%-- 커뮤니티 전용 CSS --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css?v=46">
+      href="${pageContext.request.contextPath}/css/board.css?v=48">
 
 
 <%-- =========================================================
@@ -86,7 +86,7 @@
 </div>
 
 <%--
-    [커뮤니티글쓰기-1] 글쓰기 기능은 스크롤 중에도 찾기 쉽도록 콘텐츠 왼쪽 아래의 원형 + 버튼으로 고정한다.
+    [커뮤니티글쓰기-1] 글쓰기 기능은 스크롤 중에도 찾기 쉽도록 화면 오른쪽 아래의 원형 + 버튼으로 고정한다.
     화면에는 +만 보이지만 sr-only 문구와 aria-label로 버튼 목적을 명확하게 전달한다.
 --%>
 <c:choose>
@@ -173,7 +173,10 @@
                             <span class="board-widget-copy">
                                 <strong class="${empty hotBoard.title ? 'is-content-preview' : ''}"><c:choose>
                                     <c:when test="${not empty hotBoard.title}"><c:out value="${hotBoard.title}" /></c:when>
-                                    <%-- 제목이 없으면 서비스에서 HTML 제거·길이 제한을 마친 본문 미리보기를 사용한다. --%>
+                                    <%--
+                                        제목이 없으면 BoardServiceImpl이 HTML 제거·공백 정리·길이 제한을 마친 content를 사용한다.
+                                        JSP는 가공하지 않고 c:out으로 이스케이프 출력만 담당해 화면과 보안 역할을 분리한다.
+                                    --%>
                                     <c:when test="${not empty hotBoard.content}"><c:out value="${hotBoard.content}" /></c:when>
                                     <c:otherwise>본문을 확인해 보세요</c:otherwise>
                                 </c:choose></strong>
@@ -202,7 +205,7 @@
                             <span class="board-widget-copy">
                                 <strong class="${empty popularBoard.title ? 'is-content-preview' : ''}"><c:choose>
                                     <c:when test="${not empty popularBoard.title}"><c:out value="${popularBoard.title}" /></c:when>
-                                    <%-- 인기글도 HOT 글과 같은 기준으로 제목 대신 본문 일부를 보여준다. --%>
+                                    <%-- 인기글도 HOT 글과 같은 서비스 미리보기 규칙을 사용해 두 위젯의 표현을 통일한다. --%>
                                     <c:when test="${not empty popularBoard.content}"><c:out value="${popularBoard.content}" /></c:when>
                                     <c:otherwise>본문을 확인해 보세요</c:otherwise>
                                 </c:choose></strong>

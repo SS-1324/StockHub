@@ -45,7 +45,10 @@ public class BoardServiceImpl implements BoardService {
     // board 테이블 컬럼 크기에 맞춘 길이 제한
     private static final int MAX_TITLE_LENGTH = 200;
     private static final int MAX_CONTENT_LENGTH = 3000;
-    /* HOT·인기글 사이드바는 한 줄이므로 본문 전체 대신 읽기 좋은 길이만 전달한다. */
+    /*
+     * HOT·인기글은 제목이 없을 때 본문 일부를 대신 표시한다.
+     * 서버에서 최대 길이와 최소 단어 경계를 함께 관리해 JSP와 CSS가 임의로 문자열을 자르지 않게 한다.
+     */
     private static final int WIDGET_PREVIEW_MAX_LENGTH = 44;
     private static final int WIDGET_PREVIEW_MIN_WORD_BREAK = 28;
 
@@ -66,8 +69,11 @@ public class BoardServiceImpl implements BoardService {
             "color:#9933ff"
     );
 
-    // [하이퍼링크-3] Quill 에디터에서 허용할 HTML 태그와 속성.
-    // a 태그의 href/target/rel만 허용하고 http(s) 주소만 통과시켜 스크립트 링크를 차단한다.
+    /*
+     * [게시글HTML허용목록]
+     * Quill이 만드는 문단·목록·문자 서식만 통과시키는 1차 XSS 방어선이다.
+     * 링크는 http(s)만 허용하고, span style은 아래 sanitizeContent에서 색상 목록을 다시 검사한다.
+     */
     private static final Safelist CONTENT_SAFELIST = Safelist.none()
             .addTags(
                     "p",
@@ -282,6 +288,10 @@ public class BoardServiceImpl implements BoardService {
         }
     }
 
+    /*
+     * Unicode 코드 포인트 기준으로 잘라 이모지나 조합 문자가 중간에서 깨지는 것을 막는다.
+     * 최대 44자 안의 마지막 공백이 28자 이후에 있으면 단어 단위로 자르고 말줄임표를 붙인다.
+     */
     private String truncateWidgetPreview(String text) {
         int codePointCount = text.codePointCount(0, text.length());
         if (codePointCount <= WIDGET_PREVIEW_MAX_LENGTH) {
@@ -676,7 +686,12 @@ public class BoardServiceImpl implements BoardService {
         }
     }
 
-    // 허용된 태그와 속성만 남기고 나머지는 제거
+    /*
+     * [게시글HTML정제]
+     * 1단계로 Jsoup Safelist가 스크립트·이벤트 속성·허용되지 않은 태그를 제거한다.
+     * 2단계로 남은 span style을 정규화한 뒤 Quill 팔레트의 color 값만 허용한다.
+     * 이 메서드는 작성·수정·미리보기에서 공통 사용되므로 저장과 출력의 보안 기준이 동일하다.
+     */
     private String sanitizeContent(String rawHtml) {
         String cleanedHtml = Jsoup.clean(
                 rawHtml == null ? "" : rawHtml,

@@ -66,10 +66,9 @@ function preventInlineEditorImages(editor){
 
 /*
  * [글쓰기서식유지]
- * Quill 문서는 내용이 모두 지워지면 마지막 문자에 붙어 있던 bold/italic 등의
- * 인라인 속성도 함께 사라질 수 있다. 사용자는 서식 버튼이 켜진 상태라고 생각하는데
- * 다음 글자가 일반 글자로 입력되는 혼란을 막기 위해, 마지막으로 활성화된 문자 서식을
- * 기억했다가 문서가 빈 줄(Quill의 끝 개행 1개만 남은 상태)이 되면 커서에 복원한다.
+ * Quill은 Backspace로 문자를 지우거나 Enter로 새 문단을 만들 때 커서의 bold/italic 같은
+ * 인라인 속성을 초기화할 수 있다. 키 입력 직전 서식을 저장하고 text-change 이후 복원해서
+ * 사용자가 서식 버튼을 다시 누르지 않아도 다음 글자가 같은 모양으로 이어지게 한다.
  *
  * 목록(ol/ul)은 줄 자체의 블록 서식이므로 여기서 복원하지 않는다. 빈 목록을 지우는 것은
  * 사용자가 목록을 끝내려는 정상 동작일 수 있기 때문이다.
@@ -111,6 +110,10 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
     }
 
     function restoreFormatsAtCursor(formatsToRestore){
+        /*
+         * Quill의 키보드 처리가 선택 영역을 갱신한 다음 적용해야 하므로 다음 화면 프레임까지 기다린다.
+         * source를 silent로 지정해 복원 자체가 새로운 text-change를 발생시키는 재귀 호출을 막는다.
+         */
         requestAnimationFrame(function(){
             const range = editor.getSelection();
             if (!range || range.length !== 0) return;
@@ -154,8 +157,10 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
     });
 
     editor.on("text-change", function(delta, oldDelta, source){
+        /* API로 기존 글을 불러오는 경우가 아니라 사용자가 직접 편집한 경우에만 개입한다. */
         if (source !== "user") return;
 
+        /* Delta는 Quill이 이번 입력에서 추가·삭제한 내용만 담으므로 키 결과를 정확히 구분할 수 있다. */
         const containsDeletion = delta.ops.some(function(operation){
             return Object.prototype.hasOwnProperty.call(operation, "delete");
         });
@@ -198,7 +203,10 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
         });
     });
 
-    /* 툴바 클릭 처리가 끝난 다음 실제로 바뀐 커서 서식을 기억한다. */
+    /*
+     * 툴바 이벤트보다 먼저 값을 읽으면 변경 전 서식이 저장될 수 있다.
+     * click과 select(change) 처리가 끝난 다음 프레임에서 실제 활성 서식을 기억한다.
+     */
     const toolbar = editor.getModule("toolbar");
     if (toolbar && toolbar.container) {
         toolbar.container.addEventListener("click", function(){
