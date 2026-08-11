@@ -29,15 +29,19 @@ import java.util.stream.Collectors;
 @Service
 public class BoardServiceImpl implements BoardService {
 
-    // 카테고리 key -> 화면 표시용 한글 라벨
+    /*
+     * 카테고리 key는 이미 DB 게시글과 연결된 영구 식별자이므로 화면 이름이 바뀌어도 유지한다.
+     * key까지 바꾸면 기존 tip/profit/review 글이 새 필터에서 조회되지 않으므로,
+     * 사용자에게 보이는 한글 라벨만 종목토론/정보공유/반성일지로 변경한다.
+     */
     private static final Map<String, String> CATEGORY_LABELS
             = new LinkedHashMap<>();
 
     static {
         CATEGORY_LABELS.put("free", "자유");
-        CATEGORY_LABELS.put("tip", "팁 공유");
-        CATEGORY_LABELS.put("profit", "수익인증");
-        CATEGORY_LABELS.put("review", "반성");
+        CATEGORY_LABELS.put("tip", "종목토론");
+        CATEGORY_LABELS.put("profit", "정보공유");
+        CATEGORY_LABELS.put("review", "반성일지");
     }
 
     private static final String DEFAULT_CATEGORY = "free";
@@ -360,8 +364,8 @@ public class BoardServiceImpl implements BoardService {
         }
     }
 
-    // 홈 카드용 HTML은 글쓰기 서식을 유지하면서 문단과 목록을 한 줄 단위의 <br>로 바꾼다.
-    // 이렇게 만들어야 여러 줄 말줄임이 문단 태그 중간에서도 끊기지 않고 정상적으로 적용된다.
+    // 홈과 커뮤니티 목록 카드가 함께 쓰는 HTML로, 글쓰기 서식을 유지하면서 문단과 목록을 <br>로 바꾼다.
+    // 두 화면이 같은 값을 출력해야 bold·italic·color·size가 한쪽에서만 보이는 불일치가 생기지 않는다.
     private String buildCompactPreviewHtml(String safeContent) {
         String normalizedContent = (safeContent == null ? "" : safeContent)
                 .replace("\r\n", "\n");

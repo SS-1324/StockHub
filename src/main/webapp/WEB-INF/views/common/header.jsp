@@ -22,9 +22,10 @@
 <%-- 커뮤니티용 주소 --%>
 <c:url var="communityUrl" value="/community" scope="request" />
 <c:url var="communityFreeUrl" value="/community?category=free" />
-<c:url var="communityTipUrl" value="/community?category=tip" />
-<c:url var="communityProfitUrl" value="/community?category=profit" />
-<c:url var="communityReviewUrl" value="/community?category=review" />
+<%-- DB에 저장된 기존 key는 유지하고 사용자에게 보이는 이름만 새 카테고리명으로 연결한다. --%>
+<c:url var="communityDiscussionUrl" value="/community?category=tip" />
+<c:url var="communityInfoUrl" value="/community?category=profit" />
+<c:url var="communityReflectionUrl" value="/community?category=review" />
 
 <%--용어사전용 주소--%>
 <c:url var="dictionaryTradingUrl" value="/dictionary/category/trading" />
@@ -86,9 +87,9 @@
                 <div class="community-dropdown">
                     <a href="${communityUrl}">전체</a>
                     <a href="${communityFreeUrl}">자유</a>
-                    <a href="${communityTipUrl}">팁 공유</a>
-                    <a href="${communityProfitUrl}">수익인증</a>
-                    <a href="${communityReviewUrl}">반성</a>
+                    <a href="${communityDiscussionUrl}">종목토론</a>
+                    <a href="${communityInfoUrl}">정보공유</a>
+                    <a href="${communityReflectionUrl}">반성일지</a>
                 </div>
             </div>
 
