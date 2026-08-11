@@ -76,6 +76,7 @@ public class DashboardController {
         MyStockSummaryDto stockSummary = myStockService.getMyStockSummary(memberId);
         MyProductSummaryDto productSummary = myProductService.getMyProductSummary(memberId);
         List<GoalDto> activeGoals = goalService.getMyActiveGoals(memberId);
+        boolean hasGoalHistory = !goalService.getMyGoalHistory(memberId).isEmpty();
 
         // 총 자산 = 현금 잔고 + 주식 평가금액(매입금액+평가손익) + 상품 평가금액
         long stockCurrentValue = (stockSummary.getTotalPurchaseAmount() == null ? 0L : stockSummary.getTotalPurchaseAmount())
@@ -99,6 +100,7 @@ public class DashboardController {
         model.addAttribute("productSummary", productSummary);
         model.addAttribute("timeline", buildTimeline(memberId));
         model.addAttribute("activeGoals", activeGoals);
+        model.addAttribute("hasGoalHistory", hasGoalHistory);
         model.addAttribute("goalProgress", computeGoalProgress(activeGoals, stockSummary, productSummary));
         model.addAttribute("periodProfit", periodProfit);
         model.addAttribute("totalAsset", totalAsset);

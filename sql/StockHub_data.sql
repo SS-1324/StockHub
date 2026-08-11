@@ -134,6 +134,7 @@ CREATE TABLE IF NOT EXISTS password_reset_token (
 CREATE TABLE IF NOT EXISTS stock (
     stock_code     VARCHAR(20)      NOT NULL COMMENT '종목 코드(PK, 예: NVDA)',
     stock_name     VARCHAR(100)     NOT NULL COMMENT '종목 이름',
+    exchange       VARCHAR(20)      NULL COMMENT '거래소 코드(NASDAQ/NYSE 등, 국내 종목은 NULL)',
     description    TEXT             NULL COMMENT '기업 정보 및 설명',
     listing_date   DATE             NULL COMMENT '상장일',
     stock_value    BIGINT UNSIGNED  NULL COMMENT '시가총액',
@@ -142,7 +143,8 @@ CREATE TABLE IF NOT EXISTS stock (
     news           VARCHAR(500)     NULL COMMENT '대표 뉴스 또는 뉴스 요약',
 
     CONSTRAINT PK_STOCK PRIMARY KEY (stock_code),
-    INDEX IDX_STOCK_NAME (stock_name)
+    INDEX IDX_STOCK_NAME (stock_name),
+    INDEX IDX_STOCK_EXCHANGE (exchange)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='주식 종목';
 
 -- 증권사(가상)
