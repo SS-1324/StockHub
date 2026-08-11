@@ -9,4 +9,7 @@ public interface StockVoteService {
 
     // 상승/하락 의견 투표(이미 투표했다면 의견 변경) 후 최신 현황을 반환
     StockVoteResultDto vote(String stockCode, String memberId, String voteType);
+
+    // 투표 취소 후 최신 현황을 반환 (투표한 적 없어도 오류 아님)
+    StockVoteResultDto cancelVote(String stockCode, String memberId);
 }

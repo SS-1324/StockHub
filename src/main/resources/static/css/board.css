@@ -388,12 +388,26 @@ html[data-theme="dark"]{
 
 /* =========================================================
    커뮤니티 오른쪽 위젯
-   고정(sticky)하지 않아 스크롤하면 다른 콘텐츠와 함께 자연스럽게 지나간다.
+   데스크톱에서는 고정 헤더 아래에 머물며 게시글 피드를 따라간다.
    ========================================================= */
 .board-sidebar{
+    position: sticky;
+    top: 88px;
     display: grid;
     gap: 16px;
     min-width: 0;
+    max-height: calc(100vh - 108px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--board-border-strong) transparent;
+}
+
+.board-sidebar::-webkit-scrollbar{ width: 6px; }
+.board-sidebar::-webkit-scrollbar-track{ background: transparent; }
+.board-sidebar::-webkit-scrollbar-thumb{
+    border-radius: 999px;
+    background: var(--board-border-strong);
 }
 
 .board-widget,
@@ -782,7 +796,10 @@ html[data-theme="dark"] .board-widget-label.is-hot{
     }
 
     .board-sidebar{
+        position: static;
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        max-height: none;
+        overflow-y: visible;
     }
 
     .board-ad-widget{

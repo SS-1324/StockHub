@@ -356,31 +356,18 @@ html[data-theme="dark"] .theme-dark-icon{
     background: var(--header-soft-bg);
 }
 
-.header-profile-rank-frame{
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 38px;
-    padding: 2px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background: #bfdbfe;
-    box-sizing: border-box;
-}
-
 .header-profile-image{
     display: block;
-    width: 100%;
-    height: 100%;
+    width: 34px;
+    height: 34px;
     flex-shrink: 0;
-    border: 2px solid var(--header-bg);
+    border: 2px solid #bfdbfe;
     border-radius: 50%;
     background: var(--header-soft-bg);
     object-fit: cover;
 }
 
+<<<<<<< HEAD
 /*
  * [프레임색상통일-1] 헤더·내 정보·프로필 팝업이 같은 금·은·동 장식값을 공유한다.
  * 한 곳의 값을 바꾸면 모든 프로필 프레임이 동시에 바뀌므로 화면별 색상 차이가 다시 생기지 않는다.
@@ -476,6 +463,8 @@ html[data-theme="dark"] .theme-dark-icon{
     box-sizing: border-box;
 }
 
+=======
+>>>>>>> 329b93bb98bc657e175dc4d712abd88b61f36654
 .header-profile-nickname{
     max-width: 110px;
     overflow: hidden;
@@ -740,7 +729,32 @@ body.modal-open{
 
 .footer-policy-content{
     min-height: 300px;
-    white-space: pre-wrap;
+    color: #475569;
+    font-size: 14px;
+    line-height: 1.75;
+    word-break: keep-all;
+}
+
+.footer-policy-section{
+    margin-bottom: 28px;
+}
+
+.footer-policy-section:last-child{
+    margin-bottom: 0;
+}
+
+.footer-policy-section p{
+    margin: 0 0 10px;
+}
+
+.footer-policy-section p:last-child{
+    margin-bottom: 0;
+}
+
+/* 제1조, 제2조와 같은 조항 제목만 굵게 표시 */
+.footer-policy-section p > strong{
+    color: #172033;
+    font-size: 15px;
 }
 
 /* 문의 제목과 내용 입력칸을 세로로 배치 */
@@ -1427,6 +1441,14 @@ html[data-theme="dark"] .footer-link-button:hover{
 html[data-theme="dark"] .footer-modal{
     background: #111827;
     color: #e5e7eb;
+}
+
+html[data-theme="dark"] .footer-policy-content{
+    color: #cbd5e1;
+}
+
+html[data-theme="dark"] .footer-policy-section p > strong{
+    color: #f8fafc;
 }
 
 html[data-theme="dark"] .inquiry-field input,

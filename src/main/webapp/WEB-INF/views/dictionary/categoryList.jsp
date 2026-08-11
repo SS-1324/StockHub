@@ -2,8 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
-<link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/dictionary.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/dictionary.css">
 <section class="glossary-category">
 
     <div class="category-header glossary-header">
@@ -13,18 +12,19 @@
             </h2>
         </div>
 
-        <form class ="glossary-search"
+             <form class="glossary-search"
               id="glossary-search-form"
               action="${pageContext.request.contextPath}/dictionary"
+              data-autocomplete-url="${pageContext.request.contextPath}/dictionary/autocomplete"
               method="get">
 
               <div class="autocomplete-search">
 
                 <input type="text"
-                       id="glossary-keyword"
+                       id="glossary-keyword"    
                        name="keyword"
                        value="${fn:escapeXml(keyword)}"
-                       placeholder="용어를 검색하세요"
+                       placeholder="검색"
                        autocomplete="off">
 
                 <button type="submit"
@@ -91,5 +91,7 @@
     </c:choose>
 
 </section>
+
+<script src="${pageContext.request.contextPath}/js/dictionary.js"></script>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

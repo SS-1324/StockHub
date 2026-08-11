@@ -110,4 +110,28 @@ class StockVoteServiceImplTest {
         // 방금 저장한 값(voteType)을 그대로 쓰므로 myVote 재조회 쿼리가 없어야 함
         verify(stockVoteMapper, never()).selectMyVote(anyString(), anyString());
     }
+
+    @Test
+    void cancelVoteDeletesAndReturnsNullMyVote() {
+        when(stockMapper.selectStockByCode("AAPL")).thenReturn(stock("AAPL", "Apple", 200));
+        when(stockVoteMapper.selectVoteCounts("AAPL")).thenReturn(counts(2, 1));
+
+        StockVoteResultDto result = stockVoteService.cancelVote("AAPL", "member1");
+
+        verify(stockVoteMapper).deleteVote("AAPL", "member1");
+        assertNull(result.getMyVote());
+        assertEquals(3, result.getTotalCount());
+        // 방금 지웠으므로 myVote를 null로 확정하지, 재조회하지 않아야 함
+        verify(stockVoteMapper, never()).selectMyVote(anyString(), anyString());
+    }
+
+    @Test
+    void cancelVoteThrowsWhenStockDoesNotExist() {
+        when(stockMapper.selectStockByCode("XXXX")).thenReturn(null);
+
+        assertThrows(NoSuchElementException.class,
+                () -> stockVoteService.cancelVote("XXXX", "member1"));
+
+        verify(stockVoteMapper).deleteVote("XXXX", "member1");
+    }
 }

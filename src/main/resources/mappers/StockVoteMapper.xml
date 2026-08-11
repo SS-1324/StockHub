@@ -26,4 +26,9 @@
         ON DUPLICATE KEY UPDATE vote_type = VALUES(vote_type), voted_at = CURRENT_TIMESTAMP
     </insert>
 
+    <delete id="deleteVote">
+        DELETE FROM stock_vote
+        WHERE stock_code = #{stockCode} AND member_id = #{memberId}
+    </delete>
+
 </mapper>

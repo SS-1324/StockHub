@@ -1,5 +1,10 @@
+/* 메인 홈·거래 허브와 동일한 본문 최대 너비를 사용 */
+.container{
+    max-width: 1300px;
+}
+
 .my-info-page{
-    width: min(100%, 980px);
+    width: 100%;
     margin: 16px auto 48px;
 }
 
@@ -109,7 +114,7 @@
     padding-top: 30px;
     border-top: 1px solid #edf1f7;
     justify-content: center;
-    gap: 28px;
+    gap: 60px;
 }
 
 .my-info-action{

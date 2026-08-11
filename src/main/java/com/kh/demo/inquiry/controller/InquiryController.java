@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -54,14 +53,17 @@ public class InquiryController {
 
     // 푸터 문의하기 모달에서 보낸 내용을 저장
     @PostMapping("/inquiry")
-    public String createInquiry(@RequestParam String title,
-                                @RequestParam String content,
-                                HttpSession session,
-                                RedirectAttributes ra) {
+    @ResponseBody
+    public ResponseEntity<ApiResponse<Void>> createInquiry(
+            @RequestParam String title,
+            @RequestParam String content,
+            HttpSession session
+    ) {
         MemberDto loginMember =
                 (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
         if (loginMember == null) {
-            return "redirect:/member/login?redirectURL=/";
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.<Void>fail("로그인이 필요합니다."));
         }
 
         try {
@@ -70,18 +72,15 @@ public class InquiryController {
                     title,
                     content
             );
-            ra.addFlashAttribute("inquirySuccess", true);
-        } catch (IllegalStateException e) {
-            ra.addFlashAttribute("inquiryError", e.getMessage());
-            ra.addFlashAttribute("inquiryTitle", title);
-            ra.addFlashAttribute("inquiryContent", content);
-        } catch (RuntimeException e) {
-            ra.addFlashAttribute(
-                    "inquiryError",
-                    "문의 등록 중 오류가 발생했습니다."
+            return ResponseEntity.ok(
+                    ApiResponse.success("문의가 전송되었습니다.", null)
             );
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.<Void>fail(e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.<Void>fail("문의 등록 중 오류가 발생했습니다."));
         }
-
-        return "redirect:/";
     }
 }

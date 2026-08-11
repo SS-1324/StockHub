@@ -1,0 +1,736 @@
+:root{
+    --auth-blue: #0874f7;
+    --auth-blue-dark: #055fcf;
+    --auth-ink: #151c2f;
+    --auth-muted: #73809a;
+    --auth-line: rgba(126, 142, 177, 0.24);
+    --auth-field: rgba(236, 243, 255, 0.72);
+    --auth-shell-start: #fbfaff;
+    --auth-shell-middle: #f6f3ff;
+    --auth-shell-end: #eef4ff;
+}
+
+body.auth-page{
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 0;
+    color: var(--auth-ink);
+    background:
+            radial-gradient(circle at 12% 12%, rgba(255, 255, 255, 0.96) 0, rgba(255, 255, 255, 0) 34%),
+            radial-gradient(circle at 86% 82%, rgba(184, 205, 255, 0.42) 0, rgba(184, 205, 255, 0) 38%),
+            linear-gradient(135deg, #faf9ff 0%, #f4f1ff 50%, #eaf2ff 100%);
+}
+
+.auth-shell{
+    display: grid;
+    grid-template-columns: minmax(0, 62%) minmax(430px, 38%);
+    width: 100%;
+    min-height: 100vh;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: linear-gradient(115deg,
+            var(--auth-shell-start) 0%,
+            var(--auth-shell-middle) 58%,
+            var(--auth-shell-end) 100%);
+    box-shadow: none;
+}
+
+.auth-visual{
+    position: sticky;
+    isolation: isolate;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    min-width: 0;
+    overflow: hidden;
+    background:
+            radial-gradient(ellipse 80% 62% at 100% 50%,
+                    #e9e2f9 0%,
+                    rgba(244, 239, 250, 0.96) 54%,
+                    rgba(253, 253, 253, 0) 100%),
+            linear-gradient(90deg, #fdfdfd 0%, #faf8fc 48%, #f6f2fa 100%);
+}
+
+/* 남는 위·아래 영역은 같은 이미지를 부드럽게 확장해 경계 없이 연결 */
+.auth-visual::before{
+    content: "";
+    position: absolute;
+    z-index: 0;
+    inset: -28px;
+    pointer-events: none;
+    background-image: var(--auth-image);
+    background-position: center;
+    background-size: cover;
+    filter: blur(24px);
+    opacity: 0.55;
+}
+
+.auth-visual img{
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    -webkit-mask-image: linear-gradient(180deg,
+            transparent 0%, #000 4%, #000 96%, transparent 100%);
+    mask-image: linear-gradient(180deg,
+            transparent 0%, #000 4%, #000 96%, transparent 100%);
+}
+
+/* 원본 이미지와 오른쪽 입력 영역의 배경이 경계 없이 이어지도록 연결 */
+.auth-visual::after{
+    content: "";
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    pointer-events: none;
+    background:
+            linear-gradient(90deg,
+                    rgba(246, 243, 255, 0) 63%,
+                    rgba(245, 243, 255, 0.38) 82%,
+                    rgba(244, 243, 255, 0.98) 100%),
+            linear-gradient(180deg,
+                    rgba(250, 249, 255, 0.2) 0%,
+                    rgba(250, 249, 255, 0) 18%,
+                    rgba(244, 243, 255, 0.12) 100%);
+}
+
+.auth-content{
+    position: relative;
+    min-width: 0;
+    min-height: 100vh;
+    overflow: visible;
+    background:
+            radial-gradient(circle at 90% 8%, rgba(255, 255, 255, 0.66) 0, rgba(255, 255, 255, 0) 35%),
+            linear-gradient(135deg, rgba(246, 243, 255, 0.94) 0%, rgba(237, 244, 255, 0.94) 100%);
+}
+
+.auth-content::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(90deg, rgba(244, 243, 255, 0.9) 0, rgba(244, 243, 255, 0) 20%);
+}
+
+.auth-content-scroll{
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    min-height: 100vh;
+    height: auto;
+    overflow: visible;
+    padding: 48px clamp(26px, 3vw, 48px);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(126, 142, 177, 0.36) transparent;
+}
+
+.auth-content-centered{
+    display: flex;
+    align-items: center;
+}
+
+.auth-content-card{
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.auth-heading{
+    margin-bottom: 30px;
+}
+
+.auth-heading h1{
+    color: var(--auth-ink);
+    font-size: clamp(32px, 3vw, 44px);
+    line-height: 1.2;
+    letter-spacing: -0.045em;
+}
+
+.auth-heading > p:last-child{
+    margin-top: 10px;
+    color: var(--auth-muted);
+    font-size: 15px;
+}
+
+.auth-alert,
+.auth-page .login-alert,
+.auth-page .password-reset-alert{
+    width: 100%;
+    max-width: none;
+    margin: 0 0 18px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+}
+
+.auth-page .alert-error{
+    border-color: rgba(220, 38, 38, 0.12);
+    background: rgba(254, 226, 226, 0.82);
+}
+
+.auth-page .alert-success{
+    border-color: rgba(22, 163, 74, 0.12);
+    background: rgba(220, 252, 231, 0.82);
+}
+
+.auth-page .form{
+    width: 100%;
+    max-width: none;
+    margin: 0;
+}
+
+.auth-page label{
+    color: #344158;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.auth-page input[type="text"],
+.auth-page input[type="password"],
+.auth-page select{
+    min-height: 48px;
+    padding: 11px 14px;
+    border: 1px solid var(--auth-line);
+    border-radius: 12px;
+    outline: none;
+    background: var(--auth-field);
+    color: var(--auth-ink);
+    font-family: inherit;
+    font-size: 14px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.auth-page input::placeholder{
+    color: #a8b2c8;
+}
+
+.auth-page input[type="text"]:focus,
+.auth-page input[type="password"]:focus,
+.auth-page select:focus{
+    border-color: rgba(8, 116, 247, 0.62);
+    background: rgba(236, 243, 255, 0.9);
+    box-shadow: 0 0 0 4px rgba(8, 116, 247, 0.1);
+}
+
+/* 마우스를 올려도 입력창의 배경색을 그대로 유지 */
+.auth-page input[type="text"]:hover,
+.auth-page input[type="password"]:hover,
+.auth-page select:hover{
+    background: var(--auth-field);
+}
+
+.auth-page .btn{
+    min-height: 48px;
+    border-radius: 12px;
+    font-family: inherit;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.auth-page .btn:hover{
+    scale: 1;
+    transform: translateY(-1px);
+}
+
+.auth-page .btn-outline{
+    border-color: rgba(8, 116, 247, 0.32);
+    background: rgba(255, 255, 255, 0.64);
+    color: var(--auth-blue-dark);
+}
+
+.auth-page .btn-outline:hover{
+    border-color: rgba(8, 116, 247, 0.52);
+    background: rgba(236, 243, 255, 0.82);
+}
+
+.auth-primary-button,
+.auth-page .login-submit{
+    width: 100%;
+    min-height: 52px;
+    border-color: var(--auth-blue);
+    background: linear-gradient(135deg, #1684ff 0%, #0874f7 58%, #0964dc 100%);
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 800;
+    box-shadow: 0 14px 28px rgba(8, 116, 247, 0.22);
+}
+
+.auth-primary-button:hover,
+.auth-page .login-submit:hover{
+    border-color: var(--auth-blue-dark);
+    background: linear-gradient(135deg, #0874f7 0%, #0669e0 100%);
+    box-shadow: 0 16px 32px rgba(8, 116, 247, 0.28);
+}
+
+.auth-login-form .login-field + .login-field{
+    margin-top: 14px;
+}
+
+.auth-page .login-form .login-field input{
+    min-height: 56px;
+    border-radius: 14px;
+    background: var(--auth-field);
+}
+
+/* 브라우저 자동완성 상태에서도 흰색으로 바뀌지 않게 유지 */
+.auth-page .login-form input:-webkit-autofill,
+.auth-page .login-form input:-webkit-autofill:hover,
+.auth-page .login-form input:-webkit-autofill:focus{
+    box-shadow: 0 0 0 1000px #ecf3ff inset;
+    -webkit-text-fill-color: var(--auth-ink);
+}
+
+.auth-page .login-submit{
+    min-height: 54px;
+    margin-top: 18px;
+    border-radius: 14px;
+}
+
+.auth-page .login-member-links{
+    margin-top: 17px;
+    color: #7c88a2;
+}
+
+.auth-page .login-member-links a:hover,
+.auth-switch a:hover{
+    color: var(--auth-blue);
+}
+
+.auth-home-logo{
+    display: block;
+    width: fit-content;
+    margin: 38px auto 0;
+    line-height: 0;
+    transition: opacity 0.18s ease;
+}
+
+.auth-home-logo:hover{
+    opacity: 0.78;
+}
+
+.auth-home-logo img{
+    display: block;
+    width: 142px;
+    height: auto;
+}
+
+.auth-switch{
+    margin-top: 20px;
+    color: #8a94aa;
+    font-size: 14px;
+    text-align: center;
+}
+
+.auth-switch a{
+    color: var(--auth-blue);
+    font-weight: 800;
+}
+
+/* 회원가입 항목을 입력 순서대로 한 줄씩 배치 */
+.auth-join-form{
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+            "profile"
+            "id"
+            "nickname"
+            "name"
+            "password"
+            "password-confirm"
+            "email"
+            "submit";
+    gap: 10px;
+}
+
+.auth-field-profile{ grid-area: profile; }
+.auth-field-id{ grid-area: id; }
+.auth-field-password{ grid-area: password; }
+.auth-field-password-confirm{ grid-area: password-confirm; }
+.auth-field-name{ grid-area: name; }
+.auth-field-nickname{ grid-area: nickname; }
+.auth-field-email{ grid-area: email; }
+.auth-field-submit{ grid-area: submit; }
+
+/* 데스크톱 회원가입 화면의 간격을 줄여 한 화면에 자연스럽게 정돈 */
+@media (min-width: 1041px){
+    .auth-page-join .auth-content-scroll{
+        display: flex;
+        align-items: center;
+        padding-top: clamp(8px, 1vh, 12px);
+        padding-bottom: clamp(8px, 1vh, 12px);
+    }
+
+    .auth-page-join .auth-heading{
+        margin-bottom: 8px;
+    }
+
+    .auth-page-join .auth-heading h1{
+        font-size: clamp(28px, 2vw, 34px);
+        line-height: 1.12;
+    }
+
+    .auth-page-join .auth-heading > p:last-child{
+        margin-top: 4px;
+        font-size: 13px;
+    }
+
+    .auth-page-join .auth-join-form{
+        gap: clamp(4px, 0.5vh, 6px);
+    }
+
+    .auth-page-join input[type="text"],
+    .auth-page-join input[type="password"],
+    .auth-page-join select{
+        min-height: 38px;
+        padding: 7px 11px;
+        border-radius: 10px;
+        font-size: 13px;
+    }
+
+    .auth-page-join .btn{
+        min-height: 38px;
+        padding-top: 7px;
+        padding-bottom: 7px;
+        border-radius: 10px;
+        font-size: 13px;
+    }
+
+    .auth-page-join .auth-primary-button{
+        min-height: 42px;
+    }
+
+    .auth-page-join .auth-switch{
+        margin-top: 7px;
+        font-size: 12px;
+    }
+
+    .auth-page-join .auth-home-logo{
+        margin-top: 7px;
+    }
+
+    .auth-page-join .auth-home-logo img{
+        width: 104px;
+    }
+
+    .auth-page-join .auth-field-profile{
+        gap: 3px 10px;
+        padding: 6px 9px;
+        border-radius: 12px;
+    }
+
+    .auth-page-join .auth-field-profile .profile-preview{
+        width: 50px;
+        height: 50px;
+    }
+
+    .auth-page-join .auth-field-profile .file-label{
+        padding: 5px 9px;
+        font-size: 12px;
+    }
+
+    .auth-page-join label{
+        font-size: 12px;
+        line-height: 1.2;
+    }
+
+    .auth-page-join .form-row{
+        gap: 3px;
+    }
+
+    .auth-page-join .form-tip{
+        font-size: 10px;
+        line-height: 1.25;
+    }
+
+    .auth-page-join .input-with-button,
+    .auth-page-join .email-auth-row{
+        gap: 6px;
+    }
+
+    .auth-page-join .email-input-group{
+        gap: 5px;
+    }
+
+    .auth-page-join .email-code-area{
+        margin-top: 4px;
+    }
+}
+
+/* 충분한 높이의 데스크톱에서는 인증코드 입력 후에도 페이지 스크롤을 만들지 않음 */
+@media (min-width: 1041px) and (min-height: 900px){
+    body.auth-page-join{
+        overflow-y: hidden;
+    }
+
+    .auth-page-join .auth-shell,
+    .auth-page-join .auth-content,
+    .auth-page-join .auth-content-scroll{
+        height: 100vh;
+        min-height: 0;
+    }
+
+    .auth-page-join .auth-content-scroll{
+        overflow: hidden;
+    }
+}
+
+.auth-field-profile{
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+            "preview picker"
+            "preview tip";
+    align-items: center;
+    gap: 5px 14px;
+    padding: 10px 12px;
+    border: 1px solid var(--auth-line);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.44);
+}
+
+.auth-field-profile .profile-preview-wrap{ grid-area: preview; }
+.auth-field-profile .file-label{ grid-area: picker; }
+.auth-field-profile > .form-tip{ grid-area: tip; }
+
+.auth-field-profile .profile-preview{
+    width: 60px;
+    height: 60px;
+    border: 3px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 7px 18px rgba(60, 72, 112, 0.14);
+}
+
+.auth-field-profile .file-label{
+    width: fit-content;
+    padding: 7px 12px;
+    border-color: rgba(8, 116, 247, 0.3);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.58);
+    color: var(--auth-blue-dark);
+}
+
+.auth-page .form-row{
+    gap: 6px;
+}
+
+.auth-page .form-tip{
+    min-height: 0;
+    color: #7f8aa1;
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.auth-page .form-tip:empty{
+    display: none;
+}
+
+.auth-page .form-tip-ok{ color: #15803d; }
+.auth-page .form-tip-error{ color: #dc2626; }
+.auth-page .form-tip-info{ color: #475569; }
+
+.auth-page .input-with-button,
+.auth-page .email-auth-row{
+    gap: 8px;
+}
+
+.auth-page .input-with-button .btn,
+.auth-page .email-auth-row > .btn{
+    padding-right: 14px;
+    padding-left: 14px;
+}
+
+.auth-page .email-input-group{
+    gap: 7px;
+}
+
+.auth-page .email-at{
+    color: #6f7c95;
+    font-weight: 700;
+}
+
+.auth-reset-form{
+    gap: 18px;
+}
+
+.auth-page-reset .email-input-group{
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.auth-page-join .email-input-group{
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) minmax(105px, 0.75fr);
+}
+
+.auth-page-reset .email-domain-select{
+    grid-column: 1 / -1;
+}
+
+/* 검사 결과가 표시되면 같은 내용을 설명하던 기본 안내문은 숨겨 높이를 유지 */
+.auth-page-join #check-id-result:not(:empty) + .form-tip,
+.auth-page-join #check-nickname-result:not(:empty) + .form-tip,
+.auth-page-join #password-rule-result:not(:empty) + .form-tip,
+.auth-page-join #email-result:not(:empty) + .form-tip{
+    display: none;
+}
+
+.auth-page .password-reset-fields{
+    gap: 17px;
+}
+
+@media (max-width: 1180px){
+    body.auth-page{
+        padding: 0;
+    }
+
+    .auth-shell{
+        grid-template-columns: minmax(0, 58%) minmax(420px, 42%);
+        height: auto;
+    }
+
+    .auth-content-scroll{
+        padding: 46px 34px;
+    }
+}
+
+@media (max-width: 1040px){
+    body.auth-page{
+        overflow: auto;
+        padding: 0;
+    }
+
+    .auth-shell{
+        grid-template-columns: 1fr;
+        grid-template-rows: 245px minmax(0, 1fr);
+        width: 100%;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .auth-visual{
+        position: relative;
+        top: auto;
+        align-self: stretch;
+        height: auto;
+    }
+
+    .auth-visual img{
+        object-fit: cover;
+        object-position: center 38%;
+    }
+
+    .auth-visual::after{
+        background: linear-gradient(180deg,
+                rgba(246, 243, 255, 0) 42%,
+                rgba(245, 243, 255, 0.5) 76%,
+                rgba(244, 243, 255, 0.98) 100%);
+    }
+
+    .auth-content::before{
+        background: linear-gradient(180deg, rgba(244, 243, 255, 0.92) 0, rgba(244, 243, 255, 0) 16%);
+    }
+
+    .auth-content{
+        min-height: 0;
+    }
+
+    .auth-content-scroll{
+        min-height: 0;
+        height: auto;
+        overflow: visible;
+        padding: 40px clamp(26px, 7vw, 56px) 50px;
+    }
+
+    .auth-content-centered{
+        display: block;
+    }
+}
+
+@media (max-width: 620px){
+    body.auth-page{
+        padding: 0;
+    }
+
+    .auth-shell{
+        min-height: 100vh;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .auth-shell{
+        grid-template-rows: 190px minmax(0, 1fr);
+    }
+
+    .auth-content-scroll{
+        padding: 32px 20px 42px;
+    }
+
+    .auth-heading{
+        margin-bottom: 24px;
+    }
+
+    .auth-heading h1{
+        font-size: 32px;
+    }
+
+    .auth-join-form{
+        grid-template-columns: 1fr;
+        grid-template-areas:
+                "profile"
+                "id"
+                "nickname"
+                "name"
+                "password"
+                "password-confirm"
+                "email"
+                "submit";
+    }
+
+    .auth-page .email-auth-row{
+        grid-template-columns: 1fr;
+    }
+
+    .auth-page .email-auth-row > .btn{
+        width: 100%;
+    }
+
+    .auth-page .email-input-group,
+    .auth-page-reset .email-input-group{
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    }
+
+    .auth-page-reset .email-domain-select{
+        grid-column: 1 / -1;
+    }
+
+    .auth-page-join .email-domain-select{
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 420px){
+    .auth-field-profile{
+        grid-template-columns: 1fr;
+        grid-template-areas:
+                "preview"
+                "picker"
+                "tip";
+        justify-items: center;
+        text-align: center;
+    }
+
+    .auth-page .input-with-button{
+        flex-direction: column;
+    }
+
+    .auth-page .input-with-button .btn{
+        width: 100%;
+    }
+}
