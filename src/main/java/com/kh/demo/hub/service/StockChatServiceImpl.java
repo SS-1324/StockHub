@@ -28,9 +28,9 @@ public class StockChatServiceImpl implements StockChatService {
     private static final int MAX_CONTENT_LENGTH = 200;
     // 도배 방지: 최소 전송 간격, 짧은 시간 안에 너무 많이 보내면 잠그는 기준/시간
     private static final Duration MIN_MESSAGE_INTERVAL = Duration.ofMillis(100);
-    private static final Duration BURST_WINDOW = Duration.ofSeconds(1);
-    private static final int BURST_LIMIT = 3;
-    private static final Duration LOCKOUT_DURATION = Duration.ofSeconds(3);
+    private static final Duration BURST_WINDOW = Duration.ofSeconds(5);
+    private static final int BURST_LIMIT = 5;
+    private static final Duration LOCKOUT_DURATION = Duration.ofSeconds(30);
     // 채팅 보관 기간: 30일보다 오래된 메시지는 매일 새벽에 정리
     private static final int RETENTION_DAYS = 30;
     // rateStateByMember 정리 기준: 이 시간 동안 채팅이 없었으면 잠금/도배 상태가 더 이상

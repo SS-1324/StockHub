@@ -22,6 +22,33 @@
     padding: 0;
 }
 
+/* 페이지 제목/부제 영역. ranking.css의 .ranking-heading과 동일한 형식(굵은 제목 + 회색 부제)으로 맞춤 */
+.chart-page-heading {
+    margin-bottom: 24px;
+}
+
+.chart-page-heading h2 {
+    margin: 0 0 2px;
+    color: #111827;
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+}
+
+.chart-page-heading p {
+    color: #61759a;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+html[data-theme="dark"] .chart-page-heading h2 {
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] .chart-page-heading p {
+    color: #94a3b8;
+}
+
 /* 헤더와 차트+채팅을 한 장의 카드로 감싸는 배경. 사이트 다크/라이트 테마에 맞춰 같이 바뀜 */
 .chart-wrapper {
     width: 100%;

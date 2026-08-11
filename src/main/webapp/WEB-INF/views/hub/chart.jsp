@@ -17,8 +17,10 @@
 <%-- 거래 허브 페이지 전용 실시간 시세 티커바 (TradingView Ticker Tape 위젯) --%>
 <tv-ticker-tape class="hub-ticker-tape" symbols="NASDAQ:AAPL,NASDAQ:TSLA,NASDAQ:MSFT,NASDAQ:AMZN,NASDAQ:META,NASDAQ:SPCX,NASDAQ:NVDA,NASDAQ:AMD,NASDAQ:GOOGL,NASDAQ:INTC,NASDAQ:NFLX,NASDAQ:MSTR" hide-chart item-size="compact"></tv-ticker-tape>
 
-<h2>종목 라운지</h2>
-<p>관심 종목의 실시간 차트를 확인하세요.</p>
+<div class="chart-page-heading">
+    <h2>종목 라운지</h2>
+    <p>관심 종목의 실시간 차트를 확인하세요.</p>
+</div>
 
 <div class="chart-wrapper">
     <div class="chart-header">
