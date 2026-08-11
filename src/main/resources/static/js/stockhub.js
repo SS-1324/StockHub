@@ -371,7 +371,7 @@ function setupChatPanel(initialStockCode) {
             return;
         }
         const remainingSec = Math.ceil(remainingMs / 1000);
-        inputEl.placeholder = `메시지를 너무 많이 보냈어요. ${remainingSec}초 후 다시 시도해주세요`;
+        inputEl.placeholder = `${remainingSec}초 후 전송 가능`;
     }
 
     function applyLockout(durationMs) {
