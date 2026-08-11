@@ -4,7 +4,6 @@ import com.kh.demo.common.dto.ApiResponse;
 import com.kh.demo.community.service.BoardService;
 import com.kh.demo.common.util.SessionUtil;
 import com.kh.demo.inquiry.service.InquiryService;
-import com.kh.demo.member.dto.FollowDto;
 import com.kh.demo.member.dto.MemberDto;
 import com.kh.demo.member.dto.MemberProfileModalDto;
 import com.kh.demo.member.service.FollowService;
@@ -21,8 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import java.util.List;
+import org.springframework.web.server.ResponseStatusException;
 
 /** 커뮤니티와 랭킹이 함께 사용하는 회원 프로필 모달 API. */
 @Controller
@@ -56,6 +54,11 @@ public class MemberProfileModalController {
     ) {
         try {
             MemberDto member = memberService.getMemberProfile(memberId);
+            if (!Boolean.TRUE.equals(member.getStockPublic())) {
+                /* [프로필공개-1] 기존 주식정보 공개 설정이 꺼진 회원은 프로필 JSON을 반환하지 않는다. */
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(ApiResponse.fail("비공개 프로필입니다."));
+            }
             String viewerId = SessionUtil.currentMemberId(session);
             return ResponseEntity.ok(ApiResponse.success(
                     buildProfileResponse(member, viewerId, rankType)
@@ -90,6 +93,10 @@ public class MemberProfileModalController {
              * 변경 직후 전체 프로필을 다시 구성해 버튼 상태, 팔로워 숫자와 목록을 한 번에 동기화한다.
              */
             MemberDto member = memberService.getMemberProfile(memberId);
+            if (!Boolean.TRUE.equals(member.getStockPublic())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(ApiResponse.fail("비공개 프로필입니다."));
+            }
             followService.toggleFollow(viewerId, memberId);
             return ResponseEntity.ok(ApiResponse.success(
                     buildProfileResponse(member, viewerId, rankType)
@@ -100,53 +107,43 @@ public class MemberProfileModalController {
         }
     }
 
-    /** 프로필의 작성글 숫자를 눌렀을 때 해당 회원의 공개 게시글을 별도 페이지에서 보여준다. */
+    /** [프로필공개범위-2] 작성글 전용 페이지는 프로필 소유자 본인만 볼 수 있다. */
     @GetMapping("/{memberId}/posts")
     public String memberPosts(@PathVariable String memberId,
                               HttpSession session,
                               Model model) {
+        requireProfileOwner(memberId, session);
         MemberDto profileOwner = memberService.getMemberProfile(memberId);
-        String viewerId = SessionUtil.currentMemberId(session);
 
         model.addAttribute("profileOwner", profileOwner);
-        model.addAttribute("ownProfile", memberId.equals(viewerId));
-        model.addAttribute("boardList", boardService.getMemberPosts(memberId, viewerId));
+        model.addAttribute("ownProfile", true);
+        model.addAttribute("boardList", boardService.getMemberPosts(memberId, memberId));
         model.addAttribute("totalCount", boardService.getMemberPostCount(memberId));
         model.addAttribute("allowedCategories", boardService.getAllowedCategories());
         return "member/myPosts";
     }
 
-    /** 문의글 숫자를 누르면 로그인 여부와 관계없이 해당 회원의 문의·답변 목록을 보여준다. */
+    /** [프로필공개범위-2] 문의글 전용 페이지도 프로필 소유자 본인만 볼 수 있다. */
     @GetMapping("/{memberId}/inquiries")
     public String memberInquiries(@PathVariable String memberId,
                                   HttpSession session,
                                   Model model) {
+        requireProfileOwner(memberId, session);
         MemberDto profileOwner = memberService.getMemberProfile(memberId);
-        String viewerId = SessionUtil.currentMemberId(session);
         var inquiryList = inquiryService.getMemberInquiries(memberId);
 
         model.addAttribute("profileOwner", profileOwner);
-        model.addAttribute("ownProfile", memberId.equals(viewerId));
+        model.addAttribute("ownProfile", true);
         model.addAttribute("inquiryList", inquiryList);
         model.addAttribute("totalCount", inquiryList.size());
         return "member/memberInquiries";
-    }
-
-    private MemberProfileModalDto.FollowSummary toFollowSummary(FollowDto follow) {
-        return new MemberProfileModalDto.FollowSummary(
-                follow.getMemberId(),
-                follow.getNickname(),
-                follow.getProfile(),
-                follow.getFollowAtStr()
-        );
     }
 
     private MemberProfileModalDto buildProfileResponse(MemberDto member,
                                                        String viewerId,
                                                        String rankType) {
         String memberId = member.getMemberId();
-        boolean ownProfile = memberId.equals(viewerId);
-        boolean canFollow = viewerId != null && !ownProfile;
+        boolean canFollow = viewerId != null && !memberId.equals(viewerId);
         boolean followingTarget = canFollow && followService.isFollowing(viewerId, memberId);
 
         /*
@@ -158,20 +155,9 @@ public class MemberProfileModalController {
         Integer rankPosition = rankingService.getProfileRankPosition(memberId, sortByProfit);
         String badge = rankPosition == null ? "USER" : "RANKER";
 
-        /* [프로필게시글-1] 모달에는 목록 전체가 아니라 개수만 내려 응답을 가볍게 유지한다. */
-        long postCount = boardService.getMemberPostCount(memberId);
-
-        List<MemberProfileModalDto.FollowSummary> followers =
-                followService.getFollowers(memberId).stream()
-                        .map(this::toFollowSummary)
-                        .toList();
-        List<MemberProfileModalDto.FollowSummary> following =
-                followService.getFollowing(memberId).stream()
-                        .map(this::toFollowSummary)
-                        .toList();
-
-        /* [프로필문의-1] 문의도 작성글과 같이 모달에는 공개 개수만 전달한다. */
-        long inquiryCount = inquiryService.getMemberInquiries(memberId).size();
+        /* [프로필공개-2] 본인·타인 구분 없이 공개 프로필에는 팔로워·팔로잉 숫자만 전달한다. */
+        long followerCount = followService.getFollowerCount(memberId);
+        long followingCount = followService.getFollowingCount(memberId);
 
         return new MemberProfileModalDto(
                 memberId,
@@ -180,16 +166,17 @@ public class MemberProfileModalController {
                 badge,
                 rankPosition,
                 normalizedRankType,
-                ownProfile,
                 canFollow,
                 followingTarget,
-                postCount,
-                followers.size(),
-                following.size(),
-                inquiryCount,
-                followers,
-                following
+                followerCount,
+                followingCount
         );
+    }
+
+    private void requireProfileOwner(String memberId, HttpSession session) {
+        if (!memberId.equals(SessionUtil.currentMemberId(session))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "본인의 정보만 볼 수 있습니다.");
+        }
     }
 
 }

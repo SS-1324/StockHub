@@ -77,14 +77,27 @@
             </div>
 
         </div>
-        <c:if test="${not empty board.title}">
-            <div class="board-card-title"><c:out value="${board.title}" /></div>
-        </c:if>
+        <c:choose>
+            <%-- [텍스트카드-1] 이미지가 없으면 기존 빈 영역을 제목·본문 중심의 전용 패널로 채운다. --%>
+            <c:when test="${empty board.imageList}">
+                <div class="board-card-text-panel" data-category="${board.category}">
+                    <c:if test="${not empty board.title}">
+                        <div class="board-card-title"><c:out value="${board.title}" /></div>
+                    </c:if>
+                    <div class="board-card-snippet"><c:out value="${board.content}" /></div>
+                </div>
+            </c:when>
+            <%-- 이미지 카드는 현재 제목·본문·썸네일 순서를 그대로 유지한다. --%>
+            <c:otherwise>
+                <c:if test="${not empty board.title}">
+                    <div class="board-card-title"><c:out value="${board.title}" /></div>
+                </c:if>
+                <div class="board-card-snippet"><c:out value="${board.content}" /></div>
+            </c:otherwise>
+        </c:choose>
 
-        <div class="board-card-snippet"><c:out value="${board.content}" /></div>
-
-        <%-- 인스타그램식(글 위에 이미지)이 아니라 본문 아래에 이미지를 두는 커뮤니티식 배치.
-             이미지가 1장뿐이면 필름스트립이 아니라 카드 폭을 꽉 채워 더 크게 보여준다(짤방 위주라 크게 보는 게 낫다는 판단). --%>
+        <%-- [카드단일이미지-4] 본문 아래에 이미지를 배치한다.
+             한 장은 single 클래스를 사용하지만 CSS에서 여러 장과 같은 높이·원본 비율·왼쪽 정렬을 적용한다. --%>
         <c:if test="${not empty board.imageList}">
             <c:choose>
                 <c:when test="${fn:length(board.imageList) == 1}">
