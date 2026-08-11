@@ -36,12 +36,17 @@
     <a class="board-card ${not empty board.imageList ? 'has-image' : 'has-no-image'}"
        href="${communityUrl}/${board.boardId}">
 
-        <%-- [프로필연결-1] 카드 이동과 구분하여 작성자 영역을 누르면 공통 프로필 모달을 연다. --%>
-        <div class="board-card-header ${boardRankClass}"
-             data-user-profile="${board.memberId}"
-             role="button"
-             tabindex="0"
-             aria-label="작성자 프로필 보기">
+        <%--
+            [프로필클릭범위-1] 카드 전체는 게시글 상세 이동 링크이므로 프로필 팝업 트리거와 역할이 다르다.
+            사진 전용 래퍼에만 data-user-profile을 두어 이름·날짜·헤더 여백을 눌러도 팝업이 열리지 않게 한다.
+        --%>
+        <div class="board-card-header ${boardRankClass}">
+
+            <span class="community-profile-trigger"
+                  data-user-profile="${board.memberId}"
+                  role="button"
+                  tabindex="0"
+                  aria-label="${board.nickname} 프로필 보기">
 
             <c:choose>
 
@@ -65,6 +70,8 @@
                 </c:otherwise>
 
             </c:choose>
+
+            </span>
 
             <div class="board-card-header-text">
                 <span class="board-card-nickname">

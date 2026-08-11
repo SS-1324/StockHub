@@ -602,6 +602,23 @@ html[data-theme="dark"] .board-widget-label.is-hot{
     margin-bottom: 11px;
 }
 
+/*
+ * 커뮤니티 프로필 팝업은 사진에만 연결한다.
+ * 랭킹 테두리가 있는 사진과 일반 사진을 같은 크기의 인라인 래퍼로 감싸면서
+ * 키보드 focus outline도 이름이나 카드 여백이 아닌 원형 사진 주변에만 표시한다.
+ */
+.community-profile-trigger{
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.community-profile-trigger:focus-visible{
+    border-radius: 50%;
+}
+
 .board-card-avatar{
     width: 32px;
     height: 32px;

@@ -140,8 +140,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentTrigger = null;
 
     /* [프로필위치-1]
-     * 카드 작성자 영역은 카드 폭 전체를 차지하므로 그 사각형을 사용하면 팝업이 멀리 떨어진다.
-     * 실제 프로필 이미지(또는 기본 프로필 원)를 찾아 그 오른쪽 좌표만 위치 기준으로 사용한다.
+     * 커뮤니티는 사진 전용 트리거, 랭킹은 사진·이름 트리거처럼 화면별 클릭 범위가 다르다.
+     * 어느 트리거에서 열어도 내부의 실제 이미지(또는 기본 프로필 원)를 우선 찾아
+     * 팝업이 넓은 행 끝이 아니라 사진 바로 오른쪽에 놓이도록 위치 기준을 통일한다.
      */
     const resolveProfileAnchor = () => {
         if (!currentTrigger) return null;
