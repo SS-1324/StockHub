@@ -3,10 +3,10 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css?v=18">
-
 <!-- 글쓰기 화면에 굵게/폰트크기/링크 기능을 위한 Quill 에디터 -->
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+<%-- Quill 기본 CSS 다음에 게시판 CSS를 불러야 편집기 테두리와 모서리 설정이 덮어써지지 않는다. --%>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css?v=51">
 
 <h2 class="page-title board-form-title">게시글 작성</h2>
 
@@ -33,7 +33,14 @@
 
     <div class="form-row">
         <label for="editor-container">내용</label>
-        <div id="editor-container"></div>
+        <%--
+            Quill은 #editor-container 바로 앞에 툴바를 자동으로 만든다.
+            둘을 같은 껍데기 안에 넣어야 form-row의 간격이 툴바와 본문 사이에 생기지 않고
+            하나의 편집기처럼 연결된 테두리와 둥근 모서리를 적용할 수 있다.
+        --%>
+        <div class="board-editor-shell">
+            <div id="editor-container"></div>
+        </div>
         <!-- 실제로 서버에 전송되는 값은 이 hidden input. Quill 내용이 여기로 복사됨 -->
         <input type="hidden" id="content" name="content" required>
     </div>
@@ -58,8 +65,13 @@
         theme: 'snow',
         modules: {
             toolbar: [
-                ['bold', 'italic', 'strike'],
+                <%--
+                    underline은 밑줄, color는 서버 허용 목록과 동일한 다섯 색만 제공한다.
+                    임의 색상 전체를 열지 않아 다크모드 가독성과 저장 HTML의 안전성을 함께 지킨다.
+                --%>
+                ['bold', 'italic', 'underline', 'strike'],
                 [{ 'size': ['small', false, 'large', 'huge'] }],
+                [{ 'color': [false, '#e60000', '#ff9900', '#008a00', '#0066cc', '#9933ff'] }],
                 <%-- [하이퍼링크-1] 선택한 글자에 URL을 연결하는 Quill 링크 도구를 표시한다. --%>
                 ['link'],
                 [{ 'list': 'ordered' }, { 'list': 'bullet' }]
@@ -75,5 +87,5 @@
         document.getElementById('content').value = quill.getSemanticHTML();
     });
 </script>
-<script src="/js/board.js"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=14"></script>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

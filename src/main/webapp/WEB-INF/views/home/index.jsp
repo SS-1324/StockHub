@@ -5,7 +5,7 @@
 
 <%-- 홈 전용 CSS를 공통 헤더의 head 안에서 불러오도록 전달 --%>
 <c:url var="homeCssUrl" value="/css/home.css">
-    <c:param name="v" value="16" />
+    <c:param name="v" value="17" />
 </c:url>
 <c:set var="pageCssUrl" value="${homeCssUrl}" scope="request" />
 

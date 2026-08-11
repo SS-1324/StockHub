@@ -693,6 +693,10 @@
     color: #334155;
 }
 
+html[data-theme="dark"] .dashboard-timeline-desc {
+    color: #fff;
+}
+
 .dashboard-timeline-amount{
     flex: 0 0 auto;
     color: #172033;

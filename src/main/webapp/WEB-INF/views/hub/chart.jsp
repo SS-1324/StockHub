@@ -14,11 +14,10 @@
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
 
-<%-- 거래 허브 페이지 전용 실시간 시세 티커바 (TradingView Ticker Tape 위젯) --%>
-<tv-ticker-tape class="hub-ticker-tape" symbols="NASDAQ:AAPL,NASDAQ:TSLA,NASDAQ:MSFT,NASDAQ:AMZN,NASDAQ:META,NASDAQ:SPCX,NASDAQ:NVDA,NASDAQ:AMD,NASDAQ:GOOGL,NASDAQ:INTC,NASDAQ:NFLX,NASDAQ:MSTR" hide-chart item-size="compact"></tv-ticker-tape>
-
-<h2>주식 거래 허브</h2>
-<p>관심 종목의 실시간 차트를 확인하세요.</p>
+<div class="chart-page-heading">
+    <h2>종목 라운지</h2>
+    <p>관심 종목의 실시간 차트를 확인하세요.</p>
+</div>
 
 <div class="chart-wrapper">
     <div class="chart-header">
@@ -84,7 +83,6 @@
     <div class="stock-vote-top">
         <div class="stock-vote-badges">
             <span class="stock-vote-badge">살까?팔까?</span>
-            <span class="stock-vote-live">실시간 투표</span>
         </div>
         <span class="stock-vote-participants" id="stock-vote-participants"></span>
     </div>
@@ -128,6 +126,9 @@
 </script>
 <script src="<c:url value='/js/tradingview-chart.js?v=2'/>"></script>
 <script src="<c:url value='/js/stockhub.js?v=7'/>"></script>
+
+<%-- 거래 허브 페이지 전용 실시간 시세 티커바 (TradingView Ticker Tape 위젯). footer 바로 위에 margin 없이 붙임 --%>
+<tv-ticker-tape class="hub-ticker-tape" symbols="NASDAQ:AAPL,NASDAQ:TSLA,NASDAQ:MSFT,NASDAQ:AMZN,NASDAQ:META,NASDAQ:SPCX,NASDAQ:NVDA,NASDAQ:AMD,NASDAQ:GOOGL,NASDAQ:INTC,NASDAQ:NFLX,NASDAQ:MSTR" hide-chart item-size="compact"></tv-ticker-tape>
 
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

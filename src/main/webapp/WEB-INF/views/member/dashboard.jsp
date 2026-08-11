@@ -44,9 +44,11 @@
         </div>
 
         <button type="button" class="btn btn-outline dashboard-link-account-toggle"
-                aria-expanded="false" aria-controls="link-account-panel">계좌 연동하기</button>
+                aria-expanded="${(not empty linkSuccess or not empty linkError) ? 'true' : 'false'}"
+                aria-controls="link-account-panel">계좌 연동하기</button>
 
-        <div id="link-account-panel" class="dashboard-link-account-panel" hidden>
+        <div id="link-account-panel" class="dashboard-link-account-panel"
+             <c:if test="${empty linkSuccess and empty linkError}">hidden</c:if>>
             <c:if test="${not empty linkError}">
                 <p class="dashboard-goal-error"><c:out value="${linkError}"/></p>
             </c:if>
@@ -122,8 +124,10 @@
     <section class="dashboard-goal" aria-labelledby="goal-title">
         <div class="dashboard-section-heading">
             <h2 id="goal-title">목표 도달률</h2>
-            <a class="dashboard-section-link"
-               href="${pageContext.request.contextPath}/member/dashboard/goals/history">목표 히스토리 →</a>
+            <c:if test="${hasGoalHistory}">
+                <a class="dashboard-section-link"
+                   href="${pageContext.request.contextPath}/member/dashboard/goals/history">목표 히스토리 →</a>
+            </c:if>
         </div>
 
         <c:if test="${not empty goalError}">

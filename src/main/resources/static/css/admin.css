@@ -284,17 +284,32 @@ html{
 }
 
 .admin-member-table{
-    min-width: 1320px;
+    /* 게시글 관리 표와 같은 기준: 넓은 화면에서는 그대로, 좁은 화면에서는 가로 스크롤 */
+    min-width: 1120px;
+    table-layout: fixed;
 }
 
 /* 관리 화면별 열 너비를 고정해 마지막 작업 열에 공간이 몰리지 않도록 배분 */
-.admin-member-table th:nth-child(1){ width: 12%; }
-.admin-member-table th:nth-child(2){ width: 12%; }
-.admin-member-table th:nth-child(3){ width: 22%; }
-.admin-member-table th:nth-child(4){ width: 17%; }
+.admin-member-table th:nth-child(1){ width: 13%; }
+.admin-member-table th:nth-child(2){ width: 11%; }
+.admin-member-table th:nth-child(3){ width: 23%; }
+.admin-member-table th:nth-child(4){ width: 16%; }
 .admin-member-table th:nth-child(5){ width: 7%; }
 .admin-member-table th:nth-child(6){ width: 7%; }
 .admin-member-table th:nth-child(7){ width: 23%; }
+
+.admin-member-table th,
+.admin-member-table td{
+    padding: 10px 8px;
+}
+
+.admin-member-ellipsis{
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
 .admin-board-table th:nth-child(1){ width: 7%; }
 .admin-board-table th:nth-child(2){ width: 10%; }
@@ -439,9 +454,10 @@ html{
 
 .admin-member-actions{
     display: grid;
-    grid-template-columns: 76px 96px 76px;
-    justify-content: space-evenly;
-    gap: 12px;
+    width: 100%;
+    grid-template-columns: minmax(0, 68px) minmax(0, 76px) minmax(0, 60px);
+    justify-content: center;
+    gap: 6px;
 }
 
 .admin-role-form select,
@@ -462,6 +478,12 @@ html{
 
 .admin-role-form select{
     width: 96px;
+}
+
+.admin-member-table .admin-role-form select{
+    width: 100%;
+    min-width: 0;
+    padding: 6px 5px;
 }
 
 .admin-edit-table textarea{
@@ -505,6 +527,24 @@ html{
     width: 76px;
     min-width: 76px;
     height: 34px;
+}
+
+.admin-member-table .admin-btn{
+    padding: 5px 7px;
+    font-size: 10px;
+}
+
+.admin-member-table.admin-action-table td:last-child .admin-btn{
+    width: 100%;
+    min-width: 0;
+    max-width: 68px;
+    height: 30px;
+}
+
+.admin-member-table.admin-action-table td:last-child .admin-role-submit{
+    width: 100%;
+    min-width: 0;
+    max-width: 60px;
 }
 
 .admin-action-table td:last-child > .admin-btn{
@@ -800,4 +840,3 @@ html[data-theme="dark"] .admin-reply-form textarea{
         padding: 0 20px 20px;
     }
 }
-

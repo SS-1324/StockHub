@@ -76,6 +76,7 @@ public class DashboardController {
         MyStockSummaryDto stockSummary = myStockService.getMyStockSummary(memberId);
         MyProductSummaryDto productSummary = myProductService.getMyProductSummary(memberId);
         List<GoalDto> activeGoals = goalService.getMyActiveGoals(memberId);
+        boolean hasGoalHistory = !goalService.getMyGoalHistory(memberId).isEmpty();
 
         // 총 자산 = 현금 잔고 + 주식 평가금액(매입금액+평가손익) + 상품 평가금액
         long stockCurrentValue = (stockSummary.getTotalPurchaseAmount() == null ? 0L : stockSummary.getTotalPurchaseAmount())
@@ -99,7 +100,8 @@ public class DashboardController {
         model.addAttribute("productSummary", productSummary);
         model.addAttribute("timeline", buildTimeline(memberId));
         model.addAttribute("activeGoals", activeGoals);
-        model.addAttribute("goalProgress", computeGoalProgress(activeGoals, stockSummary, productSummary));
+        model.addAttribute("hasGoalHistory", hasGoalHistory);
+        model.addAttribute("goalProgress", computeGoalProgress(activeGoals, memberId, totalAsset));
         model.addAttribute("periodProfit", periodProfit);
         model.addAttribute("totalAsset", totalAsset);
         model.addAttribute("totalProfit", totalProfit);
@@ -203,24 +205,23 @@ public class DashboardController {
     }
 
     // 목표별 대비 도달률(%) 계산 - 0~100 사이로 잘라서 원형 그래프에 바로 쓸 수 있게 한다 (goalId -> 퍼센트)
-    private Map<Long, Integer> computeGoalProgress(List<GoalDto> goals, MyStockSummaryDto stockSummary, MyProductSummaryDto productSummary) {
+    // 목표를 "세운 시점부터 지금까지"의 성과만 반영해야 한다 - 목표 세우기 전에 이미 벌어놓은 손익까지
+    // 그 목표의 진행률로 잡으면 안 되기 때문에, 각 목표의 create_at을 기준일로 삼아 개별 계산한다.
+    private Map<Long, Integer> computeGoalProgress(List<GoalDto> goals, String memberId, long totalAsset) {
         Map<Long, Integer> result = new HashMap<>();
-        if (goals.isEmpty()) {
-            return result;
-        }
-        long combinedProfit = (stockSummary.getProfitAmount() == null ? 0L : stockSummary.getProfitAmount())
-                + (productSummary.getProfitAmount() == null ? 0L : productSummary.getProfitAmount());
-        long combinedPurchase = (stockSummary.getTotalPurchaseAmount() == null ? 0L : stockSummary.getTotalPurchaseAmount())
-                + (productSummary.getTotalPurchaseAmount() == null ? 0L : productSummary.getTotalPurchaseAmount());
 
         for (GoalDto goal : goals) {
+            LocalDate goalStart = goal.getCreateAt().toLocalDate();
+            long profitSinceGoal = realizedProfitService.getProfitSince(memberId, totalAsset, goalStart);
+
             BigDecimal current;
             if ("PROFIT_AMOUNT".equals(goal.getGoalType())) {
-                current = BigDecimal.valueOf(combinedProfit);
+                current = BigDecimal.valueOf(profitSinceGoal);
             } else {
-                current = combinedPurchase <= 0
+                long baselineAsset = realizedProfitService.getBaselineAsset(memberId, goalStart);
+                current = baselineAsset <= 0
                         ? BigDecimal.ZERO
-                        : BigDecimal.valueOf(combinedProfit * 100).divide(BigDecimal.valueOf(combinedPurchase), 2, RoundingMode.HALF_UP);
+                        : BigDecimal.valueOf(profitSinceGoal * 100).divide(BigDecimal.valueOf(baselineAsset), 2, RoundingMode.HALF_UP);
             }
             int percent = (goal.getTargetValue() == null || goal.getTargetValue().signum() <= 0)
                     ? 0

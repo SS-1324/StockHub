@@ -92,6 +92,8 @@
 
 </section>
 
+<div class="glossary-overlay" aria-hidden="true"></div>
+
 <script src="${pageContext.request.contextPath}/js/dictionary.js"></script>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

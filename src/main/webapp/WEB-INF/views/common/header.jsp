@@ -17,14 +17,21 @@
 <c:url var="commonCssUrl" value="/css/common.css" />
 <c:url var="headerJsUrl" value="/js/header.js" />
 <c:url var="memberProfileApiUrl" value="/member/profile/" />
-<c:set var="requestUri" value="${pageContext.request.requestURI}" />
+<%-- JSP 내부 forward 경로가 아니라 브라우저가 요청한 실제 주소를 사용 --%>
+<c:set var="forwardRequestUri"
+       value="${requestScope['jakarta.servlet.forward.request_uri']}" />
+<c:set var="requestUri"
+       value="${not empty forwardRequestUri
+                ? forwardRequestUri
+                : pageContext.request.requestURI}" />
 
 <%-- 커뮤니티용 주소 --%>
 <c:url var="communityUrl" value="/community" scope="request" />
 <c:url var="communityFreeUrl" value="/community?category=free" />
-<c:url var="communityTipUrl" value="/community?category=tip" />
-<c:url var="communityProfitUrl" value="/community?category=profit" />
-<c:url var="communityReviewUrl" value="/community?category=review" />
+<%-- DB에 저장된 기존 key는 유지하고 사용자에게 보이는 이름만 새 카테고리명으로 연결한다. --%>
+<c:url var="communityDiscussionUrl" value="/community?category=tip" />
+<c:url var="communityInfoUrl" value="/community?category=profit" />
+<c:url var="communityReflectionUrl" value="/community?category=review" />
 
 <%--용어사전용 주소--%>
 <c:url var="dictionaryTradingUrl" value="/dictionary/category/trading" />
@@ -33,6 +40,15 @@
 <c:url var="dictionaryMarketUrl" value="/dictionary/category/market" />
 <c:url var="dictionaryFundamentalUrl" value="/dictionary/category/fundamental" />
 <c:url var="dictionaryChartUrl" value="/dictionary/category/chart" />
+
+<%-- 하위 주소에서도 현재 선택한 주요 메뉴가 유지되도록 주소 앞부분을 비교 --%>
+<c:url var="hubBaseUrl" value="/hub/" />
+<c:set var="homeMenuActive" value="${requestUri eq homeUrl}" />
+<c:set var="communityMenuActive" value="${fn:startsWith(requestUri, communityUrl)}" />
+<c:set var="tradeHubMenuActive"
+       value="${requestUri eq tradeHubUrl or fn:startsWith(requestUri, hubBaseUrl)}" />
+<c:set var="rankingMenuActive" value="${fn:startsWith(requestUri, rankingUrl)}" />
+<c:set var="dictionaryMenuActive" value="${fn:startsWith(requestUri, dictionaryUrl)}" />
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -59,12 +75,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap"
           rel="stylesheet">
 
-    <link rel="stylesheet" href="${commonCssUrl}?v=29">
+    <link rel="stylesheet" href="${commonCssUrl}?v=37">
     <%-- 현재 화면에서 요청한 전용 CSS를 head 안에서 불러옴 --%>
     <c:if test="${not empty requestScope.pageCssUrl}">
         <link rel="stylesheet" href="${requestScope.pageCssUrl}">
     </c:if>
-    <script src="${headerJsUrl}?v=17" defer></script>
+    <script src="${headerJsUrl}?v=22" defer></script>
 </head>
 <body>
 <%-- 로고, 페이지 이동 메뉴, 회원 메뉴를 표시하는 공통 헤더 --%>
@@ -76,28 +92,28 @@
 
         <%-- 데스크톱·모바일에서 함께 사용하는 주요 페이지 메뉴 --%>
         <nav id="main-navigation" class="main-navigation" aria-label="주요 메뉴">
-            <a class="main-nav-link ${requestUri eq homeUrl ? 'is-active' : ''}"
+            <a class="main-nav-link ${homeMenuActive ? 'is-active' : ''}"
                href="${homeUrl}">홈</a>
 
             <div class="main-nav-community">
-                <a class="main-nav-link ${requestUri eq communityUrl ? 'is-active' : ''}"
+                <a class="main-nav-link ${communityMenuActive ? 'is-active' : ''}"
                    href="${communityUrl}">커뮤니티</a>
 
                 <div class="community-dropdown">
                     <a href="${communityUrl}">전체</a>
                     <a href="${communityFreeUrl}">자유</a>
-                    <a href="${communityTipUrl}">팁 공유</a>
-                    <a href="${communityProfitUrl}">수익인증</a>
-                    <a href="${communityReviewUrl}">반성</a>
+                    <a href="${communityDiscussionUrl}">종목토론</a>
+                    <a href="${communityInfoUrl}">정보공유</a>
+                    <a href="${communityReflectionUrl}">반성일지</a>
                 </div>
             </div>
 
-            <a class="main-nav-link ${requestUri eq tradeHubUrl ? 'is-active' : ''}"
-               href="${tradeHubUrl}">거래 허브</a>
-            <a class="main-nav-link ${requestUri eq rankingUrl ? 'is-active' : ''}"
+            <a class="main-nav-link ${tradeHubMenuActive ? 'is-active' : ''}"
+               href="${tradeHubUrl}">종목 라운지</a>
+            <a class="main-nav-link ${rankingMenuActive ? 'is-active' : ''}"
                href="${rankingUrl}">랭킹</a>
             <div class = "main-nav-dictionary">
-                <a class="main-nav-link ${requestUri eq dictionaryUrl ? 'is-active' : ''}"
+                <a class="main-nav-link ${dictionaryMenuActive ? 'is-active' : ''}"
                 href="${dictionaryUrl}">용어사전</a>
                 <div class = "dictionary-dropdown">
                     <a href="${dictionaryTradingUrl}">매매와 투자 행동</a>
@@ -247,13 +263,25 @@
                     </div>
                 </header>
 
-                <%-- [프로필간소화-1] 본인·타인 모두 동일하게 팔로워·팔로잉 숫자만 표시한다. --%>
-                <nav class="member-profile-stats" aria-label="회원 활동 정보">
+                <%-- [프로필공개정보-4]
+                     작성글·팔로워·팔로잉은 항상 표시하고, 투자정보 두 행만 공개 설정에 따라 제어한다. --%>
+                <nav class="member-profile-stats" data-profile-public-stats
+                     aria-label="회원 활동 및 투자 정보" hidden>
+                    <a class="member-profile-stat member-profile-posts-link"
+                       data-profile-posts-link>
+                        <span>작성글</span><strong data-profile-post-count>0</strong>
+                    </a>
                     <div class="member-profile-stat">
                         <span>팔로워</span><strong data-profile-follower-count>0</strong>
                     </div>
                     <div class="member-profile-stat">
                         <span>팔로잉</span><strong data-profile-following-count>0</strong>
+                    </div>
+                    <div class="member-profile-stat is-investment" data-profile-investment-stat>
+                        <span>수익률</span><strong data-profile-return-rate>0%</strong>
+                    </div>
+                    <div class="member-profile-stat is-investment" data-profile-investment-stat>
+                        <span>수익금</span><strong data-profile-profit>0원</strong>
                     </div>
                 </nav>
             </div>

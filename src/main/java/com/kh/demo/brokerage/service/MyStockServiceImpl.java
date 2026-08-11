@@ -28,16 +28,17 @@ public class MyStockServiceImpl implements MyStockService {
         List<AccountDto> accounts = accountMapper.selectAccountsByMember(memberId);
         List<MyStockHoldingDto> holdings = holdingMapper.selectPortfolioHoldings(memberId);
 
-        // account 테이블에 저장된 계좌별 총 보유 수량을 합산
-        long totalStockQuantity = accounts.stream()
-                .map(AccountDto::getHoldingStockQuantity)
+        // account.holding_stock_quantity/profit_amount/return_rate는 데모 데이터 생성기만 갱신하는
+        // 저장값이라 실거래·실시간 시세 변동을 못 따라간다. holdings는 매번 stock.current_price를
+        // 라이브로 조인해서 조회하므로, 요약값은 전부 이 holdings 기준으로 다시 계산한다.
+        long totalStockQuantity = holdings.stream()
+                .map(MyStockHoldingDto::getQuantity)
                 .filter(value -> value != null)
                 .mapToLong(Long::longValue)
                 .sum();
 
-        // account 테이블에 저장된 계좌별 수익금을 합산
-        long totalProfitAmount = accounts.stream()
-                .map(AccountDto::getProfitAmount)
+        long totalProfitAmount = holdings.stream()
+                .map(MyStockHoldingDto::getProfitAmount)
                 .filter(value -> value != null)
                 .mapToLong(Long::longValue)
                 .sum();
@@ -48,19 +49,16 @@ public class MyStockServiceImpl implements MyStockService {
                 .mapToLong(Long::longValue)
                 .sum();
 
-        // 연결된 대표 계좌의 DB 수익률을 사용
-        BigDecimal returnRate = accounts.stream()
-                .map(AccountDto::getReturnRate)
-                .filter(value -> value != null)
-                .findFirst()
-                .orElse(BigDecimal.ZERO)
-                .setScale(2, RoundingMode.HALF_UP);
-
         long totalPurchaseAmount = holdings.stream()
                 .map(MyStockHoldingDto::getPurchaseAmount)
                 .filter(value -> value != null)
                 .mapToLong(Long::longValue)
                 .sum();
+
+        BigDecimal returnRate = totalPurchaseAmount <= 0
+                ? BigDecimal.ZERO
+                : BigDecimal.valueOf(totalProfitAmount * 100)
+                        .divide(BigDecimal.valueOf(totalPurchaseAmount), 2, RoundingMode.HALF_UP);
 
         MyStockSummaryDto summary = new MyStockSummaryDto();
         summary.setHoldings(holdings);

@@ -23,6 +23,9 @@ public interface GlossaryMapper {
             @Param("terms") List<String> terms
     );
 
+    // 전체 용어 중 지정한 개수만큼 무작위 조회
+    List<GlossaryDto> selectRandomGlossaryTerms(@Param("limit") int limit);
+
 
     // 용어 번호 기준으로 조회하는 메서드(selectGlossaryById)
     GlossaryDto selectGlossaryById(@Param("termId") Long termId);

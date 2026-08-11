@@ -56,14 +56,14 @@ class StockChatServiceImplTest {
         when(stockChatMapper.selectRecentChats(any(), any(Integer.class)))
                 .thenReturn(List.of(new ChatMessageDto()));
 
-        // 최소 간격(100ms) 제한에 걸리지 않도록 약간의 텀을 두고 3번 연속 전송 -> 4번째는 잠김
-        for (int i = 0; i < 3; i++) {
+        // 최소 간격(100ms) 제한에 걸리지 않도록 약간의 텀을 두고 도배 기준(5회) 만큼 연속 전송 -> 다음 한 번은 잠김
+        for (int i = 0; i < 5; i++) {
             stockChatService.sendMessage("AAPL", "member1", "메시지" + i, null);
             Thread.sleep(120);
         }
 
         IllegalStateException e = assertThrows(IllegalStateException.class,
-                () -> stockChatService.sendMessage("AAPL", "member1", "메시지4", null));
+                () -> stockChatService.sendMessage("AAPL", "member1", "메시지6", null));
         assertTrue(e.getMessage().contains("초 동안"));
     }
 

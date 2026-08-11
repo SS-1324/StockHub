@@ -28,4 +28,7 @@ public interface RankingMapper {
             @Param("memberId") String memberId,
             @Param("sortByProfit") boolean sortByProfit
     );
+
+    // 공개 회원 한 명의 계좌 수익률·수익금 합계만 조회한다.
+    RankingDto selectProfileInvestmentSummary(@Param("memberId") String memberId);
 }

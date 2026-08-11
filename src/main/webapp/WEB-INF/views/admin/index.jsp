@@ -5,7 +5,7 @@
 
 <%-- 관리자 전용 CSS를 공통 헤더의 head 안에서 불러오도록 전달 --%>
 <c:url var="adminCssUrl" value="/css/admin.css">
-    <c:param name="v" value="9" />
+    <c:param name="v" value="11" />
 </c:url>
 <c:set var="pageCssUrl" value="${adminCssUrl}" scope="request" />
 
@@ -119,10 +119,18 @@
                     <tbody>
                     <c:forEach var="member" items="${members}">
                         <tr>
-                            <td class="admin-key"><c:out value="${member.memberId}" /></td>
-                            <td><c:out value="${member.nickname}" /></td>
-                            <td><c:out value="${member.email}" /></td>
-                            <td class="admin-nowrap"><c:out value="${member.createAtStr}" /></td>
+                            <td class="admin-key">
+                                <span class="admin-member-ellipsis" title="${fn:escapeXml(member.memberId)}"><c:out value="${member.memberId}" /></span>
+                            </td>
+                            <td>
+                                <span class="admin-member-ellipsis" title="${fn:escapeXml(member.nickname)}"><c:out value="${member.nickname}" /></span>
+                            </td>
+                            <td>
+                                <span class="admin-member-ellipsis" title="${fn:escapeXml(member.email)}"><c:out value="${member.email}" /></span>
+                            </td>
+                            <td>
+                                <span class="admin-member-ellipsis" title="${fn:escapeXml(member.createAtStr)}"><c:out value="${member.createAtStr}" /></span>
+                            </td>
                             <td>
                                 <span class="admin-badge ${member.memberStatus eq 'RESTRICTED' ? 'is-danger' : 'is-success'}">
                                     ${member.memberStatus eq 'RESTRICTED' ? '이용 제한' : '정상'}
