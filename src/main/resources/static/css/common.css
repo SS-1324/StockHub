@@ -56,7 +56,9 @@ a{
     color: inherit;
 }
 
-
+html[data-theme="dark"] dt {
+    color: #fff;
+}
 
 /* 성공·실패 안내 메시지의 공통 모양 */
 .alert{
