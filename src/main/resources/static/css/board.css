@@ -1833,10 +1833,9 @@ html[data-theme="dark"] .comment-edit-form{
 }
 
 /*
-    글쓰기 화면 Quill 에디터.
-    - 배경을 항상 흰색으로 고정해서(로그인 폼과 같은 방식) 페이지 배경(#f0f4ff)과
-      섞이지 않게 하고, placeholder("내용을 입력하세요")도 확실히 구분되는 회색으로 지정.
-    - 최소 높이를 늘려서 글쓰기 칸을 넉넉하게 확보.
+    글쓰기 화면 Quill 에디터의 라이트모드 기본 표면.
+    툴바와 본문을 하나의 입력창처럼 연결하고 최소 높이를 넉넉하게 확보한다.
+    다크모드 색상은 아래의 html[data-theme="dark"] 규칙에서 별도로 덮어쓴다.
 */
 .board-editor-shell{
     overflow: hidden;
@@ -1882,6 +1881,71 @@ html[data-theme="dark"] .comment-edit-form{
  */
 .ql-editor.ql-blank:focus::before{
     display: none;
+}
+
+/*
+    Quill Snow 테마는 툴바와 본문 배경을 기본적으로 흰색으로 제공한다.
+    게시판 다크모드에서는 바깥 shell, 툴바, 본문, 아이콘을 모두 어두운 표면으로 맞추고
+    본문 글자와 입력 커서는 밝게 표시해 다른 입력 필드와 동일한 대비를 유지한다.
+*/
+html[data-theme="dark"] .board-editor-shell{
+    border-color: var(--board-border-strong);
+    background: #111a2a;
+}
+
+html[data-theme="dark"] .board-editor-shell > .ql-toolbar.ql-snow{
+    border-bottom-color: var(--board-border);
+    background: var(--board-surface);
+}
+
+html[data-theme="dark"] .board-editor-shell > .ql-container.ql-snow{
+    background: #111a2a;
+}
+
+html[data-theme="dark"] .board-editor-shell .ql-editor{
+    color: var(--board-text);
+    caret-color: #ffffff;
+}
+
+html[data-theme="dark"] .board-editor-shell .ql-editor.ql-blank::before{
+    color: #8290a5;
+}
+
+html[data-theme="dark"] .board-editor-shell .ql-snow .ql-stroke{
+    stroke: #c0cad9;
+}
+
+html[data-theme="dark"] .board-editor-shell .ql-snow .ql-fill,
+html[data-theme="dark"] .board-editor-shell .ql-snow .ql-stroke.ql-fill{
+    fill: #c0cad9;
+}
+
+html[data-theme="dark"] .board-editor-shell .ql-snow .ql-picker{
+    color: #dbe5f5;
+}
+
+html[data-theme="dark"] .board-editor-shell .ql-snow .ql-picker-options{
+    border-color: var(--board-border-strong);
+    background: var(--board-surface);
+}
+
+html[data-theme="dark"] .board-editor-shell .ql-toolbar button:hover .ql-stroke,
+html[data-theme="dark"] .board-editor-shell .ql-toolbar button.ql-active .ql-stroke,
+html[data-theme="dark"] .board-editor-shell .ql-toolbar .ql-picker-label:hover .ql-stroke,
+html[data-theme="dark"] .board-editor-shell .ql-toolbar .ql-picker-label.ql-active .ql-stroke{
+    stroke: #8fb0ff;
+}
+
+html[data-theme="dark"] .board-editor-shell .ql-toolbar button:hover .ql-fill,
+html[data-theme="dark"] .board-editor-shell .ql-toolbar button.ql-active .ql-fill{
+    fill: #8fb0ff;
+}
+
+html[data-theme="dark"] .board-editor-shell .ql-toolbar button:hover,
+html[data-theme="dark"] .board-editor-shell .ql-toolbar button.ql-active,
+html[data-theme="dark"] .board-editor-shell .ql-toolbar .ql-picker-label:hover,
+html[data-theme="dark"] .board-editor-shell .ql-toolbar .ql-picker-label.ql-active{
+    color: #8fb0ff;
 }
 /* 기존 랭킹 프레임을 게시판 크기에 맞춤 */
 .board-card-rank-frame {

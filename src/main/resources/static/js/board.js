@@ -147,11 +147,13 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
 
     editor.root.addEventListener("compositionend", function(){
         const endingCompositionRevision = compositionRevision;
+        /* 조합 종료 상태는 즉시 반영해 뒤이어 누른 Space·Enter를 일반 키로 처리한다. */
+        isComposing = false;
+
         requestAnimationFrame(function(){
             /* 다음 한글 조합이 이미 시작됐다면 이전 compositionend의 예약 작업은 무시한다. */
-            if (endingCompositionRevision !== compositionRevision) return;
+            if (isComposing || endingCompositionRevision !== compositionRevision) return;
 
-            isComposing = false;
             rememberCurrentFormats();
         });
     });
@@ -229,18 +231,12 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
 
         if (editor.getLength() > 1) {
             rememberCurrentFormats();
-            return;
         }
-
-        const scheduledRevision = editRevision;
-        requestAnimationFrame(function(){
-            if (isComposing || scheduledRevision !== editRevision) return;
-
-            editor.setSelection(0, 0, "silent");
-            inlineFormatNames.forEach(function(name){
-                editor.format(name, rememberedFormats[name] || false, "silent");
-            });
-        });
+        /*
+         * 편집기가 비었더라도 setSelection(0, 0)으로 커서를 강제로 옮기지 않는다.
+         * 한글 조합 직후 Quill의 길이 갱신보다 이 예약 작업이 늦게 실행되면,
+         * 방금 입력한 글자 앞으로 커서가 되돌아가는 원인이 되기 때문이다.
+         */
     });
 
     /*
