@@ -67,6 +67,17 @@ public class RealizedProfitServiceImpl implements RealizedProfitService {
         return (currentTotalAsset - baselineAsset) - netDepositsInPeriod;
     }
 
+    // 목표 진행률처럼, 1주/1달/1년이 아닌 임의의 기준일부터 손익을 계산해야 하는 곳에서 재사용
+    @Override
+    public long getProfitSince(String memberId, long currentTotalAsset, LocalDate since) {
+        return computePeriodProfit(memberId, currentTotalAsset, since);
+    }
+
+    @Override
+    public long getBaselineAsset(String memberId, LocalDate since) {
+        return assetSnapshotMapper.selectTotalAssetAsOf(memberId, since);
+    }
+
     // ==================== 주식 (가중평균 단가 재현) ====================
 
     private List<RealizedProfitDto> replayStockTrades(List<TradeDto> trades) {
