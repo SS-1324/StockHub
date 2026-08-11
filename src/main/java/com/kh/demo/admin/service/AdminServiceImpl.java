@@ -5,6 +5,7 @@ import com.kh.demo.admin.dto.AdminLogDto;
 import com.kh.demo.admin.mapper.AdminMapper;
 import com.kh.demo.community.dto.BoardCommentDto;
 import com.kh.demo.community.dto.BoardDto;
+import com.kh.demo.common.util.HtmlTextUtil;
 import com.kh.demo.community.service.BoardCommentService;
 import com.kh.demo.community.service.BoardService;
 import com.kh.demo.dictionary.dto.GlossaryDto;
@@ -53,7 +54,13 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<BoardDto> getBoards() {
-        return adminMapper.selectBoards();
+        List<BoardDto> boards = adminMapper.selectBoards();
+
+        // 관리 목록에는 HTML 태그가 아니라 사용자가 입력한 본문 글자만 표시
+        boards.forEach(board ->
+                board.setContent(HtmlTextUtil.toPlainText(board.getContent()))
+        );
+        return boards;
     }
 
     @Override

@@ -9,9 +9,6 @@ const passwordInput = document.querySelector("#new-password");
 const passwordConfirmInput = document.querySelector("#new-password-confirm");
 const passwordRuleResult = document.querySelector("#password-rule-result");
 const passwordConfirmResult = document.querySelector("#password-confirm-result");
-const brokerageInput = document.querySelector("#brokerage-id");
-const accountInput = document.querySelector("#account-no");
-const accountResult = document.querySelector("#account-result");
 const deleteProfileForm = document.querySelector("#delete-profile-image-form");
 const currentProfileUrl = profileForm.dataset.currentProfileUrl;
 const contextPath = profileForm.dataset.contextPath || "";
@@ -141,23 +138,7 @@ memberNameInput.addEventListener("input", function () {
         : "form-tip form-tip-error";
 });
 
-// 계좌 입력값에서 숫자가 아닌 문자를 바로 제거
-accountInput?.addEventListener("input", function () {
-    const originalValue = accountInput.value;
-    const onlyNumber = originalValue.replace(/[^0-9]/g, "").slice(0, 50);
-
-    // 숫자가 아닌 문자가 제거되었으면 입력 안내를 표시
-    if (originalValue !== onlyNumber) {
-        accountResult.textContent = "계좌번호는 - 없이 숫자만 입력해주세요.";
-        accountResult.className = "form-tip form-tip-error";
-    } else {
-        accountResult.textContent = "";
-    }
-
-    accountInput.value = onlyNumber;
-});
-
-// 전송 전에 프로필 이미지·닉네임·계좌 입력값을 다시 확인
+// 전송 전에 프로필 이미지·이름·닉네임·비밀번호 입력값을 다시 확인
 profileForm.addEventListener("submit", function (e) {
     // 프로필 이미지가 선택된 경우 허용된 형식인지 다시 확인
     const profileFile = profileInput.files[0];
@@ -226,21 +207,6 @@ profileForm.addEventListener("submit", function (e) {
         return;
     }
 
-    // 증권사와 계좌번호 중 하나만 입력하면 전송 중단
-    const hasBrokerage = Boolean(brokerageInput?.value);
-    const hasAccount = Boolean(accountInput?.value);
-    if (hasBrokerage !== hasAccount) {
-        e.preventDefault();
-        alert("증권사와 계좌번호를 함께 입력해주세요.");
-        return;
-    }
-
-    // 입력한 계좌번호에 숫자 이외 문자가 있으면 전송 중단
-    if (hasAccount && !/^[0-9]{1,50}$/.test(accountInput.value)) {
-        e.preventDefault();
-        alert("계좌번호는 - 없이 숫자만 입력해주세요.");
-        accountInput.focus();
-    }
 });
 
 // 새 비밀번호 규칙과 확인 값의 상태를 표시
