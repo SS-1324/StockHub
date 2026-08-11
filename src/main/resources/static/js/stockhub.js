@@ -448,7 +448,7 @@ function setupVoteWidget(initialStockCode) {
     if (!titleEl || !participantsEl || !barUpEl || !barDownEl || !upBtn || !downBtn) return null;
 
     // 다른 사람이 새로 남긴 투표도 자연스럽게 반영되도록 일정 주기로 다시 불러옴
-    const REFRESH_INTERVAL_MS = 20000;
+    const REFRESH_INTERVAL_MS = 5000;
 
     let currentStockCode = initialStockCode;
     const numberFormatter = new Intl.NumberFormat('ko-KR');
