@@ -17,4 +17,20 @@ public interface FollowMapper {
     List<FollowDto> selectFollowers(@Param("memberId") String memberId);
 
     List<FollowDto> selectFollowing(@Param("memberId") String memberId);
+
+    /* [팔로우토글-4] 두 회원 사이에 현재 팔로우 관계가 있는지 확인한다. */
+    boolean existsFollow(
+            @Param("followerId") String followerId,
+            @Param("followeeId") String followeeId
+    );
+
+    int insertFollow(
+            @Param("followerId") String followerId,
+            @Param("followeeId") String followeeId
+    );
+
+    int deleteFollow(
+            @Param("followerId") String followerId,
+            @Param("followeeId") String followeeId
+    );
 }

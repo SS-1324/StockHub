@@ -367,6 +367,98 @@ html[data-theme="dark"] .theme-dark-icon{
     object-fit: cover;
 }
 
+<<<<<<< HEAD
+=======
+/*
+ * [프레임색상통일-1] 헤더·내 정보·프로필 팝업이 같은 금·은·동 장식값을 공유한다.
+ * 한 곳의 값을 바꾸면 모든 프로필 프레임이 동시에 바뀌므로 화면별 색상 차이가 다시 생기지 않는다.
+ */
+:root{
+    --rank-frame-first-bg: linear-gradient(135deg, #8f6200 0%, #f4c64f 24%, #fff2aa 45%, #d89d13 68%, #fff0a0 82%, #9a6800 100%);
+    --rank-frame-first-shadow: 0 0 0 2px rgba(232, 180, 44, 0.22), 0 5px 15px rgba(211, 151, 20, 0.36);
+    --rank-frame-second-bg: linear-gradient(135deg, #778292 0%, #dce3ec 25%, #ffffff 45%, #a9b5c4 68%, #edf2f7 82%, #7c8797 100%);
+    --rank-frame-second-shadow: 0 0 0 2px rgba(159, 172, 190, 0.2), 0 5px 14px rgba(111, 128, 151, 0.29);
+    --rank-frame-third-bg: linear-gradient(135deg, #7f4325 0%, #d8915c 26%, #f2c09a 45%, #a95f37 68%, #e9a775 84%, #754026 100%);
+    --rank-frame-third-shadow: 0 0 0 2px rgba(188, 111, 64, 0.18), 0 5px 14px rgba(156, 82, 43, 0.3);
+}
+
+/* 공통 헤더 프로필의 1위 금색 프레임 */
+.header-profile-rank-frame.rank-first{
+    padding: 3px;
+    background: var(--rank-frame-first-bg);
+    box-shadow: var(--rank-frame-first-shadow);
+}
+
+/* 공통 헤더 프로필의 2위 은색 프레임 */
+.header-profile-rank-frame.rank-second{
+    padding: 3px;
+    background: var(--rank-frame-second-bg);
+    box-shadow: var(--rank-frame-second-shadow);
+}
+
+/* 공통 헤더 프로필의 3위 동색 프레임 */
+.header-profile-rank-frame.rank-third{
+    padding: 3px;
+    background: var(--rank-frame-third-bg);
+    box-shadow: var(--rank-frame-third-shadow);
+}
+
+/*
+ * [전체프로필프레임-5] 내 정보·대시보드·프로필 수정에서 공유하는 랭킹 프레임이다.
+ * 화면별로 크기만 정하고 금·은·동 색상과 안쪽 이미지 처리 방식은 한 곳에서 관리한다.
+ */
+.account-profile-rank-frame{
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    box-sizing: border-box;
+}
+
+.account-profile-rank-frame.rank-first,
+.account-profile-rank-frame.rank-second,
+.account-profile-rank-frame.rank-third{
+    padding: 4px;
+}
+
+.account-profile-rank-frame.rank-first{
+    background: var(--rank-frame-first-bg);
+    box-shadow: var(--rank-frame-first-shadow);
+}
+
+.account-profile-rank-frame.rank-second{
+    background: var(--rank-frame-second-bg);
+    box-shadow: var(--rank-frame-second-shadow);
+}
+
+.account-profile-rank-frame.rank-third{
+    background: var(--rank-frame-third-bg);
+    box-shadow: var(--rank-frame-third-shadow);
+}
+
+.account-profile-rank-frame.rank-first > img,
+.account-profile-rank-frame.rank-second > img,
+.account-profile-rank-frame.rank-third > img,
+.account-profile-rank-frame.rank-first > .profile-preview-placeholder,
+.account-profile-rank-frame.rank-second > .profile-preview-placeholder,
+.account-profile-rank-frame.rank-third > .profile-preview-placeholder{
+    border-color: var(--header-bg);
+}
+
+.profile-preview-wrap.profile-edit-rank-frame{
+    width: 96px;
+    height: 96px;
+}
+
+.profile-preview-wrap.profile-edit-rank-frame > .profile-preview{
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+>>>>>>> origin/rize
 .header-profile-nickname{
     max-width: 110px;
     overflow: hidden;
@@ -1723,4 +1815,872 @@ html[data-theme="dark"] .login-member-links{
 */
 html{
     scrollbar-gutter: stable;
+}
+
+/* =========================================================
+   커뮤니티·랭킹 공통 회원 프로필 모달
+   ========================================================= */
+[data-user-profile]{
+    cursor: pointer;
+}
+
+[data-user-profile]:focus-visible{
+    outline: 3px solid rgba(47, 102, 246, 0.28);
+    outline-offset: 3px;
+    border-radius: 10px;
+}
+
+body.member-profile-modal-open{
+    overflow: hidden;
+}
+
+.member-profile-modal-overlay{
+    position: fixed;
+    z-index: 3000;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(10, 18, 35, 0.56);
+    backdrop-filter: blur(3px);
+}
+
+.member-profile-modal-overlay[hidden]{
+    display: none;
+}
+
+.member-profile-modal{
+    position: relative;
+    width: min(1000px, 100%);
+    max-height: min(820px, calc(100vh - 40px));
+    overflow-y: auto;
+    border: 1px solid #dbe3f0;
+    border-radius: 28px;
+    background: linear-gradient(135deg, #f7f7ff, #eff1ff);
+    color: #152238;
+    box-shadow: 0 28px 80px rgba(8, 20, 45, 0.28);
+}
+
+.member-profile-modal-close{
+    position: absolute;
+    z-index: 1;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: #f1f5fb;
+    color: #52627a;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.member-profile-loading,
+.member-profile-error{
+    margin: 0;
+    padding: 80px 32px;
+    color: #64748b;
+    text-align: center;
+}
+
+.member-profile-error{
+    color: #d13a4b;
+}
+
+.member-profile-content{
+    padding: 30px 34px 34px;
+}
+
+.member-profile-heading{
+    margin: 0 0 20px;
+    color: #111d32;
+    font-size: 30px;
+    line-height: 1.2;
+}
+
+.member-profile-card{
+    overflow: hidden;
+    border: 1px solid #e0e6f1;
+    border-radius: 26px;
+    background: #fff;
+    box-shadow: 0 18px 44px rgba(50, 67, 120, 0.09);
+}
+
+.member-profile-summary{
+    display: grid;
+    grid-template-columns: 116px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 24px;
+    min-height: 186px;
+    margin: 0 40px;
+    padding: 26px 0;
+    border-bottom: 1px solid #e6ebf3;
+    background: #fff;
+}
+
+.member-profile-avatar{
+    width: 116px;
+    height: 116px;
+    border: 4px solid #fff;
+    border-radius: 50%;
+    object-fit: cover;
+    outline: 1px solid #d7e1f0;
+    box-shadow: 0 8px 24px rgba(39, 72, 140, 0.14);
+}
+
+.member-profile-identity h3{
+    overflow: hidden;
+    margin: 0 0 8px;
+    color: #111d32;
+    font-size: 30px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.member-profile-identity p{
+    margin: 0;
+    color: #75849b;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.member-profile-actions{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.member-profile-badge{
+    padding: 6px 11px;
+    border: 0;
+    border-radius: 999px;
+    background: #eef6ff;
+    color: #1670ec;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .06em;
+}
+
+.member-profile-badge.is-ranker{
+    border-color: #edc45c;
+    background: #fff5cc;
+    color: #9a6500;
+}
+
+.member-profile-edit-link{
+    padding: 11px 18px;
+    border: 1px solid #cbd8eb;
+    border-radius: 12px;
+    background: #fff;
+    color: #253550;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.member-profile-edit-link:hover{
+    border-color: #7ba2f7;
+    color: #1965dd;
+}
+
+.member-profile-stats{
+    display: flex;
+    justify-content: center;
+    gap: clamp(18px, 4vw, 48px);
+    padding: 32px 38px 36px;
+}
+
+.member-profile-stat{
+    display: flex;
+    flex: 0 0 118px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 118px;
+    height: 118px;
+    padding: 10px;
+    border: 1px solid #d6e1f1;
+    border-radius: 50%;
+    background: #f7f9ff;
+    color: #233452;
+    cursor: default;
+    transition: transform .18s ease, border-color .18s ease, background .18s ease;
+}
+
+button.member-profile-stat{
+    cursor: pointer;
+}
+
+button.member-profile-stat:hover,
+button.member-profile-stat.is-active{
+    border-color: #8cacfa;
+    background: #edf2ff;
+    color: #2f66f6;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(47, 102, 246, 0.12);
+}
+
+.member-profile-stat[hidden]{
+    display: none;
+}
+
+.member-profile-stats span{
+    overflow: hidden;
+    max-width: 100%;
+    font-size: 13px;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.member-profile-stats strong{
+    color: #0869ee;
+    font-size: 20px;
+}
+
+.member-profile-panel{
+    min-height: 190px;
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 0 40px;
+    padding: 10px 0 24px;
+    border-top: 1px solid #e6ebf3;
+}
+
+.member-profile-panel[hidden]{
+    display: none;
+}
+
+/* [프로필게시글-3] 이전 스크립트 캐시가 남아 있어도 작성글 목록은 모달 아래에 표시하지 않는다. */
+.member-profile-stats:has([data-profile-tab="posts"].is-active)
+    + .member-profile-panel{
+    display: none;
+}
+
+.member-profile-list{
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.member-profile-list li{
+    border-bottom: 1px solid #edf0f5;
+}
+
+.member-profile-post-list a,
+.member-profile-follow-member{
+    display: flex;
+    width: 100%;
+    padding: 14px 6px;
+    border: 0;
+    background: transparent;
+    color: #172238;
+    text-align: left;
+}
+
+.member-profile-post-list a{
+    flex-direction: column;
+    gap: 5px;
+    text-decoration: none;
+}
+
+.member-profile-post-list a:hover strong{
+    color: #2f66f6;
+    text-decoration: underline;
+}
+
+.member-profile-list-meta{
+    color: #8793a6;
+    font-size: 11px;
+}
+
+.member-profile-follow-member{
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.member-profile-follow-member:hover{
+    background: #f7f9fd;
+}
+
+.member-profile-follow-member img{
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.member-profile-follow-member > span{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.member-profile-follow-member small{
+    color: #8793a6;
+}
+
+.member-profile-empty{
+    margin: 0;
+    padding: 72px 16px;
+    color: #8793a6;
+    text-align: center;
+}
+
+.member-profile-inquiry-list details{
+    padding: 14px 6px;
+    border-bottom: 1px solid #edf0f5;
+}
+
+.member-profile-inquiry-list summary{
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    cursor: pointer;
+}
+
+.member-profile-inquiry-list summary span{
+    flex: 0 0 auto;
+    color: #2f66f6;
+    font-size: 12px;
+}
+
+.member-profile-inquiry-answer{
+    margin: 10px 0 0;
+    padding: 12px;
+    border-radius: 10px;
+    background: #f6f8fc;
+    color: #394861;
+    white-space: pre-wrap;
+}
+
+html[data-theme="dark"] .member-profile-modal{
+    border-color: #344057;
+    background: linear-gradient(135deg, #151d30, #202642);
+    color: #edf3ff;
+}
+
+html[data-theme="dark"] .member-profile-card,
+html[data-theme="dark"] .member-profile-summary{
+    border-color: #344057;
+    background: #182033;
+}
+
+html[data-theme="dark"] .member-profile-heading,
+html[data-theme="dark"] .member-profile-identity h3,
+html[data-theme="dark"] .member-profile-post-list a,
+html[data-theme="dark"] .member-profile-follow-member{
+    color: #f4f7ff;
+}
+
+html[data-theme="dark"] .member-profile-summary,
+html[data-theme="dark"] .member-profile-panel,
+html[data-theme="dark"] .member-profile-list li,
+html[data-theme="dark"] .member-profile-inquiry-list details{
+    border-color: #313d55;
+}
+
+html[data-theme="dark"] .member-profile-stat,
+html[data-theme="dark"] .member-profile-inquiry-answer,
+html[data-theme="dark"] .member-profile-modal-close,
+html[data-theme="dark"] .member-profile-edit-link{
+    border-color: #40506a;
+    background: #222d43;
+    color: #b8c5da;
+}
+
+html[data-theme="dark"] button.member-profile-stat:hover,
+html[data-theme="dark"] button.member-profile-stat.is-active,
+html[data-theme="dark"] .member-profile-follow-member:hover{
+    background: #293858;
+    color: #83a5ff;
+}
+
+@media (max-width: 760px){
+    .member-profile-content{
+        padding: 26px 22px 28px;
+    }
+
+    .member-profile-stats{
+        gap: 16px;
+        padding-inline: 20px;
+    }
+
+    .member-profile-stat{
+        flex-basis: 96px;
+        width: 96px;
+        height: 96px;
+    }
+}
+
+@media (max-width: 560px){
+    .member-profile-modal-overlay{
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .member-profile-modal{
+        width: 100%;
+        max-height: 92vh;
+        border-radius: 22px 22px 0 0;
+    }
+
+    .member-profile-content{
+        padding: 24px 14px 20px;
+    }
+
+    .member-profile-heading{
+        margin-left: 4px;
+        font-size: 24px;
+    }
+
+    .member-profile-summary{
+        grid-template-columns: 64px minmax(0, 1fr);
+        gap: 13px;
+        min-height: 0;
+        margin: 0 18px;
+        padding: 22px 0;
+    }
+
+    .member-profile-avatar{
+        width: 64px;
+        height: 64px;
+    }
+
+    .member-profile-actions{
+        grid-column: 2;
+        flex-direction: row;
+        align-items: center;
+        justify-self: start;
+        margin-top: -8px;
+    }
+
+    .member-profile-stats{
+        flex-wrap: wrap;
+        gap: 14px 24px;
+        padding: 24px 14px 28px;
+    }
+
+    .member-profile-stat{
+        flex-basis: 96px;
+        width: 96px;
+        height: 96px;
+        padding: 8px;
+    }
+
+    .member-profile-panel{
+        margin-inline: 18px;
+        padding-inline: 0;
+    }
+}
+
+/* =========================================================
+   [프로필팝오버-1] 랭킹과 게시글을 많이 가리지 않는 소형 근접 팝업
+   앞의 모달 디자인 토큰은 유지하고 크기·배치만 마지막에 재정의한다.
+   ========================================================= */
+body.member-profile-modal-open{
+    overflow: auto;
+}
+
+.member-profile-modal-overlay{
+    display: block;
+    padding: 0;
+    background: transparent;
+    backdrop-filter: none;
+}
+
+.member-profile-modal{
+    position: fixed;
+    width: min(430px, calc(100vw - 24px));
+    max-height: min(600px, calc(100vh - 24px));
+    border-radius: 20px;
+    box-shadow: 0 16px 48px rgba(12, 27, 55, 0.24);
+}
+
+.member-profile-modal-close{
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    font-size: 20px;
+}
+
+.member-profile-loading,
+.member-profile-error{
+    padding: 58px 24px;
+}
+
+.member-profile-content{
+    padding: 18px;
+}
+
+.member-profile-heading{
+    /* [프로필제목-1] 작은 팝오버 라벨처럼 가볍고 단정하게 표시한다. */
+    margin: 0 0 10px 3px;
+    color: #4d5d76;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.member-profile-card{
+    border-radius: 17px;
+}
+
+.member-profile-summary{
+    grid-template-columns: 76px minmax(0, 1fr) auto;
+    gap: 14px;
+    min-height: 112px;
+    margin: 0 18px;
+    padding: 18px 0;
+}
+
+/* [프레임색상통일-2] 팝업도 단순한 2색 그라데이션 대신 공통 6색 금·은·동 프레임을 사용한다. */
+.member-profile-avatar-frame{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 76px;
+    height: 76px;
+    padding: 3px;
+    border-radius: 50%;
+    background: transparent;
+}
+
+.member-profile-avatar-frame.rank-first{
+    background: var(--rank-frame-first-bg);
+    box-shadow: var(--rank-frame-first-shadow);
+}
+
+.member-profile-avatar-frame.rank-second{
+    background: var(--rank-frame-second-bg);
+    box-shadow: var(--rank-frame-second-shadow);
+}
+
+.member-profile-avatar-frame.rank-third{
+    background: var(--rank-frame-third-bg);
+    box-shadow: var(--rank-frame-third-shadow);
+}
+
+.member-profile-avatar{
+    width: 70px;
+    height: 70px;
+    border-width: 3px;
+}
+
+.member-profile-identity h3{
+    margin-bottom: 4px;
+    font-size: 20px;
+}
+
+.member-profile-identity p{
+    font-size: 12px;
+}
+
+.member-profile-actions{
+    gap: 7px;
+}
+
+.member-profile-badge{
+    /* [프로필배지위치-1] 닉네임 글자의 윗선과 USER·RANKER 배지의 윗선을 맞춘다. */
+    transform: translateY(-11px);
+    padding: 5px 8px;
+    font-size: 9px;
+}
+
+.member-profile-edit-link{
+    padding: 7px 10px;
+    border-radius: 9px;
+    font-size: 11px;
+}
+
+/* [팔로우토글-7] 기본은 파란 팔로우 버튼, 연결된 상태는 연한 배경의 팔로잉 버튼으로 구분한다. */
+.member-profile-follow-toggle{
+    min-width: 68px;
+    padding: 7px 11px;
+    border: 1px solid #5281fb;
+    border-radius: 9px;
+    background: #5281fb;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.member-profile-follow-toggle:hover,
+.member-profile-follow-toggle:focus-visible{
+    border-color: #3f6fe0;
+    background: #3f6fe0;
+    outline: none;
+}
+
+.member-profile-follow-toggle.is-following{
+    border-color: #b9caff;
+    background: #eef3ff;
+    color: #315fcf;
+}
+
+.member-profile-follow-toggle:disabled{
+    cursor: wait;
+    opacity: .62;
+}
+
+html[data-theme="dark"] .member-profile-follow-toggle.is-following{
+    border-color: #506ba8;
+    background: #273755;
+    color: #b9ccff;
+}
+
+.member-profile-stats{
+    flex-wrap: nowrap;
+    gap: 10px;
+    padding: 18px 14px 20px;
+}
+
+.member-profile-stat{
+    flex: 0 0 76px;
+    width: 76px;
+    height: 76px;
+    padding: 6px;
+}
+
+.member-profile-stats span{
+    font-size: 10px;
+}
+
+.member-profile-stats strong{
+    font-size: 16px;
+}
+
+.member-profile-panel{
+    min-height: 110px;
+    max-height: 220px;
+    margin: 0 18px;
+    padding: 8px 0 16px;
+}
+
+.member-profile-empty{
+    padding: 42px 12px;
+}
+
+@media (max-width: 460px){
+    .member-profile-modal{
+        width: min(370px, calc(100vw - 16px));
+        max-height: calc(100vh - 16px);
+        border-radius: 18px;
+    }
+
+    .member-profile-content{
+        padding: 14px;
+    }
+
+    .member-profile-summary{
+        grid-template-columns: 64px minmax(0, 1fr);
+        gap: 10px;
+        margin-inline: 14px;
+        padding-block: 15px;
+    }
+
+    .member-profile-avatar{
+        width: 58px;
+        height: 58px;
+    }
+
+    .member-profile-avatar-frame{
+        width: 64px;
+        height: 64px;
+    }
+
+    .member-profile-actions{
+        grid-column: 2;
+        flex-direction: row;
+        justify-self: start;
+        margin-top: -5px;
+    }
+
+    .member-profile-badge{
+        /* [프로필배지위치-2] 좁은 화면에서는 다른 줄에 배치되므로 추가 이동을 해제한다. */
+        transform: none;
+    }
+
+    .member-profile-stats{
+        flex-wrap: wrap;
+        gap: 9px 18px;
+        padding: 16px 12px 18px;
+    }
+
+    .member-profile-stat{
+        flex-basis: 74px;
+        width: 74px;
+        height: 74px;
+    }
+}
+
+/* =========================================================
+   [프로필토스UI-1] 장식적인 원형 지표를 걷어낸 간결한 가로형 프로필 카드
+   ========================================================= */
+.member-profile-modal{
+    width: min(410px, calc(100vw - 24px));
+    border: 1px solid #e5e8ee;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 18px 48px rgba(25, 39, 70, .18);
+}
+
+.member-profile-content{
+    padding: 18px;
+}
+
+.member-profile-heading{
+    margin: 0 0 12px 2px;
+    color: #4e5968;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.member-profile-card{
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.member-profile-summary{
+    grid-template-columns: 76px minmax(0, 1fr) auto;
+    gap: 14px;
+    min-height: 0;
+    margin: 0;
+    padding: 10px 2px 20px;
+    border-bottom: 1px solid #edf0f3;
+    background: transparent;
+}
+
+.member-profile-identity h3{
+    margin-bottom: 3px;
+    color: #191f28;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.member-profile-identity p{
+    color: #8b95a1;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.member-profile-actions{
+    align-self: center;
+    gap: 8px;
+}
+
+.member-profile-badge{
+    transform: none;
+}
+
+.member-profile-follow-toggle{
+    min-width: 72px;
+    border: 0;
+    border-radius: 10px;
+    background: #3182f6;
+}
+
+.member-profile-follow-toggle:hover,
+.member-profile-follow-toggle:focus-visible{
+    border: 0;
+    background: #1b64da;
+}
+
+.member-profile-follow-toggle.is-following{
+    border: 0;
+    background: #eef4ff;
+    color: #3182f6;
+}
+
+.member-profile-stats{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 16px 0 0;
+}
+
+.member-profile-stat{
+    flex: none;
+    flex-direction: row;
+    justify-content: space-between;
+    width: auto;
+    height: auto;
+    min-height: 48px;
+    padding: 13px 15px;
+    border: 0;
+    border-radius: 12px;
+    background: #f4f6f8;
+    color: #4e5968;
+}
+
+.member-profile-stats span{
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.member-profile-stats strong{
+    color: #191f28;
+    font-size: 14px;
+}
+
+html[data-theme="dark"] .member-profile-modal{
+    border-color: #344057;
+    background: #182235;
+    color: #f2f5fb;
+}
+
+html[data-theme="dark"] .member-profile-card,
+html[data-theme="dark"] .member-profile-summary{
+    border-color: #344057;
+    background: transparent;
+}
+
+html[data-theme="dark"] .member-profile-heading,
+html[data-theme="dark"] .member-profile-identity h3{
+    color: #f2f5fb;
+}
+
+html[data-theme="dark"] .member-profile-identity p{
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .member-profile-stat{
+    border: 0;
+    background: #222e43;
+    color: #aebbd0;
+}
+
+html[data-theme="dark"] .member-profile-stats strong{
+    color: #f2f5fb;
+}
+
+@media (max-width: 460px){
+    .member-profile-summary{
+        grid-template-columns: 64px minmax(0, 1fr);
+    }
+
+    .member-profile-actions{
+        grid-column: 1 / -1;
+        flex-direction: row;
+        justify-content: space-between;
+        justify-self: stretch;
+        margin-top: 2px;
+    }
+
+    .member-profile-stats{
+        grid-template-columns: 1fr;
+        gap: 7px;
+        padding-inline: 0;
+    }
 }

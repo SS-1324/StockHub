@@ -37,7 +37,13 @@
                                 <span class="ranking-number" aria-hidden="true">${ranking.rankPosition}</span>
                             </span>
 
-                            <span class="ranking-avatar-frame">
+                            <%-- [프로필연결-3] 이미지나 이름 클릭은 아코디언 대신 공통 프로필 모달을 연다. --%>
+                            <%-- [프로필순위-1] 이 프로필을 어느 랭킹 영역에서 눌렀는지 AJAX에 전달한다. --%>
+                            <span class="ranking-avatar-frame"
+                                  data-user-profile="${ranking.memberId}"
+                                  data-profile-rank-type="${profitPrimary ? 'profit' : 'returnRate'}"
+                                  role="button"
+                                  tabindex="0">
                                 <c:choose>
                                     <c:when test="${not empty ranking.profile}">
                                         <img class="ranking-avatar"
@@ -53,7 +59,11 @@
                                 </c:choose>
                             </span>
 
-                            <span class="ranking-member">
+                            <span class="ranking-member"
+                                  data-user-profile="${ranking.memberId}"
+                                  data-profile-rank-type="${profitPrimary ? 'profit' : 'returnRate'}"
+                                  role="button"
+                                  tabindex="0">
                                 <strong>
                                     <c:choose>
                                         <c:when test="${not empty ranking.nickname}">

@@ -16,6 +16,7 @@
 <c:url var="defaultProfileUrl" value="/images/common_member.png" />
 <c:url var="commonCssUrl" value="/css/common.css" />
 <c:url var="headerJsUrl" value="/js/header.js" />
+<c:url var="memberProfileApiUrl" value="/member/profile/" />
 <c:set var="requestUri" value="${pageContext.request.requestURI}" />
 
 <%-- 커뮤니티용 주소 --%>
@@ -58,12 +59,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap"
           rel="stylesheet">
 
-    <link rel="stylesheet" href="${commonCssUrl}?v=16">
+    <link rel="stylesheet" href="${commonCssUrl}?v=29">
     <%-- 현재 화면에서 요청한 전용 CSS를 head 안에서 불러옴 --%>
     <c:if test="${not empty requestScope.pageCssUrl}">
         <link rel="stylesheet" href="${requestScope.pageCssUrl}">
     </c:if>
-    <script src="${headerJsUrl}?v=6" defer></script>
+    <script src="${headerJsUrl}?v=17" defer></script>
 </head>
 <body>
 <%-- 로고, 페이지 이동 메뉴, 회원 메뉴를 표시하는 공통 헤더 --%>
@@ -197,6 +198,68 @@
         </div>
     </div>
 </header>
+
+<%-- [프로필모달-1] 커뮤니티와 랭킹이 함께 쓰며, 실제 데이터는 클릭할 때 API로 채운다. --%>
+<div id="member-profile-modal"
+     class="member-profile-modal-overlay"
+     data-profile-api="${memberProfileApiUrl}"
+     data-context-path="${pageContext.request.contextPath}"
+     data-default-profile="${defaultProfileUrl}"
+     hidden>
+    <section class="member-profile-modal"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="member-profile-heading">
+        <button type="button"
+                class="member-profile-modal-close"
+                data-profile-modal-close
+                aria-label="프로필 창 닫기">×</button>
+
+        <p class="member-profile-loading" data-profile-loading>프로필을 불러오는 중입니다.</p>
+        <p class="member-profile-error" data-profile-error hidden></p>
+
+        <div class="member-profile-content" data-profile-content hidden>
+            <h2 id="member-profile-heading"
+                class="member-profile-heading"
+                data-profile-heading>회원 정보</h2>
+
+            <div class="member-profile-card">
+                <header class="member-profile-summary">
+                    <%-- [프로필랭커프레임-1] JS가 순위에 따라 금·은·동 클래스를 이 프레임에 붙인다. --%>
+                    <span class="member-profile-avatar-frame" data-profile-avatar-frame>
+                        <img class="member-profile-avatar"
+                             data-profile-avatar
+                             src="${defaultProfileUrl}"
+                             alt="프로필 이미지">
+                    </span>
+                    <div class="member-profile-identity">
+                        <h3 data-profile-nickname></h3>
+                        <p data-profile-member-id></p>
+                    </div>
+                    <div class="member-profile-actions">
+                        <span class="member-profile-badge" data-profile-badge>USER</span>
+                        <%-- [팔로우토글-1] 본인이 아닌 로그인 회원의 프로필에서만 JS가 버튼을 표시한다. --%>
+                        <button type="button"
+                                class="member-profile-follow-toggle"
+                                data-profile-follow-toggle
+                                aria-pressed="false"
+                                hidden>팔로우</button>
+                    </div>
+                </header>
+
+                <%-- [프로필간소화-1] 본인·타인 모두 동일하게 팔로워·팔로잉 숫자만 표시한다. --%>
+                <nav class="member-profile-stats" aria-label="회원 활동 정보">
+                    <div class="member-profile-stat">
+                        <span>팔로워</span><strong data-profile-follower-count>0</strong>
+                    </div>
+                    <div class="member-profile-stat">
+                        <span>팔로잉</span><strong data-profile-following-count>0</strong>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </section>
+</div>
 
 <%-- 각 JSP의 본문이 들어가는 영역 --%>
 <main class="container">

@@ -571,8 +571,8 @@ function initCharCounters(container){
 
 initCharCounters(document);
 
-/* 목록 카드 - 5줄 넘게 넘치는 본문에만 "더보기" 버튼을 동적으로 붙인다.
- * 실제로 몇 줄인지는 화면 폭/폰트에 따라 달라서 서버가 미리 알 수 없으므로, 렌더링된 뒤 scrollHeight로 판단한다.
+/* 목록 카드 - 고정된 미리보기 줄 수를 넘는 본문에만 "더보기" 버튼을 동적으로 붙인다.
+ * 목록 안에서 본문을 펼치면 카드 높이와 footer 위치가 달라지므로, 더보기는 상세 화면으로 이동시킨다.
  */
 function enhanceCardSnippets(container){
     container.querySelectorAll(".board-card-snippet").forEach(function(snippet){
@@ -580,6 +580,18 @@ function enhanceCardSnippets(container){
             return;
         }
         snippet.dataset.enhanced = "true";
+
+        const card = snippet.closest(".board-card");
+        if (card && card.classList.contains("has-no-image")) {
+            /* [카드본문-1]
+             * 이미지 없는 글은 빈 줄이 3줄 제한을 차지하지 않게 정리한다.
+             * 따라서 실제 내용 기준으로 첫 3줄이 모두 보이고, 넘칠 때만 더보기를 만든다.
+             */
+            snippet.textContent = snippet.textContent
+                .replace(/\r\n?/g, "\n")
+                .replace(/\n[\t ]*\n+/g, "\n")
+                .trim();
+        }
 
         if (snippet.scrollHeight <= snippet.clientHeight + 1) {
             return;
@@ -590,11 +602,10 @@ function enhanceCardSnippets(container){
         moreBtn.className = "board-card-more-btn";
         moreBtn.textContent = "더보기";
         moreBtn.addEventListener("click", function(ev){
-            // 카드 전체가 <a>라서 클릭이 그대로 새면 상세 페이지로 이동해버리므로 막는다
+            // 카드 비율은 그대로 유지하고 전체 내용을 확인할 수 있는 상세 화면으로 이동한다.
             ev.preventDefault();
             ev.stopPropagation();
-            const expanded = snippet.classList.toggle("expanded");
-            moreBtn.textContent = expanded ? "접기" : "더보기";
+            window.location.href = card.href;
         });
         snippet.insertAdjacentElement("afterend", moreBtn);
     });
@@ -689,3 +700,46 @@ function initInfiniteFeed(){
 }
 
 initInfiniteFeed();
+
+/*
+ * [게시글메뉴-3] 상세 게시글의 ⋯ 버튼만 수정·삭제 메뉴를 열고 닫는다.
+ * 메뉴 밖 클릭 또는 Esc 입력 시 닫아서 작은 메뉴가 본문 위에 계속 남지 않게 한다.
+ */
+const boardPostMenus = document.querySelectorAll("[data-board-post-menu]");
+
+function closeBoardPostMenus(exceptMenu){
+    boardPostMenus.forEach(function(menu){
+        if (menu === exceptMenu) return;
+        const toggle = menu.querySelector("[data-board-post-menu-toggle]");
+        const panel = menu.querySelector("[data-board-post-menu-panel]");
+        if (toggle) toggle.setAttribute("aria-expanded", "false");
+        if (panel) panel.hidden = true;
+    });
+}
+
+boardPostMenus.forEach(function(menu){
+    const toggle = menu.querySelector("[data-board-post-menu-toggle]");
+    const panel = menu.querySelector("[data-board-post-menu-panel]");
+    if (!toggle || !panel) return;
+
+    toggle.addEventListener("click", function(event){
+        event.stopPropagation();
+        const willOpen = panel.hidden;
+        closeBoardPostMenus(menu);
+        panel.hidden = !willOpen;
+        toggle.setAttribute("aria-expanded", String(willOpen));
+    });
+
+    panel.addEventListener("click", function(event){
+        event.stopPropagation();
+    });
+});
+
+document.addEventListener("click", function(){
+    closeBoardPostMenus();
+});
+
+document.addEventListener("keydown", function(event){
+    if (event.key !== "Escape") return;
+    closeBoardPostMenus();
+});

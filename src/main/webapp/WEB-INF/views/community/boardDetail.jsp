@@ -13,7 +13,7 @@
     v 값은 CSS 내용을 바꾼 뒤 브라우저가 예전 파일을 재사용하지 않고 새로 받게 하는 캐시 갱신 번호다.
 --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css?v=18">
+      href="${pageContext.request.contextPath}/css/board.css?v=29">
 
 <c:if test="${not empty error}">
     <p class="alert alert-error">${error}</p>
@@ -25,15 +25,6 @@
     본인 소유이거나(loginMemberId가 비어있지 않고 일치), ADMIN 권한이 있는 경우에만 노출.
 --%>
 <c:set var="isAdmin" value="${not empty sessionScope.loginMember and fn:toUpperCase(sessionScope.loginMember.memberRole) eq 'ADMIN'}" />
-<c:if test="${(not empty loginMemberId and loginMemberId == board.memberId) or isAdmin}">
-    <div class="board-actions">
-        <a class="btn btn-outline" href="${communityUrl}/edit/${board.boardId}">수정</a>
-        <form action="${communityUrl}/delete/${board.boardId}" method="post"
-              onsubmit="return confirm('게시글을 삭제하시겠습니까?');">
-            <button type="submit" class="btn btn-danger">삭제</button>
-        </form>
-    </div>
-</c:if>
 
 <%--
     게시글 본문과 댓글은 서로 별개의 글이 아니라 하나의 대화 흐름이다.
@@ -42,6 +33,27 @@
 <div class="board-thread-card">
 
 <div class="board-detail-card">
+
+<%--
+    [게시글메뉴-1] 수정·삭제는 해당 게시글에 속한 기능이므로 카드 내부 오른쪽 상단에 둔다.
+    기존과 동일하게 작성자 본인 또는 관리자에게만 메뉴가 노출된다.
+--%>
+<c:if test="${(not empty loginMemberId and loginMemberId == board.memberId) or isAdmin}">
+    <div class="board-post-menu" data-board-post-menu>
+        <button type="button"
+                class="board-post-menu-toggle"
+                data-board-post-menu-toggle
+                aria-label="게시글 관리 메뉴"
+                aria-expanded="false">⋯</button>
+        <div class="board-post-menu-panel" data-board-post-menu-panel hidden>
+            <a class="board-post-menu-item" href="${communityUrl}/edit/${board.boardId}">수정</a>
+            <form action="${communityUrl}/delete/${board.boardId}" method="post"
+                  onsubmit="return confirm('게시글을 삭제하시겠습니까?');">
+                <button type="submit" class="board-post-menu-item is-danger">삭제</button>
+            </form>
+        </div>
+    </div>
+</c:if>
 
 <%-- 제목은 선택 입력: 있으면 제목 -> 이미지 -> 내용, 없으면 이미지 -> 내용 순서로만 노출 --%>
 <c:if test="${not empty board.title}">
@@ -66,7 +78,11 @@
                value="rank-third" />
     </c:when>
 </c:choose>
-<div class="board-header-meta ${boardRankClass}">
+<div class="board-header-meta ${boardRankClass}"
+     data-user-profile="${board.memberId}"
+     role="button"
+     tabindex="0"
+     aria-label="작성자 프로필 보기">
 
     <c:choose>
 
@@ -211,8 +227,12 @@
             <div id="comment-${c.commentId}"
                  class="comment-item ${not empty c.parentCommentId ? 'comment-item-reply' : ''}"
                  data-comment-id="${c.commentId}">
-                <%-- 닉네임 클릭으로 프로필 열람하는 기능은 아직 미구현 - data-member-id만 심어두고 링크는 걸지 않음 --%>
-                <div class="comment-author" data-member-id="${c.memberId}">
+                <%-- [프로필연결-2] 댓글·대댓글 작성자도 같은 프로필 모달을 사용한다. --%>
+                <div class="comment-author"
+                     data-member-id="${c.memberId}"
+                     data-user-profile="${c.memberId}"
+                     role="button"
+                     tabindex="0">
                     <c:choose>
                         <c:when test="${not empty c.profile}">
                             <img class="comment-avatar" src="${c.profile}" alt="${c.nickname}">
@@ -274,5 +294,5 @@
 
 </div>
 
-<script src="/js/board.js"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=4"></script>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />
