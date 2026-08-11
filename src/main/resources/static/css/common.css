@@ -378,6 +378,17 @@ html[data-theme="dark"] .header-profile-image{
     opacity: 1;
 }
 
+/* 랭킹 프레임과 내부 프로필 이미지가 항상 같은 원형을 유지한다. */
+.header-profile-rank-frame{
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 50%;
+    line-height: 0;
+}
+
 /*
  * [프레임색상통일-1] 헤더·내 정보·프로필 팝업이 같은 금·은·동 장식값을 공유한다.
  * 한 곳의 값을 바꾸면 모든 프로필 프레임이 동시에 바뀌므로 화면별 색상 차이가 다시 생기지 않는다.

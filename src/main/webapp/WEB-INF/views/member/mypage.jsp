@@ -112,16 +112,12 @@
         <p class="form-tip">한글·영문·숫자로 2자 이상 10자 이하로 입력해주세요. 특수문자는 사용할 수 없습니다.</p>
     </div>
 
-    <%-- 이메일 형식 오류를 팝업 대신 입력칸 아래에 바로 표시 -->
+    <%-- 이메일은 가입 시 등록한 값을 확인용으로만 표시 --%>
     <div class="form-row">
         <label for="email">이메일</label>
-        <input id="email" name="email" type="text"
-               inputmode="email" maxlength="100" autocomplete="email"
-               value="<c:out value="${member.email}"/>" required>
-        <p id="profile-email-result" class="form-tip"></p>
-        <p class="form-tip">
-            영문 소문자·숫자와 일부 기호를 사용할 수 있으며 .com, .co.kr, .net으로 끝나야 합니다.
-        </p>
+        <input id="email" class="input-readonly" type="text"
+               value="<c:out value="${member.email}"/>" readonly>
+        <p class="form-tip">가입 시 등록한 이메일이며 프로필에서는 변경할 수 없습니다.</p>
     </div>
 
     <%-- 새 비밀번호 입력 영역 --%>
@@ -197,7 +193,7 @@
 </div>
 
 <%-- 프로필 이미지 미리보기와 입력 검사를 불러옴 --%>
-<script src="${pageContext.request.contextPath}/js/profile.js?v=7"></script>
+<script src="${pageContext.request.contextPath}/js/profile.js?v=8"></script>
 
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

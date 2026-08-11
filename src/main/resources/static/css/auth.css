@@ -805,6 +805,44 @@ html[data-theme="dark"] .auth-content{
             var(--auth-panel-end) 100%);
 }
 
+/* 다크 모드 데스크톱에서도 이미지와 폼의 경계 색을 완전히 동일하게 연결 */
+@media (min-width: 1041px){
+    html[data-theme="dark"] .auth-visual::after{
+        right: 0;
+        width: clamp(110px, 10vw, 190px);
+        background: linear-gradient(90deg,
+                transparent 0%,
+                var(--auth-panel-start) 88%,
+                var(--auth-panel-start) 100%);
+    }
+
+    html[data-theme="dark"] .auth-content{
+        background: linear-gradient(90deg,
+                var(--auth-panel-start) 0%,
+                var(--auth-panel-start) 12%,
+                var(--auth-panel-end) 100%);
+    }
+}
+
+/* 작은 화면에서는 이미지 아래쪽과 폼 위쪽을 같은 색으로 연결 */
+@media (max-width: 1040px){
+    html[data-theme="dark"] .auth-visual::after{
+        bottom: 0;
+        height: 96px;
+        background: linear-gradient(180deg,
+                transparent 0%,
+                var(--auth-panel-start) 88%,
+                var(--auth-panel-start) 100%);
+    }
+
+    html[data-theme="dark"] .auth-content{
+        background: linear-gradient(180deg,
+                var(--auth-panel-start) 0%,
+                var(--auth-panel-start) 12%,
+                var(--auth-panel-end) 100%);
+    }
+}
+
 html[data-theme="dark"] .auth-content::before{
     display: none;
 }

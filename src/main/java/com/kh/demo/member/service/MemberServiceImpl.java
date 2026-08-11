@@ -309,20 +309,6 @@ public class MemberServiceImpl implements MemberService {
             );
         }
 
-        // 이메일 형식과 다른 회원의 중복 이메일을 검사
-        String email = updateDto.getEmail() == null
-                ? ""
-                : updateDto.getEmail().trim().toLowerCase(Locale.ROOT);
-        if (!EMAIL_PATTERN.matcher(email).matches()) {
-            throw new IllegalStateException(
-                    "이메일 형식을 다시 확인해주세요."
-            );
-        }
-        if (!email.equalsIgnoreCase(member.getEmail())
-                && memberMapper.countByEmail(email) > 0) {
-            throw new IllegalStateException("이미 사용 중인 이메일입니다.");
-        }
-
         // 닉네임의 공백과 중복을 검사
         String nickname = updateDto.getNickname() == null
                 ? ""
@@ -364,7 +350,6 @@ public class MemberServiceImpl implements MemberService {
         // 공개 여부와 툴팁 값이 없으면 기본값을 사용
         member.setMemberName(memberName);
         member.setNickname(nickname);
-        member.setEmail(email);
         member.setStockPublic(Boolean.TRUE.equals(updateDto.getStockPublic()));
         member.setWordTooltip(Boolean.TRUE.equals(updateDto.getWordTooltip()));
 

@@ -393,21 +393,11 @@ html[data-theme="dark"]{
 .board-sidebar{
     position: sticky;
     top: 88px;
+    align-self: start;
     display: grid;
-    gap: 16px;
+    gap: 12px;
     min-width: 0;
-    max-height: calc(100vh - 108px);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
-    scrollbar-color: var(--board-border-strong) transparent;
-}
-
-.board-sidebar::-webkit-scrollbar{ width: 6px; }
-.board-sidebar::-webkit-scrollbar-track{ background: transparent; }
-.board-sidebar::-webkit-scrollbar-thumb{
-    border-radius: 999px;
-    background: var(--board-border-strong);
+    height: fit-content;
 }
 
 .board-widget,
@@ -420,7 +410,7 @@ html[data-theme="dark"]{
 }
 
 .board-widget{
-    padding: 17px 16px 10px;
+    padding: 14px 14px 6px;
 }
 
 .board-widget-heading{
@@ -462,11 +452,19 @@ html[data-theme="dark"]{
     border-top: 1px solid var(--board-divider);
 }
 
+.board-widget-empty{
+    padding: 18px 2px 20px;
+    color: var(--board-muted);
+    font-size: 11px;
+    line-height: 1.5;
+    text-align: center;
+}
+
 .board-widget-list a{
     display: flex;
     align-items: center;
     gap: 11px;
-    padding: 11px 2px;
+    padding: 8px 2px;
     color: var(--board-text);
     text-decoration: none;
 }
@@ -507,11 +505,11 @@ html[data-theme="dark"]{
 .board-ad-widget{
     position: relative;
     display: flex;
-    min-height: 190px;
+    min-height: 140px;
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-end;
-    padding: 20px;
+    padding: 16px;
     background:
         radial-gradient(circle at 88% 18%, rgba(255,255,255,.38), transparent 26%),
         linear-gradient(145deg, #526ff5 0%, #7868e6 100%);
@@ -798,8 +796,6 @@ html[data-theme="dark"] .board-widget-label.is-hot{
     .board-sidebar{
         position: static;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        max-height: none;
-        overflow-y: visible;
     }
 
     .board-ad-widget{

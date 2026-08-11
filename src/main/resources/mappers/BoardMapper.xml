@@ -64,7 +64,8 @@
 
     <!-- [커뮤니티위젯-3]
          HOT 글은 반응 의도가 강한 좋아요(5점)·댓글(3점)에 높은 가중치를 두고
-         조회수도 보조 점수로 합산한다. 숨김 글과 폐지 카테고리는 공통으로 제외한다. -->
+         조회수도 보조 점수로 합산한다. 최근 24시간의 공개 게시글만 대상으로 한다.
+          -->
     <select id="selectHotBoards" resultType="com.kh.demo.community.dto.BoardDto">
         SELECT b.board_id,
                b.category,
@@ -83,6 +84,7 @@
         ) c ON c.board_id = b.board_id
         WHERE b.is_hidden = FALSE
           AND b.category &lt;&gt; 'trade'
+          AND b.create_at &gt;= DATE_SUB(NOW(), INTERVAL 24 HOUR)
         ORDER BY (
                      COALESCE(b.like_count, 0) * 5
                    + COALESCE(c.comment_count, 0) * 3
@@ -92,7 +94,7 @@
         LIMIT #{size}
     </select>
 
-    <!-- 인기글은 의미가 명확하도록 누적 조회수만으로 정렬한다. -->
+    <!-- 인기글은 최근 24시간에 작성된 공개 게시글을 누적 조회수로 정렬한다. -->
     <select id="selectPopularBoards" resultType="com.kh.demo.community.dto.BoardDto">
         SELECT b.board_id,
                b.category,
@@ -106,6 +108,7 @@
         FROM board b
         WHERE b.is_hidden = FALSE
           AND b.category &lt;&gt; 'trade'
+          AND b.create_at &gt;= DATE_SUB(NOW(), INTERVAL 24 HOUR)
         ORDER BY b.count DESC, b.create_at DESC
         LIMIT #{size}
     </select>

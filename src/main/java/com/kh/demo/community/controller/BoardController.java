@@ -30,7 +30,7 @@ import java.util.NoSuchElementException;
 public class BoardController {
 
     private static final int PAGE_SIZE = 10;
-    private static final int SIDEBAR_BOARD_SIZE = 5;
+    private static final int SIDEBAR_BOARD_SIZE = 3;
 
     @Autowired
     private BoardService boardService;
@@ -57,7 +57,7 @@ public class BoardController {
         model.addAttribute("totalCount", totalCount);
         model.addAttribute("loginMemberId", loginMemberId);
         model.addAttribute("allowedCategories", boardService.getAllowedCategories());
-        /* [커뮤니티위젯-2] 필터된 본문과 별개로 전체 공개 게시글의 HOT·조회수 순위를 제공한다. */
+        /* [커뮤니티위젯-2] 필터된 본문과 별개로 최근 24시간 공개 게시글의 HOT·조회수 순위를 제공한다. */
         model.addAttribute("hotBoards", boardService.getHotBoards(SIDEBAR_BOARD_SIZE));
         model.addAttribute("popularBoards", boardService.getPopularBoards(SIDEBAR_BOARD_SIZE));
         return "community/boardList";

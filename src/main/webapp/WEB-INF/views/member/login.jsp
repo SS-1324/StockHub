@@ -33,7 +33,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap"
           rel="stylesheet">
     <link rel="stylesheet" href="${commonCssUrl}?v=30">
-    <link rel="stylesheet" href="${authCssUrl}?v=8">
+    <link rel="stylesheet" href="${authCssUrl}?v=9">
     <script src="${headerJsUrl}?v=17" defer></script>
 </head>
 <body class="auth-page auth-page-login">
@@ -46,7 +46,7 @@
     <%-- 세 인증 화면에서 공통으로 사용하는 브랜드 이미지 영역 --%>
     <section class="auth-visual">
         <img class="auth-visual-image auth-visual-image-light"
-             src="${authImageUrl}?v=3" alt="">
+             src="${authImageUrl}?v=4" alt="">
         <img class="auth-visual-image auth-visual-image-dark"
              src="${authImageDarkUrl}?v=1" alt="">
         <p class="auth-ai-note">이 이미지는 ai로 제작한 이미지입니다.</p>
