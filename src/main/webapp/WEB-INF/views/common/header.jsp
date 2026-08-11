@@ -17,7 +17,13 @@
 <c:url var="commonCssUrl" value="/css/common.css" />
 <c:url var="headerJsUrl" value="/js/header.js" />
 <c:url var="memberProfileApiUrl" value="/member/profile/" />
-<c:set var="requestUri" value="${pageContext.request.requestURI}" />
+<%-- JSP 내부 forward 경로가 아니라 브라우저가 요청한 실제 주소를 사용 --%>
+<c:set var="forwardRequestUri"
+       value="${requestScope['jakarta.servlet.forward.request_uri']}" />
+<c:set var="requestUri"
+       value="${not empty forwardRequestUri
+                ? forwardRequestUri
+                : pageContext.request.requestURI}" />
 
 <%-- 커뮤니티용 주소 --%>
 <c:url var="communityUrl" value="/community" scope="request" />
@@ -68,12 +74,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap"
           rel="stylesheet">
 
-    <link rel="stylesheet" href="${commonCssUrl}?v=30">
+    <link rel="stylesheet" href="${commonCssUrl}?v=37">
     <%-- 현재 화면에서 요청한 전용 CSS를 head 안에서 불러옴 --%>
     <c:if test="${not empty requestScope.pageCssUrl}">
         <link rel="stylesheet" href="${requestScope.pageCssUrl}">
     </c:if>
-    <script src="${headerJsUrl}?v=17" defer></script>
+    <script src="${headerJsUrl}?v=22" defer></script>
 </head>
 <body>
 <%-- 로고, 페이지 이동 메뉴, 회원 메뉴를 표시하는 공통 헤더 --%>
@@ -256,13 +262,25 @@
                     </div>
                 </header>
 
-                <%-- [프로필간소화-1] 본인·타인 모두 동일하게 팔로워·팔로잉 숫자만 표시한다. --%>
-                <nav class="member-profile-stats" aria-label="회원 활동 정보">
+                <%-- [프로필공개정보-4]
+                     작성글·팔로워·팔로잉은 항상 표시하고, 투자정보 두 행만 공개 설정에 따라 제어한다. --%>
+                <nav class="member-profile-stats" data-profile-public-stats
+                     aria-label="회원 활동 및 투자 정보" hidden>
+                    <a class="member-profile-stat member-profile-posts-link"
+                       data-profile-posts-link>
+                        <span>작성글</span><strong data-profile-post-count>0</strong>
+                    </a>
                     <div class="member-profile-stat">
                         <span>팔로워</span><strong data-profile-follower-count>0</strong>
                     </div>
                     <div class="member-profile-stat">
                         <span>팔로잉</span><strong data-profile-following-count>0</strong>
+                    </div>
+                    <div class="member-profile-stat is-investment" data-profile-investment-stat>
+                        <span>수익률</span><strong data-profile-return-rate>0%</strong>
+                    </div>
+                    <div class="member-profile-stat is-investment" data-profile-investment-stat>
+                        <span>수익금</span><strong data-profile-profit>0원</strong>
                     </div>
                 </nav>
             </div>
