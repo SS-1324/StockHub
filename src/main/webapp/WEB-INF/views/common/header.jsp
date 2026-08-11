@@ -17,7 +17,13 @@
 <c:url var="commonCssUrl" value="/css/common.css" />
 <c:url var="headerJsUrl" value="/js/header.js" />
 <c:url var="memberProfileApiUrl" value="/member/profile/" />
-<c:set var="requestUri" value="${pageContext.request.requestURI}" />
+<%-- JSP 내부 forward 경로가 아니라 브라우저가 요청한 실제 주소를 사용 --%>
+<c:set var="forwardRequestUri"
+       value="${requestScope['jakarta.servlet.forward.request_uri']}" />
+<c:set var="requestUri"
+       value="${not empty forwardRequestUri
+                ? forwardRequestUri
+                : pageContext.request.requestURI}" />
 
 <%-- 커뮤니티용 주소 --%>
 <c:url var="communityUrl" value="/community" scope="request" />
