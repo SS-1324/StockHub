@@ -499,6 +499,7 @@
     width: 42px;
     height: 42px;
     border-radius: 50%;
+    background: #f1f5f9;
     object-fit: cover;
 }
 
@@ -742,6 +743,14 @@ html[data-theme="dark"] .home-ranking-row:hover{
 html[data-theme="dark"] .home-community-image{
     border-color: #334155;
     background: #0d1117;
+}
+
+/* 투명한 기본 프로필 이미지 뒤에는 다크 모드에서도 밝은 배경을 유지 */
+html[data-theme="dark"] .home-community-author > img,
+html[data-theme="dark"] .home-ranking-avatar{
+    background: #f1f5f9;
+    filter: none;
+    opacity: 1;
 }
 
 /* 태블릿과 모바일 */

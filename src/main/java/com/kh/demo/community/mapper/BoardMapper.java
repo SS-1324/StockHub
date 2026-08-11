@@ -24,6 +24,12 @@ public interface BoardMapper {
             @Param("keywords") List<String> keywords
     );
 
+    // 커뮤니티 오른쪽 위젯: 좋아요·댓글·조회수를 합산한 참여도 순 게시글
+    List<BoardDto> selectHotBoards(@Param("size") int size);
+
+    // 커뮤니티 오른쪽 위젯: 누적 조회수가 높은 게시글
+    List<BoardDto> selectPopularBoards(@Param("size") int size);
+
     // 로그인 회원이 작성한 공개 게시글 목록
     List<BoardDto> selectBoardListByMemberId(
             @Param("memberId") String memberId
@@ -86,15 +92,4 @@ public interface BoardMapper {
             @Param("boardId") Long boardId
     );
 
-    // 같은 카테고리의 이전 게시글 조회
-    BoardDto selectPrevBoard(
-            @Param("boardId") Long boardId,
-            @Param("category") String category
-    );
-
-    // 같은 카테고리의 다음 게시글 조회
-    BoardDto selectNextBoard(
-            @Param("boardId") Long boardId,
-            @Param("category") String category
-    );
 }

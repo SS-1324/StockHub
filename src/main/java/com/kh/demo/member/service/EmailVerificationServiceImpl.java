@@ -13,11 +13,13 @@ import java.util.regex.Pattern;
 public class EmailVerificationServiceImpl
         implements EmailVerificationService {
 
-    // 이메일 앞부분은 소문자 또는 소문자·숫자 조합을 사용
+    // 이메일 아이디의 일반적인 기호와 .com·.co.kr·.net 도메인을 허용
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
-            "^(?=.{3,100}$)(?=[a-z0-9]{1,50}@)"
-                    + "(?=[^@]*[a-z])"
-                    + "[a-z0-9]{1,50}@[a-z]+(?:\\.com|\\.co\\.kr|\\.net)$"
+            "^(?=.{3,100}$)(?=[^@]{1,64}@)(?=[^@]*[a-z])"
+                    + "[a-z0-9]+(?:[._%+\\-][a-z0-9]+)*@"
+                    + "[a-z0-9]+(?:-[a-z0-9]+)*"
+                    + "(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)*"
+                    + "(?:\\.com|\\.net|\\.co\\.kr)$"
     );
 
     // 인증 코드를 안전하게 생성할 난수 도구

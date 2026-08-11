@@ -167,10 +167,14 @@ html[data-theme="dark"] .site-header{
     transition: background-color 0.18s ease, color 0.18s ease;
 }
 
-.main-nav-link:hover,
-.main-nav-link.is-active{
+.main-nav-link:hover{
     background: var(--header-blue-soft);
     color: var(--header-blue-dark);
+}
+
+.main-nav-link.is-active{
+    background: var(--header-blue-soft);
+    color: var(--header-blue);
 }
 
 /* 커뮤니티 및 용어사전 메뉴 감싸는 영역 */
@@ -367,8 +371,24 @@ html[data-theme="dark"] .theme-dark-icon{
     object-fit: cover;
 }
 
-<<<<<<< HEAD
-=======
+/* 투명한 기본 프로필은 다크 모드에서도 밝은 원 안에 선명하게 표시 */
+html[data-theme="dark"] .header-profile-image{
+    background: #f1f5f9;
+    filter: none;
+    opacity: 1;
+}
+
+/* 랭킹 프레임과 내부 프로필 이미지가 항상 같은 원형을 유지한다. */
+.header-profile-rank-frame{
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 50%;
+    line-height: 0;
+}
+
 /*
  * [프레임색상통일-1] 헤더·내 정보·프로필 팝업이 같은 금·은·동 장식값을 공유한다.
  * 한 곳의 값을 바꾸면 모든 프로필 프레임이 동시에 바뀌므로 화면별 색상 차이가 다시 생기지 않는다.
@@ -420,7 +440,8 @@ html[data-theme="dark"] .theme-dark-icon{
 .account-profile-rank-frame.rank-first,
 .account-profile-rank-frame.rank-second,
 .account-profile-rank-frame.rank-third{
-    padding: 4px;
+    /* [내정보프레임통일-1] 커뮤니티·랭킹·팝업 프레임과 같은 외곽 두께를 사용한다. */
+    padding: 3px;
 }
 
 .account-profile-rank-frame.rank-first{
@@ -444,7 +465,12 @@ html[data-theme="dark"] .theme-dark-icon{
 .account-profile-rank-frame.rank-first > .profile-preview-placeholder,
 .account-profile-rank-frame.rank-second > .profile-preview-placeholder,
 .account-profile-rank-frame.rank-third > .profile-preview-placeholder{
-    border-color: var(--header-bg);
+    /*
+     * [내정보프레임통일-2]
+     * --header-bg는 헤더 밖에서 값이 없어 검은 currentColor로 계산될 수 있다.
+     * 다른 금·은·동 프레임과 동일하게 2px 흰색 경계를 직접 지정한다.
+     */
+    border: 2px solid #ffffff;
 }
 
 .profile-preview-wrap.profile-edit-rank-frame{
@@ -458,7 +484,6 @@ html[data-theme="dark"] .theme-dark-icon{
     box-sizing: border-box;
 }
 
->>>>>>> origin/rize
 .header-profile-nickname{
     max-width: 110px;
     overflow: hidden;
@@ -1310,6 +1335,13 @@ select
     margin: 0 auto;
 }
 
+/* 회원 탈퇴 제목을 안내문과 같은 왼쪽 선에 맞춤 */
+.withdraw-card > .page-title{
+    max-width: none;
+    margin: 0 0 20px;
+    text-align: left;
+}
+
 /* 회원 탈퇴 경고 안내 영역 */
 .withdraw-warning{
     margin-bottom: 24px;
@@ -1971,6 +2003,17 @@ body.member-profile-modal-open{
     color: #9a6500;
 }
 
+/* [프로필권한배지-3] USER·RANKER와 구분되는 관리자 전용 배지 색상. */
+.member-profile-badge.is-admin{
+    background: #f1edff;
+    color: #6b4fd3;
+}
+
+html[data-theme="dark"] .member-profile-badge.is-admin{
+    background: #3a315d;
+    color: #c8b8ff;
+}
+
 .member-profile-edit-link{
     padding: 11px 18px;
     border: 1px solid #cbd8eb;
@@ -2372,6 +2415,8 @@ body.member-profile-modal-open{
     width: 70px;
     height: 70px;
     border-width: 3px;
+    /* [프로필원본유지-1] 투명 PNG 뒤로 금·은·동 그라데이션이 비치지 않게 한다. */
+    background: #ffffff;
 }
 
 .member-profile-identity h3{
@@ -2525,12 +2570,23 @@ html[data-theme="dark"] .member-profile-follow-toggle.is-following{
 /* =========================================================
    [프로필토스UI-1] 장식적인 원형 지표를 걷어낸 간결한 가로형 프로필 카드
    ========================================================= */
+.member-profile-modal-overlay{
+    /* [프로필위치-4] 전체 화면 fixed 레이어를 없애 팝업이 문서의 원래 위치에 남게 한다. */
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: 0;
+    pointer-events: none;
+}
+
 .member-profile-modal{
+    position: absolute;
     width: min(410px, calc(100vw - 24px));
     border: 1px solid #e5e8ee;
     border-radius: 20px;
     background: #ffffff;
     box-shadow: 0 18px 48px rgba(25, 39, 70, .18);
+    pointer-events: auto;
 }
 
 .member-profile-content{
@@ -2605,12 +2661,24 @@ html[data-theme="dark"] .member-profile-follow-toggle.is-following{
 
 .member-profile-stats{
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* [프로필공개정보-6] 활동 3개 + 투자 2개가 두 줄로 균형 있게 배치된다. */
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 8px;
     padding: 16px 0 0;
 }
 
+/*
+ * [프로필비공개표시-2]
+ * 아래의 display:grid가 HTML hidden 속성을 덮어쓰지 못하게 한다.
+ * 비공개 회원은 작성글·팔로워·팔로잉·수익률·수익금의 0 값을 전부 감추고
+ * member-profile-private-notice 안내 문구만 표시한다.
+ */
+.member-profile-stats[hidden]{
+    display: none !important;
+}
+
 .member-profile-stat{
+    grid-column: span 2;
     flex: none;
     flex-direction: row;
     justify-content: space-between;
@@ -2622,6 +2690,44 @@ html[data-theme="dark"] .member-profile-follow-toggle.is-following{
     border-radius: 12px;
     background: #f4f6f8;
     color: #4e5968;
+    text-decoration: none;
+}
+
+.member-profile-stat.is-investment{
+    /* [프로필투자수치-1] 수익률과 수익금을 각각 한 행 전체로 표시해 큰 금액도 자르지 않는다. */
+    grid-column: 1 / -1;
+}
+
+.member-profile-stat.is-investment span{
+    flex: 0 0 auto;
+}
+
+.member-profile-stat.is-investment strong{
+    overflow: visible;
+    white-space: nowrap;
+}
+
+.member-profile-posts-link{
+    cursor: pointer;
+}
+
+.member-profile-posts-link:hover,
+.member-profile-posts-link:focus-visible{
+    background: #e9efff;
+    color: #2167df;
+    outline: none;
+}
+
+.member-profile-private-notice{
+    margin: 16px 0 0;
+    padding: 20px 16px;
+    border-radius: 12px;
+    background: #f4f6f8;
+    color: #6b7684;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.5;
+    text-align: center;
 }
 
 .member-profile-stats span{
@@ -2661,8 +2767,30 @@ html[data-theme="dark"] .member-profile-stat{
     color: #aebbd0;
 }
 
+html[data-theme="dark"] .member-profile-posts-link:hover,
+html[data-theme="dark"] .member-profile-posts-link:focus-visible{
+    background: #293858;
+    color: #9bb7ff;
+}
+
+html[data-theme="dark"] .member-profile-private-notice{
+    background: #222e43;
+    color: #aebbd0;
+}
+
 html[data-theme="dark"] .member-profile-stats strong{
     color: #f2f5fb;
+}
+
+/* [프로필손익색상-2] 라이트·다크 모드 모두 상승은 빨강, 하락은 파랑을 유지한다. */
+.member-profile-stats strong.value-positive,
+html[data-theme="dark"] .member-profile-stats strong.value-positive{
+    color: #f04452;
+}
+
+.member-profile-stats strong.value-negative,
+html[data-theme="dark"] .member-profile-stats strong.value-negative{
+    color: #3182f6;
 }
 
 @media (max-width: 460px){
@@ -2682,5 +2810,10 @@ html[data-theme="dark"] .member-profile-stats strong{
         grid-template-columns: 1fr;
         gap: 7px;
         padding-inline: 0;
+    }
+
+    .member-profile-stat,
+    .member-profile-stat.is-investment{
+        grid-column: auto;
     }
 }

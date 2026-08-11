@@ -75,5 +75,5 @@
         document.getElementById('content').value = quill.getSemanticHTML();
     });
 </script>
-<script src="/js/board.js"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=5"></script>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

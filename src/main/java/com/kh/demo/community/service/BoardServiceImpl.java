@@ -216,6 +216,25 @@ public class BoardServiceImpl implements BoardService {
         );
     }
 
+    /* [커뮤니티위젯-1]
+     * HOT과 인기글은 현재 피드 10개를 브라우저에서 다시 정렬하지 않고
+     * DB의 최근 24시간 공개 게시글을 기준으로 각각의 정렬 규칙을 적용한다.
+     */
+    @Override
+    public List<BoardDto> getHotBoards(int size) {
+        return boardMapper.selectHotBoards(normalizeWidgetSize(size));
+    }
+
+    @Override
+    public List<BoardDto> getPopularBoards(int size) {
+        return boardMapper.selectPopularBoards(normalizeWidgetSize(size));
+    }
+
+    // 사이드바가 과도한 목록을 요청하지 않도록 1~10개 범위로 제한한다.
+    private int normalizeWidgetSize(int size) {
+        return Math.max(1, Math.min(size, 10));
+    }
+
     @Override
     public List<BoardDto> getMemberPosts(
             String memberId,
@@ -464,32 +483,7 @@ public class BoardServiceImpl implements BoardService {
                 )
         );
 
-        attachAdjacentBoards(board);
-
         return board;
-    }
-
-    // 같은 카테고리의 이전글과 다음글 정보 추가
-    private void attachAdjacentBoards(BoardDto board) {
-        BoardDto prev = boardMapper.selectPrevBoard(
-                board.getBoardId(),
-                board.getCategory()
-        );
-
-        if (prev != null) {
-            board.setPrevBoardId(prev.getBoardId());
-            board.setPrevTitle(prev.getTitle());
-        }
-
-        BoardDto next = boardMapper.selectNextBoard(
-                board.getBoardId(),
-                board.getCategory()
-        );
-
-        if (next != null) {
-            board.setNextBoardId(next.getBoardId());
-            board.setNextTitle(next.getTitle());
-        }
     }
 
     @Override
