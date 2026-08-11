@@ -1341,6 +1341,31 @@ html[data-theme="dark"] .board-widget-label.is-hot{
     color: #171717;
 }
 
+/*
+    다크모드에서는 라이트모드의 검정 active 색상이 카드 배경에 묻히므로 별도 대비색을 사용한다.
+    선택 전 아이콘은 밝은 회색 윤곽선, 선택된 하트는 빨강, 북마크는 파랑으로 구분해
+    작은 아이콘만 보더라도 기능 종류와 선택 상태를 동시에 알아볼 수 있게 한다.
+*/
+html[data-theme="dark"] .board-meta-bottom .btn-icon,
+html[data-theme="dark"] .reaction-count{
+    color: #b8c4d8;
+}
+
+html[data-theme="dark"] .board-meta-bottom .btn-icon:hover,
+html[data-theme="dark"] .btn-like.active:hover,
+html[data-theme="dark"] .btn-bookmark.active:hover{
+    background: #253149;
+}
+
+html[data-theme="dark"] .btn-like.active,
+html[data-theme="dark"] .btn-like.active .reaction-count{
+    color: #ff6f7d;
+}
+
+html[data-theme="dark"] .btn-bookmark.active{
+    color: #8fb0ff;
+}
+
 .meta-count{
     color: #999;
     font-size: 13px;
