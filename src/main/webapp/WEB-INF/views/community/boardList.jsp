@@ -15,7 +15,7 @@
 
 <%-- 커뮤니티 전용 CSS --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css?v=37">
+      href="${pageContext.request.contextPath}/css/board.css?v=39">
 
 
 <%-- =========================================================
@@ -150,14 +150,17 @@
     </section>
 
     <aside class="board-sidebar" aria-label="커뮤니티 추천 정보">
-        <%-- [커뮤니티사이드바-2] 좋아요·댓글·조회수를 합산한 참여도 순위 --%>
+        <%-- [커뮤니티사이드바-2] 최근 24시간 게시글의 좋아요·댓글·조회수를 합산한 참여도 순위 --%>
         <section class="board-widget" aria-labelledby="hot-board-title">
             <div class="board-widget-heading">
                 <h3 id="hot-board-title">HOT 글</h3>
-                <span class="board-widget-label is-hot">HOT</span>
+                <span class="board-widget-label is-hot">24H</span>
             </div>
             <ol class="board-widget-list">
-                <c:forEach var="hotBoard" items="${hotBoards}" varStatus="status">
+                <c:if test="${empty hotBoards}">
+                    <li class="board-widget-empty">최근 24시간 HOT 글이 없습니다.</li>
+                </c:if>
+                <c:forEach var="hotBoard" items="${hotBoards}" end="2" varStatus="status">
                     <li>
                         <a href="${communityUrl}/${hotBoard.boardId}">
                             <span class="board-widget-rank">${status.count}</span>
@@ -174,14 +177,17 @@
             </ol>
         </section>
 
-        <%-- [커뮤니티사이드바-3] 누적 조회수 기준 인기글 --%>
+        <%-- [커뮤니티사이드바-3] 최근 24시간 게시글의 누적 조회수 기준 인기글 --%>
         <section class="board-widget" aria-labelledby="popular-board-title">
             <div class="board-widget-heading">
                 <h3 id="popular-board-title">인기글</h3>
-                <span class="board-widget-label">조회수 순</span>
+                <span class="board-widget-label">24시간</span>
             </div>
             <ol class="board-widget-list">
-                <c:forEach var="popularBoard" items="${popularBoards}" varStatus="status">
+                <c:if test="${empty popularBoards}">
+                    <li class="board-widget-empty">최근 24시간 인기글이 없습니다.</li>
+                </c:if>
+                <c:forEach var="popularBoard" items="${popularBoards}" end="2" varStatus="status">
                     <li>
                         <a href="${communityUrl}/${popularBoard.boardId}">
                             <span class="board-widget-rank">${status.count}</span>

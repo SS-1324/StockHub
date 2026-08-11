@@ -218,7 +218,7 @@ public class BoardServiceImpl implements BoardService {
 
     /* [커뮤니티위젯-1]
      * HOT과 인기글은 현재 피드 10개를 브라우저에서 다시 정렬하지 않고
-     * DB 전체 공개 게시글을 기준으로 각각의 정렬 규칙을 적용한다.
+     * DB의 최근 24시간 공개 게시글을 기준으로 각각의 정렬 규칙을 적용한다.
      */
     @Override
     public List<BoardDto> getHotBoards(int size) {
