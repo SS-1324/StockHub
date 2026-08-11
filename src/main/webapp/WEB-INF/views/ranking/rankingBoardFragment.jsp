@@ -128,7 +128,10 @@
                                     <%-- 관리자 또는 공개 회원만 실제 투자 수치를 볼 수 있다. --%>
                                     <c:choose>
                                         <c:when test="${ranking.tradeHistoryPublicYn eq 'Y'}">
-                                            <%-- 수익률·수익금 카드가 핵심이므로 중복되는 투자 정보 제목과 안내 문장은 표시하지 않는다. --%>
+                                            <%--
+                                                아코디언 행 자체에 회원 이름이 이미 있고, 아래 카드의 라벨도 수익률·수익금을 설명한다.
+                                                같은 정보를 반복하던 제목과 안내 문장은 제거하고 핵심 수치 카드만 남겨 시선 이동을 줄인다.
+                                            --%>
                                             <div class="ranking-details-stats">
                                                 <div class="ranking-detail-stat">
                                                     <span>수익률</span>
