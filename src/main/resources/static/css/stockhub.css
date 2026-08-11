@@ -7,19 +7,25 @@
 }
 
 /* 티커바는 .container의 960px 제한과 상관없이 뷰포트 전체 폭으로 펼치고,
-   .container의 top padding(32px)을 상쇄해서 헤더 바로 아래에 붙임.
-   음수 margin-top은 다음 형제 요소(제목 H2)의 위치에도 그대로 반영돼 32px만큼
-   끌어올리므로, margin-bottom으로 그만큼 되돌려서 제목이 티커바에 가려지지 않게 함.
-   overflow:hidden은 위젯 실제 렌더링 높이가 35px보다 커질 때 아래 제목을 덮지 않도록 잘라냄 */
+   페이지 맨 아래(footer 바로 위)에 margin 없이 붙인다.
+   .container의 bottom padding(32px)을 상쇄해서 그 뒤에 바로 오는 footer에 딱 붙게 함.
+   overflow:hidden은 위젯 실제 렌더링 높이가 예상보다 커질 때를 대비한 안전장치 */
 .hub-ticker-tape {
     display: block;
     width: 100vw;
     overflow: hidden;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
-    margin-top: -32px;
-    margin-bottom: 32px;
+    margin-bottom: -32px;
     padding: 0;
+}
+
+/* 위젯 맨 아래에 항상 표시되는 "TradingView 제공" 표시줄을, 바로 뒤따르는 footer가
+   그 위로 살짝 겹쳐 올라와 가리도록 함. footer는 DOM상 티커바 뒤에 오는 요소라
+   z-index 없이도 겹친 부분은 항상 footer가 위로 그려짐 */
+.site-footer {
+    position: relative;
+    margin-top: -22px;
 }
 
 /* 페이지 제목/부제 영역. ranking.css의 .ranking-heading과 동일한 형식(굵은 제목 + 회색 부제)으로 맞춤 */
