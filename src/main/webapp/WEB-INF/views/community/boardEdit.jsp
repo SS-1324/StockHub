@@ -4,10 +4,10 @@
 
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css?v=18">
-
 <!-- 글쓰기 화면과 동일한 Quill 에디터 -->
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+<%-- Quill 기본 CSS보다 뒤에서 게시판용 편집기 모양을 적용한다. --%>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css?v=41">
 
 <h2 class="page-title board-form-title">게시글 수정</h2>
 
@@ -34,7 +34,10 @@
 
     <div class="form-row">
         <label for="editor-container">내용</label>
-        <div id="editor-container"></div>
+        <%-- 작성 화면과 같은 구조를 사용해 툴바와 본문을 한 개의 편집기 박스로 표시한다. --%>
+        <div class="board-editor-shell">
+            <div id="editor-container"></div>
+        </div>
         <!-- 서버로 전송되는 값이자, 기존 글 내용을 처음에 담아두는 곳. board.content는 write.jsp에서
              Quill로 저장한 HTML이라, value에 그대로 넣었다가 JS가 읽어서 에디터에 채워 넣는다. -->
         <input type="hidden" id="content" name="content" value="${fn:escapeXml(board.content)}" required>
@@ -76,8 +79,10 @@
         theme: 'snow',
         modules: {
             toolbar: [
-                ['bold', 'italic', 'strike'],
+                <%-- 작성 화면과 동일하게 밑줄과 제한된 글자색 팔레트를 제공한다. --%>
+                ['bold', 'italic', 'underline', 'strike'],
                 [{ 'size': ['small', false, 'large', 'huge'] }],
+                [{ 'color': [false, '#e60000', '#ff9900', '#008a00', '#0066cc', '#9933ff'] }],
                 <%-- [하이퍼링크-1] 작성 화면과 동일한 Quill 링크 도구를 표시한다. --%>
                 ['link'],
                 [{ 'list': 'ordered' }, { 'list': 'bullet' }]
@@ -102,5 +107,5 @@
         document.getElementById('content').value = quill.getSemanticHTML();
     });
 </script>
-<script src="${pageContext.request.contextPath}/js/board.js?v=5"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=11"></script>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

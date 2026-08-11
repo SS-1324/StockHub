@@ -15,7 +15,7 @@
 
 <%-- 커뮤니티 전용 CSS --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css?v=39">
+      href="${pageContext.request.contextPath}/css/board.css?v=46">
 
 
 <%-- =========================================================
@@ -31,23 +31,27 @@
         </p>
     </div>
 
-    <%-- [커뮤니티상단정렬-1] 제목 행 오른쪽에는 글쓰기 버튼만 두어 검색창보다 한 줄 위에 배치한다. --%>
-    <div class="board-toolbar-actions">
-        <c:choose>
-            <c:when test="${empty loginMemberId}">
-                <a class="btn-write" href="${communityUrl}/write">
-                    <span class="btn-write-icon" aria-hidden="true">+</span>
-                    로그인하고 글쓰기
-                </a>
-            </c:when>
-            <c:otherwise>
-                <a class="btn-write" href="${communityUrl}/write">
-                    <span class="btn-write-icon" aria-hidden="true">+</span>
-                    글쓰기
-                </a>
-            </c:otherwise>
-        </c:choose>
-    </div>
+    <%--
+        [커뮤니티검색위치-6] 용어사전과 동일하게 제목 행 오른쪽에 320px 검색창을 둔다.
+        선택한 카테고리는 hidden 값으로 함께 보내 검색 후에도 필터가 유지된다.
+    --%>
+    <form class="search-form board-search-form" action="${communityUrl}" method="get">
+        <c:if test="${not empty category}">
+            <input type="hidden" name="category" value="${category}">
+        </c:if>
+
+        <div class="search-box">
+            <input type="text" name="keyword" value="${keyword}" placeholder="제목/내용 검색">
+            <button type="submit" class="search-icon-btn" aria-label="검색">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                     xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"
+                          stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+            </button>
+        </div>
+    </form>
 
 </div>
 
@@ -79,26 +83,28 @@
 
     </div>
 
-    <%-- [커뮤니티검색위치-4] 용어사전처럼 두 번째 행 오른쪽에 320px 검색창을 독립 배치한다. --%>
-    <form class="search-form board-search-form" action="${communityUrl}" method="get">
-        <%-- 선택한 카테고리를 유지한 상태에서 검색한다. --%>
-        <c:if test="${not empty category}">
-            <input type="hidden" name="category" value="${category}">
-        </c:if>
-
-        <div class="search-box">
-            <input type="text" name="keyword" value="${keyword}" placeholder="제목/내용 검색">
-            <button type="submit" class="search-icon-btn" aria-label="검색">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                     xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"
-                          stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                </svg>
-            </button>
-        </div>
-    </form>
 </div>
+
+<%--
+    [커뮤니티글쓰기-1] 글쓰기 기능은 스크롤 중에도 찾기 쉽도록 콘텐츠 왼쪽 아래의 원형 + 버튼으로 고정한다.
+    화면에는 +만 보이지만 sr-only 문구와 aria-label로 버튼 목적을 명확하게 전달한다.
+--%>
+<c:choose>
+    <c:when test="${empty loginMemberId}">
+        <a class="btn-write btn-write-floating" href="${communityUrl}/write"
+           aria-label="로그인하고 글쓰기" title="로그인하고 글쓰기">
+            <span class="btn-write-icon" aria-hidden="true">+</span>
+            <span class="sr-only">로그인하고 글쓰기</span>
+        </a>
+    </c:when>
+    <c:otherwise>
+        <a class="btn-write btn-write-floating" href="${communityUrl}/write"
+           aria-label="글쓰기" title="글쓰기">
+            <span class="btn-write-icon" aria-hidden="true">+</span>
+            <span class="sr-only">글쓰기</span>
+        </a>
+    </c:otherwise>
+</c:choose>
 
 
 <%-- =========================================================
@@ -165,9 +171,11 @@
                         <a href="${communityUrl}/${hotBoard.boardId}">
                             <span class="board-widget-rank">${status.count}</span>
                             <span class="board-widget-copy">
-                                <strong><c:choose>
+                                <strong class="${empty hotBoard.title ? 'is-content-preview' : ''}"><c:choose>
                                     <c:when test="${not empty hotBoard.title}"><c:out value="${hotBoard.title}" /></c:when>
-                                    <c:otherwise>제목 없는 게시글</c:otherwise>
+                                    <%-- 제목이 없으면 서비스에서 HTML 제거·길이 제한을 마친 본문 미리보기를 사용한다. --%>
+                                    <c:when test="${not empty hotBoard.content}"><c:out value="${hotBoard.content}" /></c:when>
+                                    <c:otherwise>본문을 확인해 보세요</c:otherwise>
                                 </c:choose></strong>
                                 <small>좋아요 ${hotBoard.likeCount} · 댓글 ${hotBoard.commentCount}</small>
                             </span>
@@ -192,9 +200,11 @@
                         <a href="${communityUrl}/${popularBoard.boardId}">
                             <span class="board-widget-rank">${status.count}</span>
                             <span class="board-widget-copy">
-                                <strong><c:choose>
+                                <strong class="${empty popularBoard.title ? 'is-content-preview' : ''}"><c:choose>
                                     <c:when test="${not empty popularBoard.title}"><c:out value="${popularBoard.title}" /></c:when>
-                                    <c:otherwise>제목 없는 게시글</c:otherwise>
+                                    <%-- 인기글도 HOT 글과 같은 기준으로 제목 대신 본문 일부를 보여준다. --%>
+                                    <c:when test="${not empty popularBoard.content}"><c:out value="${popularBoard.content}" /></c:when>
+                                    <c:otherwise>본문을 확인해 보세요</c:otherwise>
                                 </c:choose></strong>
                                 <small>조회 ${popularBoard.count}</small>
                             </span>
@@ -216,7 +226,7 @@
 
 
 <%-- 게시판 전용 JavaScript --%>
-<script src="${pageContext.request.contextPath}/js/board.js?v=5"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=11"></script>
 
 <%-- 공통 푸터 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

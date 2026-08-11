@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -44,6 +45,26 @@ public class BoardServiceImpl implements BoardService {
     // board 테이블 컬럼 크기에 맞춘 길이 제한
     private static final int MAX_TITLE_LENGTH = 200;
     private static final int MAX_CONTENT_LENGTH = 3000;
+    /* HOT·인기글 사이드바는 한 줄이므로 본문 전체 대신 읽기 좋은 길이만 전달한다. */
+    private static final int WIDGET_PREVIEW_MAX_LENGTH = 44;
+    private static final int WIDGET_PREVIEW_MIN_WORD_BREAK = 28;
+
+    /*
+     * Quill 글자색 팔레트와 동일한 값만 허용한다.
+     * span의 style 전체를 무조건 허용하지 않고 color 한 속성만 검사해 저장한다.
+     */
+    private static final Set<String> ALLOWED_TEXT_COLOR_STYLES = Set.of(
+            "color:rgb(230,0,0)",
+            "color:rgb(255,153,0)",
+            "color:rgb(0,138,0)",
+            "color:rgb(0,102,204)",
+            "color:rgb(153,51,255)",
+            "color:#e60000",
+            "color:#ff9900",
+            "color:#008a00",
+            "color:#0066cc",
+            "color:#9933ff"
+    );
 
     // [하이퍼링크-3] Quill 에디터에서 허용할 HTML 태그와 속성.
     // a 태그의 href/target/rel만 허용하고 http(s) 주소만 통과시켜 스크립트 링크를 차단한다.
@@ -53,6 +74,7 @@ public class BoardServiceImpl implements BoardService {
                     "br",
                     "strong",
                     "em",
+                    "u",
                     "s",
                     "a",
                     "ol",
@@ -68,7 +90,8 @@ public class BoardServiceImpl implements BoardService {
             )
             .addAttributes(
                     "span",
-                    "class"
+                    "class",
+                    "style"
             )
             .addProtocols(
                     "a",
@@ -222,17 +245,59 @@ public class BoardServiceImpl implements BoardService {
      */
     @Override
     public List<BoardDto> getHotBoards(int size) {
-        return boardMapper.selectHotBoards(normalizeWidgetSize(size));
+        List<BoardDto> boards = boardMapper.selectHotBoards(normalizeWidgetSize(size));
+        prepareWidgetPreviews(boards);
+        return boards;
     }
 
     @Override
     public List<BoardDto> getPopularBoards(int size) {
-        return boardMapper.selectPopularBoards(normalizeWidgetSize(size));
+        List<BoardDto> boards = boardMapper.selectPopularBoards(normalizeWidgetSize(size));
+        prepareWidgetPreviews(boards);
+        return boards;
     }
 
     // 사이드바가 과도한 목록을 요청하지 않도록 1~10개 범위로 제한한다.
     private int normalizeWidgetSize(int size) {
         return Math.max(1, Math.min(size, 10));
+    }
+
+    /*
+     * [커뮤니티사이드바-본문미리보기]
+     * Quill 본문에는 <p>, <strong>, <ol> 같은 HTML 태그가 들어 있으므로 그대로 출력하지 않는다.
+     * 허용된 HTML만 남긴 뒤 화면에 보이는 글자만 추출하고, 줄바꿈과 연속 공백은 한 칸으로 합친다.
+     * 마지막에는 44글자를 무조건 끊기보다 28글자 이후의 마지막 공백을 우선해 문장이 덜 어색하게 잘리도록 한다.
+     */
+    private void prepareWidgetPreviews(List<BoardDto> boards) {
+        for (BoardDto board : boards) {
+            String content = board.getContent() == null ? "" : board.getContent();
+            String plainText = htmlToPlainTextPreservingLineBreaks(sanitizeContent(content))
+                    .replace('\u00A0', ' ')
+                    .replace("\u200B", "")
+                    .replace("\uFEFF", "")
+                    .replaceAll("\\s+", " ")
+                    .trim();
+
+            board.setContent(truncateWidgetPreview(plainText));
+        }
+    }
+
+    private String truncateWidgetPreview(String text) {
+        int codePointCount = text.codePointCount(0, text.length());
+        if (codePointCount <= WIDGET_PREVIEW_MAX_LENGTH) {
+            return text;
+        }
+
+        int maxEndIndex = text.offsetByCodePoints(0, WIDGET_PREVIEW_MAX_LENGTH);
+        String candidate = text.substring(0, maxEndIndex);
+        int lastSpaceIndex = candidate.lastIndexOf(' ');
+
+        /* 너무 앞에서 끊기는 것을 막고, 적당한 위치에 공백이 있을 때만 단어 경계를 사용한다. */
+        if (lastSpaceIndex >= WIDGET_PREVIEW_MIN_WORD_BREAK) {
+            candidate = candidate.substring(0, lastSpaceIndex);
+        }
+
+        return candidate.stripTrailing() + "…";
     }
 
     @Override
@@ -613,10 +678,27 @@ public class BoardServiceImpl implements BoardService {
 
     // 허용된 태그와 속성만 남기고 나머지는 제거
     private String sanitizeContent(String rawHtml) {
-        return Jsoup.clean(
+        String cleanedHtml = Jsoup.clean(
                 rawHtml == null ? "" : rawHtml,
                 CONTENT_SAFELIST
         );
+
+        Document document = Jsoup.parseBodyFragment(cleanedHtml);
+        for (Element span : document.select("span[style]")) {
+            String normalizedStyle = span.attr("style")
+                    .toLowerCase(Locale.ROOT)
+                    .replaceAll("\\s+", "");
+
+            if (normalizedStyle.endsWith(";")) {
+                normalizedStyle = normalizedStyle.substring(0, normalizedStyle.length() - 1);
+            }
+
+            if (!ALLOWED_TEXT_COLOR_STYLES.contains(normalizedStyle)) {
+                span.removeAttr("style");
+            }
+        }
+
+        return document.body().html();
     }
 
     // 카테고리 값 검증
