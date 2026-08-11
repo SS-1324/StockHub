@@ -34,6 +34,15 @@
 <c:url var="dictionaryFundamentalUrl" value="/dictionary/category/fundamental" />
 <c:url var="dictionaryChartUrl" value="/dictionary/category/chart" />
 
+<%-- 하위 주소에서도 현재 선택한 주요 메뉴가 유지되도록 주소 앞부분을 비교 --%>
+<c:url var="hubBaseUrl" value="/hub/" />
+<c:set var="homeMenuActive" value="${requestUri eq homeUrl}" />
+<c:set var="communityMenuActive" value="${fn:startsWith(requestUri, communityUrl)}" />
+<c:set var="tradeHubMenuActive"
+       value="${requestUri eq tradeHubUrl or fn:startsWith(requestUri, hubBaseUrl)}" />
+<c:set var="rankingMenuActive" value="${fn:startsWith(requestUri, rankingUrl)}" />
+<c:set var="dictionaryMenuActive" value="${fn:startsWith(requestUri, dictionaryUrl)}" />
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -59,7 +68,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap"
           rel="stylesheet">
 
-    <link rel="stylesheet" href="${commonCssUrl}?v=29">
+    <link rel="stylesheet" href="${commonCssUrl}?v=30">
     <%-- 현재 화면에서 요청한 전용 CSS를 head 안에서 불러옴 --%>
     <c:if test="${not empty requestScope.pageCssUrl}">
         <link rel="stylesheet" href="${requestScope.pageCssUrl}">
@@ -76,11 +85,11 @@
 
         <%-- 데스크톱·모바일에서 함께 사용하는 주요 페이지 메뉴 --%>
         <nav id="main-navigation" class="main-navigation" aria-label="주요 메뉴">
-            <a class="main-nav-link ${requestUri eq homeUrl ? 'is-active' : ''}"
+            <a class="main-nav-link ${homeMenuActive ? 'is-active' : ''}"
                href="${homeUrl}">홈</a>
 
             <div class="main-nav-community">
-                <a class="main-nav-link ${requestUri eq communityUrl ? 'is-active' : ''}"
+                <a class="main-nav-link ${communityMenuActive ? 'is-active' : ''}"
                    href="${communityUrl}">커뮤니티</a>
 
                 <div class="community-dropdown">
@@ -92,12 +101,12 @@
                 </div>
             </div>
 
-            <a class="main-nav-link ${requestUri eq tradeHubUrl ? 'is-active' : ''}"
+            <a class="main-nav-link ${tradeHubMenuActive ? 'is-active' : ''}"
                href="${tradeHubUrl}">거래 허브</a>
-            <a class="main-nav-link ${requestUri eq rankingUrl ? 'is-active' : ''}"
+            <a class="main-nav-link ${rankingMenuActive ? 'is-active' : ''}"
                href="${rankingUrl}">랭킹</a>
             <div class = "main-nav-dictionary">
-                <a class="main-nav-link ${requestUri eq dictionaryUrl ? 'is-active' : ''}"
+                <a class="main-nav-link ${dictionaryMenuActive ? 'is-active' : ''}"
                 href="${dictionaryUrl}">용어사전</a>
                 <div class = "dictionary-dropdown">
                     <a href="${dictionaryTradingUrl}">매매와 투자 행동</a>

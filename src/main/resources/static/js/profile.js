@@ -22,7 +22,7 @@ const contextPath = profileForm.dataset.contextPath || "";
 const memberNamePattern = /^[가-힣A-Za-z]{1,50}$/;
 const nicknamePattern = /^[가-힣A-Za-z0-9]{2,10}$/;
 const emailPattern =
-    /^(?=.{3,100}$)(?=[a-z0-9]{1,50}@)(?=[^@]*[a-z])[a-z0-9]{1,50}@[a-z]+(?:\.com|\.co\.kr|\.net)$/;
+    /^(?=.{3,100}$)(?=[^@]{1,64}@)(?=[^@]*[a-z])[a-z0-9]+(?:[._%+-][a-z0-9]+)*@[a-z0-9]+(?:-[a-z0-9]+)*(?:\.[a-z0-9]+(?:-[a-z0-9]+)*)*(?:\.com|\.net|\.co\.kr)$/;
 const passwordPattern =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])[\x21-\x7E]{10,100}$/;
 const allowedProfileExtensionPattern = /\.(jpe?g|png|webp)$/i;
@@ -157,7 +157,7 @@ function checkProfileEmail() {
 
     emailResult.textContent = valid
         ? "사용 가능한 이메일 형식입니다."
-        : "예: stockhub1@gmail.com처럼 영문 소문자·숫자와 .com, .co.kr, .net 형식으로 입력해주세요.";
+        : "예: stock.hub1@gmail.com처럼 올바른 이메일 형식으로 입력해주세요.";
     emailResult.className = valid
         ? "form-tip form-tip-ok"
         : "form-tip form-tip-error";

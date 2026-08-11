@@ -120,7 +120,7 @@
                value="<c:out value="${member.email}"/>" required>
         <p id="profile-email-result" class="form-tip"></p>
         <p class="form-tip">
-            영문 소문자·숫자를 사용하고 .com, .co.kr, .net으로 끝나도록 입력해주세요.
+            영문 소문자·숫자와 일부 기호를 사용할 수 있으며 .com, .co.kr, .net으로 끝나야 합니다.
         </p>
     </div>
 
@@ -197,7 +197,7 @@
 </div>
 
 <%-- 프로필 이미지 미리보기와 입력 검사를 불러옴 --%>
-<script src="${pageContext.request.contextPath}/js/profile.js?v=6"></script>
+<script src="${pageContext.request.contextPath}/js/profile.js?v=7"></script>
 
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

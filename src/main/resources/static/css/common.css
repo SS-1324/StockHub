@@ -167,10 +167,14 @@ html[data-theme="dark"] .site-header{
     transition: background-color 0.18s ease, color 0.18s ease;
 }
 
-.main-nav-link:hover,
-.main-nav-link.is-active{
+.main-nav-link:hover{
     background: var(--header-blue-soft);
     color: var(--header-blue-dark);
+}
+
+.main-nav-link.is-active{
+    background: var(--header-blue-soft);
+    color: var(--header-blue);
 }
 
 /* 커뮤니티 및 용어사전 메뉴 감싸는 영역 */
@@ -367,8 +371,13 @@ html[data-theme="dark"] .theme-dark-icon{
     object-fit: cover;
 }
 
-<<<<<<< HEAD
-=======
+/* 투명한 기본 프로필은 다크 모드에서도 밝은 원 안에 선명하게 표시 */
+html[data-theme="dark"] .header-profile-image{
+    background: #f1f5f9;
+    filter: none;
+    opacity: 1;
+}
+
 /*
  * [프레임색상통일-1] 헤더·내 정보·프로필 팝업이 같은 금·은·동 장식값을 공유한다.
  * 한 곳의 값을 바꾸면 모든 프로필 프레임이 동시에 바뀌므로 화면별 색상 차이가 다시 생기지 않는다.
@@ -458,7 +467,6 @@ html[data-theme="dark"] .theme-dark-icon{
     box-sizing: border-box;
 }
 
->>>>>>> origin/rize
 .header-profile-nickname{
     max-width: 110px;
     overflow: hidden;
@@ -1308,6 +1316,13 @@ select
 .withdraw-card{
     max-width: 560px;
     margin: 0 auto;
+}
+
+/* 회원 탈퇴 제목을 안내문과 같은 왼쪽 선에 맞춤 */
+.withdraw-card > .page-title{
+    max-width: none;
+    margin: 0 0 20px;
+    text-align: left;
 }
 
 /* 회원 탈퇴 경고 안내 영역 */
