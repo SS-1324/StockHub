@@ -6,7 +6,7 @@
 <!-- 글쓰기 화면에 굵게/폰트크기/링크 기능을 위한 Quill 에디터 -->
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
 <%-- Quill 기본 CSS 다음에 게시판 CSS를 불러야 편집기 테두리와 모서리 설정이 덮어써지지 않는다. --%>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css?v=41">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css?v=48">
 
 <h2 class="page-title board-form-title">게시글 작성</h2>
 
@@ -65,7 +65,10 @@
         theme: 'snow',
         modules: {
             toolbar: [
-                <%-- 밑줄은 underline, 글자색은 가독성이 좋은 다섯 색으로 제한한다. --%>
+                <%--
+                    underline은 밑줄, color는 서버 허용 목록과 동일한 다섯 색만 제공한다.
+                    임의 색상 전체를 열지 않아 다크모드 가독성과 저장 HTML의 안전성을 함께 지킨다.
+                --%>
                 ['bold', 'italic', 'underline', 'strike'],
                 [{ 'size': ['small', false, 'large', 'huge'] }],
                 [{ 'color': [false, '#e60000', '#ff9900', '#008a00', '#0066cc', '#9933ff'] }],

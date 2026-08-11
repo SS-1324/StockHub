@@ -461,7 +461,11 @@ html[data-theme="dark"] .ranking-profit.is-private strong {
 .ranking-details-content {
     display: flex;
     align-items: center;
-    /* 안내 문구를 제거한 뒤에도 통계 카드가 오른쪽에 남지 않도록 가운데 배치한다. */
+    /*
+     * 중복 안내 문구를 제거하면서 자식이 통계 카드 하나만 남았다.
+     * 기존 space-between과 왼쪽 전용 padding을 유지하면 카드가 오른쪽으로 쏠리므로
+     * 컨테이너 전체를 기준으로 중앙 정렬하고 좌우 padding도 대칭으로 둔다.
+     */
     justify-content: center;
     gap: 22px;
     padding: 18px 24px 20px;
@@ -710,6 +714,7 @@ html[data-theme="dark"] .ranking-empty strong {
     }
 
     .ranking-grid .ranking-details-content {
+        /* 두 랭킹 보드가 나란히 있는 중간 폭에서도 통계 카드는 가로 중앙을 유지한다. */
         align-items: center;
         padding: 16px 16px 18px;
         flex-direction: column;
@@ -765,6 +770,7 @@ html[data-theme="dark"] .ranking-empty strong {
     }
 
     .ranking-details-content {
+        /* 한 열 레이아웃으로 바뀐 뒤에도 데스크톱과 같은 중앙 정렬 원칙을 유지한다. */
         align-items: center;
         padding: 17px 16px 19px;
         flex-direction: column;

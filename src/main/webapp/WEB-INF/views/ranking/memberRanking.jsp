@@ -58,7 +58,11 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // 두 보드의 모든 회원 행에 동일한 펼치기/접기 기능을 연결한다.
+    /*
+     * [랭킹아코디언]
+     * 두 랭킹 보드의 모든 회원 행에 같은 이벤트를 연결하고, 한 번에 하나의 상세 정보만 연다.
+     * CSS용 is-open과 접근성용 aria-expanded/aria-hidden을 함께 바꿔 화면과 스크린리더 상태를 동기화한다.
+     */
     const accordionItems = document.querySelectorAll(".ranking-item");
 
     accordionItems.forEach(function (item) {
@@ -70,7 +74,7 @@ document.addEventListener("DOMContentLoaded", function () {
         button.addEventListener("click", function () {
             const wasOpen = item.classList.contains("is-open");
 
-            // 다른 행을 먼저 닫아 한 번에 하나의 상세 정보만 열리게 한다.
+            /* 현재 행을 열기 전에 전체를 닫으므로 다른 보드에 열린 행이 있어도 하나만 남는다. */
             accordionItems.forEach(function (otherItem) {
                 const otherButton = otherItem.querySelector("[data-accordion-button]");
                 const otherContent = otherItem.querySelector("[data-accordion-content]");

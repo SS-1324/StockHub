@@ -119,7 +119,7 @@ html[data-theme="dark"] .auth-visual-image-dark{
 
 .auth-theme-toggle{
     position: fixed;
-    z-index: 20;
+    z-index: 1000;
     top: 18px;
     right: 18px;
     border: 1px solid rgba(126, 142, 177, 0.24);
@@ -127,6 +127,13 @@ html[data-theme="dark"] .auth-visual-image-dark{
     color: #64748b;
     box-shadow: 0 8px 22px rgba(15, 23, 42, 0.09);
     backdrop-filter: blur(10px);
+}
+
+@media (max-width: 620px){
+    .auth-theme-toggle{
+        top: 14px;
+        right: 14px;
+    }
 }
 
 .auth-theme-toggle:hover{
@@ -649,7 +656,7 @@ html[data-theme="dark"] .auth-visual-image-dark{
 
     .auth-shell{
         grid-template-columns: 1fr;
-        grid-template-rows: 245px minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
         width: 100%;
         height: auto;
         min-height: 100vh;
@@ -659,12 +666,15 @@ html[data-theme="dark"] .auth-visual-image-dark{
         position: relative;
         top: auto;
         align-self: stretch;
+        width: 100%;
         height: auto;
+        min-height: 0;
+        aspect-ratio: 1345 / 1170;
     }
 
     .auth-visual img{
-        object-fit: cover;
-        object-position: center 38%;
+        object-fit: contain;
+        object-position: center;
     }
 
     .auth-visual::after{
@@ -717,7 +727,7 @@ html[data-theme="dark"] .auth-visual-image-dark{
     }
 
     .auth-shell{
-        grid-template-rows: 190px minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
     }
 
     .auth-content-scroll{

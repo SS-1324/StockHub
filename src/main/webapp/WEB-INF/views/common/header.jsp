@@ -73,7 +73,7 @@
     <c:if test="${not empty requestScope.pageCssUrl}">
         <link rel="stylesheet" href="${requestScope.pageCssUrl}">
     </c:if>
-    <script src="${headerJsUrl}?v=23" defer></script>
+    <script src="${headerJsUrl}?v=22" defer></script>
 </head>
 <body>
 <%-- 로고, 페이지 이동 메뉴, 회원 메뉴를 표시하는 공통 헤더 --%>
@@ -102,7 +102,7 @@
             </div>
 
             <a class="main-nav-link ${tradeHubMenuActive ? 'is-active' : ''}"
-               href="${tradeHubUrl}">거래 허브</a>
+               href="${tradeHubUrl}">종목 라운지</a>
             <a class="main-nav-link ${rankingMenuActive ? 'is-active' : ''}"
                href="${rankingUrl}">랭킹</a>
             <div class = "main-nav-dictionary">

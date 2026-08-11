@@ -338,28 +338,28 @@ function setupChatPanel(initialStockCode) {
         stompClient.activate();
     }
 
-    // 도배 방지 기준: 0.1초보다 짧은 간격은 그냥 무시, 1초 안에 3개 이상 보내면 3초간 잠금
+    // 도배 방지 기준: 0.1초보다 짧은 간격은 그냥 무시, 5초 안에 5개 이상 보내면 30초간 잠금
     // (서버의 StockChatServiceImpl과 동일한 기준으로 맞춰둠 — 여기는 즉각적인 화면 반응용이고,
     // 실제 강제는 서버가 함)
     const MIN_SEND_INTERVAL_MS = 100;
-    const BURST_WINDOW_MS = 1000;
-    const BURST_LIMIT = 3;
-    const LOCKOUT_MS = 3000;
+    const BURST_WINDOW_MS = 5000;
+    const BURST_LIMIT = 5;
+    const LOCKOUT_MS = 30000;
 
     let lastSentAt = 0;
     let recentSentTimestamps = [];
     let lockedUntil = 0;
+    let lockoutIntervalId = null;
+    // 잠금이 여러 번 연장돼도(도배를 계속 시도) 원래 placeholder를 잃지 않도록 잠금이 처음 걸릴 때만 저장해둠
+    let placeholderBeforeLockout = null;
 
-    function applyLockout(durationMs) {
-        lockedUntil = Date.now() + durationMs;
-        const placeholderBeforeLockout = inputEl.placeholder;
-        inputEl.disabled = true;
-        sendBtn.disabled = true;
-        inputEl.placeholder = '메시지를 너무 많이 보냈어요. 잠시 후 다시 시도해주세요';
-
-        setTimeout(() => {
-            // 그 사이 또 도배로 lockedUntil이 늘어났으면 아직 풀어주면 안 됨
-            if (Date.now() < lockedUntil) return;
+    // 잠금 상태를 1초마다 다시 그림 - 남은 시간을 placeholder에 표시하고, 다 지나면 원상복구.
+    // lockedUntil을 매번 다시 읽으므로 잠금 도중 도배를 더 시도해 lockedUntil이 늘어나도 자연스럽게 반영됨
+    function tickLockout() {
+        const remainingMs = lockedUntil - Date.now();
+        if (remainingMs <= 0) {
+            clearInterval(lockoutIntervalId);
+            lockoutIntervalId = null;
             if (stompClient && stompClient.connected
                 && typeof isLoggedIn !== 'undefined' && isLoggedIn) {
                 inputEl.disabled = false;
@@ -367,7 +367,25 @@ function setupChatPanel(initialStockCode) {
                 inputEl.placeholder = placeholderBeforeLockout;
                 inputEl.focus();
             }
-        }, durationMs);
+            placeholderBeforeLockout = null;
+            return;
+        }
+        const remainingSec = Math.ceil(remainingMs / 1000);
+        inputEl.placeholder = `${remainingSec}초 후 전송 가능`;
+    }
+
+    function applyLockout(durationMs) {
+        lockedUntil = Date.now() + durationMs;
+        if (placeholderBeforeLockout === null) {
+            placeholderBeforeLockout = inputEl.placeholder;
+        }
+        inputEl.disabled = true;
+        sendBtn.disabled = true;
+        tickLockout();
+
+        if (lockoutIntervalId === null) {
+            lockoutIntervalId = setInterval(tickLockout, 1000);
+        }
     }
 
     function sendMessage() {

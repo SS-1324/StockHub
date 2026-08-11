@@ -128,9 +128,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const error = modalOverlay.querySelector("[data-profile-error]");
     const content = modalOverlay.querySelector("[data-profile-content]");
     const followToggle = modalOverlay.querySelector("[data-profile-follow-toggle]");
-    const publicStats = modalOverlay.querySelector("[data-profile-public-stats]");
-    const investmentStats = modalOverlay.querySelectorAll("[data-profile-investment-stat]");
-    const postsLink = modalOverlay.querySelector("[data-profile-posts-link]");
     const profileApi = modalOverlay.dataset.profileApi;
     const contextPath = modalOverlay.dataset.contextPath || "";
     const defaultProfile = modalOverlay.dataset.defaultProfile;
@@ -140,8 +137,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentTrigger = null;
 
     /* [프로필위치-1]
-     * 카드 작성자 영역은 카드 폭 전체를 차지하므로 그 사각형을 사용하면 팝업이 멀리 떨어진다.
-     * 실제 프로필 이미지(또는 기본 프로필 원)를 찾아 그 오른쪽 좌표만 위치 기준으로 사용한다.
+     * 커뮤니티는 사진 전용 트리거, 랭킹은 사진·이름 트리거처럼 화면별 클릭 범위가 다르다.
+     * 어느 트리거에서 열어도 내부의 실제 이미지(또는 기본 프로필 원)를 우선 찾아
+     * 팝업이 넓은 행 끝이 아니라 사진 바로 오른쪽에 놓이도록 위치 기준을 통일한다.
      */
     const resolveProfileAnchor = () => {
         if (!currentTrigger) return null;
@@ -174,20 +172,17 @@ document.addEventListener("DOMContentLoaded", () => {
          */
         const preferredMaxWidth = isRankingProfile ? 360 : 430;
         modal.style.maxWidth = Math.max(280, Math.min(preferredMaxWidth, availableWidth)) + "px";
+        modal.style.maxWidth = Math.max(280, Math.min(430, availableWidth)) + "px";
+        const modalRect = modal.getBoundingClientRect();
 
-        /*
-         * [프로필위치-3] viewport 고정 좌표가 아니라 문서 좌표를 사용한다.
-         * 팝업은 클릭한 프로필 오른쪽에 한 번만 놓이고 스크롤을 따라오지 않는다.
-         */
-        const left = window.scrollX + triggerRect.right + gap;
-        let top = window.scrollY + triggerRect.top;
+        /* [프로필위치-2] 좌측 전환이나 카드 끝 보정을 하지 않고 이미지 바로 오른쪽에 고정한다. */
+        const left = triggerRect.right + gap;
 
-        /* 커뮤니티 첫 행에서 열어도 카테고리·검색 도구 영역 위로 올라가지 않게 한다. */
-        const boardToolbar = document.querySelector(".board-toolbar");
-        if (boardToolbar) {
-            const toolbarRect = boardToolbar.getBoundingClientRect();
-            top = Math.max(top, window.scrollY + toolbarRect.bottom + margin);
+        let top = triggerRect.top;
+        if (top + modalRect.height > window.innerHeight - margin) {
+            top = triggerRect.bottom - modalRect.height;
         }
+        top = Math.max(margin, Math.min(top, window.innerHeight - modalRect.height - margin));
 
         modal.style.left = left + "px";
         modal.style.top = top + "px";
@@ -231,56 +226,16 @@ document.addEventListener("DOMContentLoaded", () => {
         followToggle.classList.toggle("is-following", profile.followingTarget);
 
         const badge = modalOverlay.querySelector("[data-profile-badge]");
-        /* [프로필권한배지-2]
-         * 서버가 ADMIN을 반환하면 관리자 배지를 최우선으로 표시한다.
-         * 그 외에는 기존처럼 랭킹 기준과 순위를 함께 보여준다.
-         */
+        /* [프로필순위-6] 서버가 계산한 기준을 배지 문구에도 명시하여 두 랭킹을 혼동하지 않게 한다. */
         const rankLabel = profile.rankType === "profit" ? "수익금 RANKER" : "수익률 RANKER";
-        badge.textContent = profile.badge === "ADMIN"
-            ? "ADMIN"
-            : (profile.badge === "RANKER"
-                ? rankLabel + (profile.rankPosition ? " · " + profile.rankPosition + "위" : "")
-                : "USER");
+        badge.textContent = profile.badge === "RANKER"
+            ? rankLabel + (profile.rankPosition ? " · " + profile.rankPosition + "위" : "")
+            : profile.badge === "ADMIN" ? "ADMIN" : "USER";
         badge.classList.toggle("is-ranker", profile.badge === "RANKER");
         badge.classList.toggle("is-admin", profile.badge === "ADMIN");
 
-        /* [프로필공개정보-5]
-         * 활동 수치는 항상 표시하고 투자정보 비공개 회원은 수익률·수익금 행만 접는다.
-         * 별도 안내 영역이 없어져 숨긴 행의 높이만큼 팝업도 자연스럽게 짧아진다.
-         */
-        publicStats.hidden = false;
-        investmentStats.forEach((stat) => {
-            stat.hidden = !profile.detailsPublic;
-        });
-        postsLink.href = profileApi + encodeURIComponent(profile.memberId) + "/posts";
-        modalOverlay.querySelector("[data-profile-post-count]").textContent = profile.postCount;
         modalOverlay.querySelector("[data-profile-follower-count]").textContent = profile.followerCount;
         modalOverlay.querySelector("[data-profile-following-count]").textContent = profile.followingCount;
-
-        /* [프로필비공개표시-3] 비공개 회원에게 0원·0%를 만들지 않고 투자 지표 렌더링만 생략한다. */
-        if (!profile.detailsPublic) {
-            return;
-        }
-        const returnRate = Number(profile.returnRate ?? 0);
-        const profit = Number(profile.profit ?? 0);
-        const returnRateElement = modalOverlay.querySelector("[data-profile-return-rate]");
-        const profitElement = modalOverlay.querySelector("[data-profile-profit]");
-
-        returnRateElement.textContent =
-            returnRate.toLocaleString("ko-KR", { maximumFractionDigits: 2 }) + "%";
-        profitElement.textContent = profit.toLocaleString("ko-KR") + "원";
-
-        /* [프로필손익색상-1]
-         * 국내 증권 화면 관례에 맞춰 상승(양수)은 빨강, 하락(음수)은 파랑으로 표시한다.
-         * 0은 방향성이 없으므로 두 클래스를 모두 제거해 기본 글자색을 사용한다.
-         */
-        [
-            [returnRateElement, returnRate],
-            [profitElement, profit]
-        ].forEach(([element, value]) => {
-            element.classList.toggle("value-positive", value > 0);
-            element.classList.toggle("value-negative", value < 0);
-        });
     };
 
     const openProfile = async (memberId, trigger) => {
@@ -391,4 +346,5 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     modal.addEventListener("click", (event) => event.stopPropagation());
     window.addEventListener("resize", positionProfilePopover);
+    window.addEventListener("scroll", positionProfilePopover, true);
 });

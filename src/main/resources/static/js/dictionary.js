@@ -126,3 +126,66 @@ keywordInput.addEventListener("keydown", function (event) {
         keywordInput.blur();
     }
 });
+// 용어 카드 확대
+const cards = document.querySelectorAll(".glossary-item");
+const overlay = document.querySelector(".glossary-overlay");
+
+let enlargedCard = null;
+
+
+// 용어 카드 클릭
+cards.forEach(function (card) {
+
+    card.addEventListener("click", function () {
+
+        // 이미 확대된 카드가 있으면 중복 실행 방지
+        if (enlargedCard) {
+            return;
+        }
+
+
+        // 클릭한 용어 카드를 그대로 복제
+        enlargedCard = card.cloneNode(true);
+
+        // 확대본 전용 클래스 추가
+        enlargedCard.classList.add("glossary-enlarged");
+
+        // body에 추가
+        document.body.appendChild(enlargedCard);
+
+        // 배경 어둡게
+        overlay.classList.add("active");
+
+    });
+
+});
+
+
+// 어두운 배경 클릭하면 닫기
+overlay.addEventListener("click", function () {
+
+    if (enlargedCard) {
+
+        enlargedCard.remove();
+        enlargedCard = null;
+
+    }
+
+    overlay.classList.remove("active");
+
+});
+
+
+// ESC로도 닫기
+document.addEventListener("keydown", function (event) {
+
+    if (event.key === "Escape" && enlargedCard) {
+
+        enlargedCard.remove();
+        enlargedCard = null;
+
+        overlay.classList.remove("active");
+
+    }
+
+});
