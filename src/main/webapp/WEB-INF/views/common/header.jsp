@@ -92,7 +92,7 @@
             </div>
 
             <a class="main-nav-link ${requestUri eq tradeHubUrl ? 'is-active' : ''}"
-               href="${tradeHubUrl}">거래 허브</a>
+               href="${tradeHubUrl}">종목 라운지</a>
             <a class="main-nav-link ${requestUri eq rankingUrl ? 'is-active' : ''}"
                href="${rankingUrl}">랭킹</a>
             <div class = "main-nav-dictionary">

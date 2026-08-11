@@ -191,7 +191,7 @@ function setupSymbolSearch(switchTo) {
                     renderResults(res.data);
                 })
                 .catch(() => closeList());
-        }, 200);
+        }, 3000);
     });
 
     input.addEventListener('keydown', (e) => {
