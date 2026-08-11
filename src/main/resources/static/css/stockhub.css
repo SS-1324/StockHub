@@ -28,8 +28,11 @@
     margin-top: -22px;
 }
 
-/* 페이지 제목/부제 영역. ranking.css의 .ranking-heading과 동일한 형식(굵은 제목 + 회색 부제)으로 맞춤 */
+/* 페이지 제목/부제 영역. ranking.css의 .ranking-heading과 동일한 형식(굵은 제목 + 회색 부제)으로 맞춤.
+   margin-top: 6px는 .ranking-page/.glossary가 공통으로 주는 상단 여백(margin: 6px auto ...)과
+   맞춰서 랭킹/용어사전 페이지와 제목 세로 위치가 정확히 일치하도록 함 */
 .chart-page-heading {
+    margin-top: 6px;
     margin-bottom: 24px;
 }
 
