@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS member (
     profile       VARCHAR(300) NOT NULL DEFAULT '/images/common_member.png'
         COMMENT '프로필 이미지 저장 경로',
     member_role VARCHAR(20) NOT NULL DEFAULT 'USER' COMMENT '회원 권한(USER/ADMIN)',
+	rank_badge    TINYINT UNSIGNED NULL DEFAULT NULL COMMENT '랭킹 배지(1: 1위, 2: 2위, 3: 3위, NULL: 일반 회원)',
     member_status VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE' COMMENT '회원 상태(ACTIVE/RESTRICTED)',
     create_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입일시',
 
@@ -134,7 +135,6 @@ CREATE TABLE IF NOT EXISTS password_reset_token (
 CREATE TABLE IF NOT EXISTS stock (
     stock_code     VARCHAR(20)      NOT NULL COMMENT '종목 코드(PK, 예: NVDA)',
     stock_name     VARCHAR(100)     NOT NULL COMMENT '종목 이름',
-    exchange       VARCHAR(20)      NULL COMMENT '거래소 코드(NASDAQ/NYSE 등, 국내 종목은 NULL)',
     description    TEXT             NULL COMMENT '기업 정보 및 설명',
     listing_date   DATE             NULL COMMENT '상장일',
     stock_value    BIGINT UNSIGNED  NULL COMMENT '시가총액',
@@ -143,8 +143,7 @@ CREATE TABLE IF NOT EXISTS stock (
     news           VARCHAR(500)     NULL COMMENT '대표 뉴스 또는 뉴스 요약',
 
     CONSTRAINT PK_STOCK PRIMARY KEY (stock_code),
-    INDEX IDX_STOCK_NAME (stock_name),
-    INDEX IDX_STOCK_EXCHANGE (exchange)
+    INDEX IDX_STOCK_NAME (stock_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='주식 종목';
 
 -- 증권사(가상)

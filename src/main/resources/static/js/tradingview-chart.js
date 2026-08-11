@@ -13,33 +13,18 @@ const TV_INTERVAL_BY_PERIOD = {
     month: 'M',
 };
 
-// 트레이딩뷰 무료 공개 위젯이 실제로 표시 가능한 심볼만 화이트리스트로 관리.
-// 국내(KRX) 종목은 위젯 라이선스상 데이터 표시가 막혀 있어 "This symbol is only
-// available on TradingView" 안내와 함께 임의의 다른 심볼로 대체돼버리므로 지원 대상에서 제외함.
-// (지원 여부가 바뀌면 이 목록만 갱신하면 됨)
-const SUPPORTED_TRADINGVIEW_SYMBOLS = {
-    AAPL: 'NASDAQ:AAPL',
-    TSLA: 'NASDAQ:TSLA',
-    MSFT: 'NASDAQ:MSFT',
-    GOOGL: 'NASDAQ:GOOGL',
-    AMZN: 'NASDAQ:AMZN',
-    NVDA: 'NASDAQ:NVDA',
-    META: 'NASDAQ:META',
-    NFLX: 'NASDAQ:NFLX',
-};
-
+// 종목의 거래소 정보를 못 구했을 때(예: DB에 없는 코드로 ?code= 접속)만 쓰는 최후 기본값.
+// 정상 흐름에서는 거래소 정보가 항상 서버(stock 테이블의 exchange 컬럼)나 검색 API 응답에서
+// 내려오므로, 이 화이트리스트를 더 이상 프론트에서 관리하지 않아도 됨.
 const DEFAULT_SUPPORTED_CODE = 'AAPL';
+const DEFAULT_EXCHANGE = 'NASDAQ';
 
 // 차트 헤더의 빠른 종목 전환 버튼에 노출할 대표 5개 종목
 const QUICK_SWITCH_CODES = ['AAPL', 'MSFT', 'NVDA', 'TSLA', 'GOOGL'];
 
-// 화이트리스트에 없는 코드(예: 국내 종목 코드)가 들어오면 기본 지원 종목으로 대체
-function resolveTradingViewSymbol(code) {
-    return SUPPORTED_TRADINGVIEW_SYMBOLS[code] || SUPPORTED_TRADINGVIEW_SYMBOLS[DEFAULT_SUPPORTED_CODE];
-}
-
-function isSupportedCode(code) {
-    return Object.prototype.hasOwnProperty.call(SUPPORTED_TRADINGVIEW_SYMBOLS, code);
+// exchange가 없으면(국내 종목이거나 존재하지 않는 코드) 기본 지원 종목으로 대체
+function resolveTradingViewSymbol(code, exchange) {
+    return exchange ? `${exchange}:${code}` : `${DEFAULT_EXCHANGE}:${DEFAULT_SUPPORTED_CODE}`;
 }
 
 function resolveTradingViewInterval(period) {
@@ -62,20 +47,22 @@ class TradingViewChart {
         this.containerId = containerId;
         this.code = null;
         this.period = null;
+        this.exchange = null;
     }
 
     // embed-widget-advanced-chart.js는 생성 이후 심볼/테마를 바꿀 수 있는 JS API를
     // 제공하지 않는 완결형 임베드 위젯이라, 값이 바뀔 때마다 컨테이너를 비우고
     // 위젯 마크업 전체를 다시 그린다.
-    mount(code, period) {
+    mount(code, period, exchange) {
         this.code = code;
         this.period = period;
+        this.exchange = exchange;
 
         const container = document.getElementById(this.containerId);
         if (!container) return;
         container.innerHTML = '';
 
-        const symbol = resolveTradingViewSymbol(code);
+        const symbol = resolveTradingViewSymbol(code, exchange);
         const theme = readSiteTheme();
         const themeColors = TV_THEME_COLORS[theme];
 
@@ -155,14 +142,14 @@ class TradingViewChart {
     }
 
     // 종목 코드/주기가 바뀌었을 때도 임베드 위젯은 부분 갱신 API가 없으므로 재마운트로 처리
-    setSymbol(code, period) {
-        this.mount(code, period);
+    setSymbol(code, period, exchange) {
+        this.mount(code, period, exchange);
     }
 
     // 테마가 바뀔 때도 마찬가지로 재마운트
     applyCurrentTheme() {
         if (!this.code) return;
-        this.mount(this.code, this.period);
+        this.mount(this.code, this.period, this.exchange);
     }
 
     getCurrentCode() {
@@ -171,6 +158,10 @@ class TradingViewChart {
 
     getCurrentPeriod() {
         return this.period;
+    }
+
+    getCurrentExchange() {
+        return this.exchange;
     }
 }
 

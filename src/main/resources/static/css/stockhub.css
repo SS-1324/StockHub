@@ -63,6 +63,61 @@ html[data-theme="dark"] .chart-wrapper {
     gap: 6px;
 }
 
+.chart-symbol-search {
+    position: relative;
+    width: 200px;
+}
+
+.chart-symbol-search-input {
+    width: 100%;
+    padding: 6px 10px;
+    font-size: 12px;
+    border: 1px solid rgba(128, 128, 128, 0.35);
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+}
+
+.chart-symbol-search-list {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 50;
+    max-height: 260px;
+    overflow-y: auto;
+    border-radius: 8px;
+    border: 1px solid rgba(128, 128, 128, 0.45);
+    background: #eef1fb;
+}
+
+.chart-symbol-search-list.show {
+    display: block;
+}
+
+.chart-symbol-search-item {
+    display: block;
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    background: none;
+    text-align: left;
+    font-size: 13px;
+    color: inherit;
+    cursor: pointer;
+}
+
+.chart-symbol-search-item:hover,
+.chart-symbol-search-item:focus {
+    outline: none;
+    background: rgba(37, 99, 235, 0.12);
+}
+
+html[data-theme="dark"] .chart-symbol-search-list {
+    background: #10151f;
+}
+
 .chart-symbol-btn {
     padding: 6px 12px;
     font-size: 12px;
@@ -260,6 +315,7 @@ html[data-theme="dark"] .chat-panel {
 .chart-wrapper:-webkit-full-screen .chart-body {
     flex: 1;
     height: auto;
+    min-height: 0;
 }
 
 /* 종목별 "살까?팔까?" 실시간 투표 카드. 색/배경은 .chart-wrapper와 같은 규칙을 그대로 씀 */

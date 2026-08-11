@@ -1,17 +1,27 @@
 package com.kh.demo.hub.service;
 
+import com.kh.demo.brokerage.dto.StockDto;
+import com.kh.demo.brokerage.mapper.StockMapper;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Objects;
 
 @Service
 public class StockServiceImpl implements StockService {
 
-    // 종목 코드가 없을 때 기본으로 보여줄 종목
-    // TradingView 무료 위젯이 국내(KRX) 종목 데이터는 표시하지 못해서(라이선스 제한),
-    // 위젯이 실제로 지원하는 해외 종목(AAPL)을 기본값으로 씀.
-    // 위젯 쪽 지원 심볼 목록은 tradingview-chart.js의 SUPPORTED_TRADINGVIEW_SYMBOLS 참고.
     private static final String DEFAULT_CODE = "AAPL";
-    // 캔들 주기가 없을 때 기본으로 보여줄 주기 (TradingView 위젯의 초기 interval)
     private static final String DEFAULT_PERIOD = "day";
+
+    // 차트 헤더의 빠른 종목 전환 버튼에 노출할 대표 5개 종목.
+    // tradingview-chart.js의 QUICK_SWITCH_CODES와 반드시 동일하게 유지해야 함
+    private static final List<String> QUICK_SWITCH_CODES = List.of("AAPL", "MSFT", "NVDA", "TSLA", "GOOGL");
+
+    private final StockMapper stockMapper;
+
+    public StockServiceImpl(StockMapper stockMapper) {
+        this.stockMapper = stockMapper;
+    }
 
     @Override
     public String resolveCode(String code) {
@@ -21,5 +31,23 @@ public class StockServiceImpl implements StockService {
     @Override
     public String resolvePeriod(String period) {
         return (period != null && !period.isBlank()) ? period : DEFAULT_PERIOD;
+    }
+
+    @Override
+    public StockDto findStock(String code) {
+        return stockMapper.selectStockByCode(code);
+    }
+
+    @Override
+    public List<StockDto> searchStocks(String keyword) {
+        return stockMapper.searchStocks(keyword);
+    }
+
+    @Override
+    public List<StockDto> resolveQuickSwitchStocks() {
+        return QUICK_SWITCH_CODES.stream()
+                .map(stockMapper::selectStockByCode)
+                .filter(Objects::nonNull)
+                .toList();
     }
 }
