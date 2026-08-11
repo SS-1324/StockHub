@@ -30,8 +30,8 @@ const memberNamePattern = /^\S{1,50}$/;
 const nicknamePattern = /^[가-힣A-Za-z0-9]{2,10}$/;
 const passwordPattern =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])[\x21-\x7E]{10,100}$/;
-const emailLocalPattern = /^(?=.*[a-z])[a-z0-9]{1,50}$/;
-const emailDomainPattern = /^[A-Za-z]+(?:\.com|\.co\.kr|\.net)$/;
+const emailLocalPattern = /^(?=.{1,64}$)(?=.*[a-z])[a-z0-9]+(?:[._%+-][a-z0-9]+)*$/;
+const emailDomainPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*(?:\.[a-z0-9]+(?:-[a-z0-9]+)*)*(?:\.com|\.net|\.co\.kr)$/;
 const allowedProfileExtensionPattern = /\.(jpe?g|png|webp)$/i;
 const allowedProfileContentTypes = new Set([
     "image/jpeg",

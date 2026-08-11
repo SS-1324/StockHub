@@ -36,12 +36,17 @@
     <a class="board-card ${not empty board.imageList ? 'has-image' : 'has-no-image'}"
        href="${communityUrl}/${board.boardId}">
 
-        <%-- [프로필연결-1] 카드 이동과 구분하여 작성자 영역을 누르면 공통 프로필 모달을 연다. --%>
-        <div class="board-card-header ${boardRankClass}"
-             data-user-profile="${board.memberId}"
-             role="button"
-             tabindex="0"
-             aria-label="작성자 프로필 보기">
+        <%--
+            [프로필클릭범위-1] 카드 전체는 게시글 상세 이동 링크이므로 프로필 팝업 트리거와 역할이 다르다.
+            사진 전용 래퍼에만 data-user-profile을 두어 이름·날짜·헤더 여백을 눌러도 팝업이 열리지 않게 한다.
+        --%>
+        <div class="board-card-header ${boardRankClass}">
+
+            <span class="community-profile-trigger"
+                  data-user-profile="${board.memberId}"
+                  role="button"
+                  tabindex="0"
+                  aria-label="${board.nickname} 프로필 보기">
 
             <c:choose>
 
@@ -66,6 +71,8 @@
 
             </c:choose>
 
+            </span>
+
             <div class="board-card-header-text">
                 <span class="board-card-nickname">
                     ${board.nickname}
@@ -77,24 +84,11 @@
             </div>
 
         </div>
-        <c:choose>
-            <%-- [텍스트카드-1] 이미지가 없으면 기존 빈 영역을 제목·본문 중심의 전용 패널로 채운다. --%>
-            <c:when test="${empty board.imageList}">
-                <div class="board-card-text-panel" data-category="${board.category}">
-                    <c:if test="${not empty board.title}">
-                        <div class="board-card-title"><c:out value="${board.title}" /></div>
-                    </c:if>
-                    <div class="board-card-snippet"><c:out value="${board.content}" /></div>
-                </div>
-            </c:when>
-            <%-- 이미지 카드는 현재 제목·본문·썸네일 순서를 그대로 유지한다. --%>
-            <c:otherwise>
-                <c:if test="${not empty board.title}">
-                    <div class="board-card-title"><c:out value="${board.title}" /></div>
-                </c:if>
-                <div class="board-card-snippet"><c:out value="${board.content}" /></div>
-            </c:otherwise>
-        </c:choose>
+        <%-- [카드본문통일-1] 이미지 유무와 관계없이 제목과 본문은 같은 마크업·클래스를 사용한다. --%>
+        <c:if test="${not empty board.title}">
+            <div class="board-card-title"><c:out value="${board.title}" /></div>
+        </c:if>
+        <div class="board-card-snippet"><c:out value="${board.content}" /></div>
 
         <%-- [카드단일이미지-4] 본문 아래에 이미지를 배치한다.
              한 장은 single 클래스를 사용하지만 CSS에서 여러 장과 같은 높이·원본 비율·왼쪽 정렬을 적용한다. --%>

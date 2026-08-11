@@ -4,7 +4,7 @@
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/ranking.css?v=9">
+      href="${pageContext.request.contextPath}/css/ranking.css?v=13">
 
 <section class="ranking-page" aria-labelledby="ranking-title">
     <div class="ranking-heading">
@@ -58,7 +58,11 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // 두 보드의 모든 회원 행에 동일한 펼치기/접기 기능을 연결한다.
+    /*
+     * [랭킹아코디언]
+     * 두 랭킹 보드의 모든 회원 행에 같은 이벤트를 연결하고, 한 번에 하나의 상세 정보만 연다.
+     * CSS용 is-open과 접근성용 aria-expanded/aria-hidden을 함께 바꿔 화면과 스크린리더 상태를 동기화한다.
+     */
     const accordionItems = document.querySelectorAll(".ranking-item");
 
     accordionItems.forEach(function (item) {
@@ -70,7 +74,7 @@ document.addEventListener("DOMContentLoaded", function () {
         button.addEventListener("click", function () {
             const wasOpen = item.classList.contains("is-open");
 
-            // 다른 행을 먼저 닫아 한 번에 하나의 상세 정보만 열리게 한다.
+            /* 현재 행을 열기 전에 전체를 닫으므로 다른 보드에 열린 행이 있어도 하나만 남는다. */
             accordionItems.forEach(function (otherItem) {
                 const otherButton = otherItem.querySelector("[data-accordion-button]");
                 const otherContent = otherItem.querySelector("[data-accordion-content]");
@@ -89,3 +93,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 </script>
+
+<%--
+    header.jsp가 시작한 공통 페이지 구조를 닫고, 다른 화면과 동일한 사이트 정보·링크를 표시한다.
+    랭킹 전용 푸터를 따로 만들면 공통 푸터 변경 시 이 화면만 누락될 수 있으므로 공통 JSP를 재사용한다.
+--%>
+<jsp:include page="/WEB-INF/views/common/footer.jsp" />

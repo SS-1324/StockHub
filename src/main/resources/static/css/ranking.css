@@ -316,7 +316,20 @@
 /* 회원 이름과 아이디 */
 .ranking-member {
     display: block;
+    justify-self: start;
+    width: fit-content;
+    max-width: 100%;
     min-width: 0;
+}
+
+/*
+    [랭킹프로필클릭-1] 그리드의 남는 빈 칸까지 프로필 클릭 영역이 되는 것을 막는다.
+    아바타와 실제 이름·아이디 부분만 프로필 팝업을 열고, 오른쪽 수익률·수익금은
+    랭킹 행의 아코디언을 여는 독립 영역으로 유지한다.
+*/
+.ranking-avatar-frame[data-user-profile],
+.ranking-member[data-user-profile]{
+    cursor: pointer;
 }
 
 .ranking-member strong {
@@ -376,6 +389,16 @@
 .ranking-profit .is-positive,
 .ranking-detail-stat strong.is-positive {
     color: #ff304d;
+}
+
+/* [랭킹비공개보호-3] 비공개 회원 행에는 실제 숫자 대신 중립적인 비공개 상태만 표시한다. */
+.ranking-profit.is-private strong {
+    color: #8999b1;
+    font-size: 13px;
+}
+
+html[data-theme="dark"] .ranking-profit.is-private strong {
+    color: #8f9db2;
 }
 
 .ranking-profit.is-negative,
@@ -438,9 +461,14 @@
 .ranking-details-content {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    /*
+     * 중복 안내 문구를 제거하면서 자식이 통계 카드 하나만 남았다.
+     * 기존 space-between과 왼쪽 전용 padding을 유지하면 카드가 오른쪽으로 쏠리므로
+     * 컨테이너 전체를 기준으로 중앙 정렬하고 좌우 padding도 대칭으로 둔다.
+     */
+    justify-content: center;
     gap: 22px;
-    padding: 18px 24px 20px 129px;
+    padding: 18px 24px 20px;
     opacity: 0;
     transform: translateY(-8px);
     transition:
@@ -590,6 +618,13 @@ html[data-theme="dark"] .ranking-item.is-open .ranking-row {
     background: #162033;
 }
 
+/* [랭킹다크구분선-1]
+ * 라이트모드의 밝은 inset 선을 덮어 어두운 카드에서 튀지 않는 회청색 구분선으로 낮춘다.
+ */
+html[data-theme="dark"] .ranking-item.is-open .ranking-row {
+    box-shadow: inset 0 -1px 0 #2b384d;
+}
+
 html[data-theme="dark"] .ranking-member strong {
     color: #f1f5f9;
 }
@@ -622,6 +657,25 @@ html[data-theme="dark"] .ranking-detail-stat {
 
 html[data-theme="dark"] .ranking-detail-stat > strong {
     color: #e5edf8;
+}
+
+/* [랭킹다크손익색상-1]
+ * 위의 상세 숫자 기본색보다 뒤에서 선언해 상승·하락 상태가 흰색으로 덮이지 않게 한다.
+ * 0은 상승이나 하락이 아니므로 중립 회색을 사용한다.
+ */
+html[data-theme="dark"] .ranking-profit .is-positive,
+html[data-theme="dark"] .ranking-detail-stat > strong.is-positive {
+    color: #ff4d67;
+}
+
+html[data-theme="dark"] .ranking-profit .is-negative,
+html[data-theme="dark"] .ranking-detail-stat > strong.is-negative {
+    color: #4f8cff;
+}
+
+html[data-theme="dark"] .ranking-profit .is-neutral,
+html[data-theme="dark"] .ranking-detail-stat > strong.is-neutral {
+    color: #a8b4c7;
 }
 
 html[data-theme="dark"] .ranking-empty strong {
@@ -660,8 +714,9 @@ html[data-theme="dark"] .ranking-empty strong {
     }
 
     .ranking-grid .ranking-details-content {
-        align-items: stretch;
-        padding: 16px 16px 18px 92px;
+        /* 두 랭킹 보드가 나란히 있는 중간 폭에서도 통계 카드는 가로 중앙을 유지한다. */
+        align-items: center;
+        padding: 16px 16px 18px;
         flex-direction: column;
         gap: 12px;
     }
@@ -715,8 +770,9 @@ html[data-theme="dark"] .ranking-empty strong {
     }
 
     .ranking-details-content {
-        align-items: stretch;
-        padding: 17px 16px 19px 104px;
+        /* 한 열 레이아웃으로 바뀐 뒤에도 데스크톱과 같은 중앙 정렬 원칙을 유지한다. */
+        align-items: center;
+        padding: 17px 16px 19px;
         flex-direction: column;
         gap: 13px;
     }
@@ -791,11 +847,12 @@ html[data-theme="dark"] .ranking-empty strong {
     }
 
     .ranking-details-content {
-        padding: 15px 12px 17px 92px;
+        padding: 15px 12px 17px;
     }
 
     .ranking-details-stats {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        /* 통계는 수익률·수익금 두 개뿐이므로 모바일에서도 빈 3열을 만들지 않는다. */
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 5px;
     }
 

@@ -5,10 +5,17 @@ import com.kh.demo.brokerage.mapper.StockMapper;
 import com.kh.demo.hub.dto.StockVoteResultDto;
 import com.kh.demo.hub.dto.VoteCountsDto;
 import com.kh.demo.hub.mapper.StockVoteMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
@@ -16,7 +23,9 @@ import java.util.Set;
 @Service
 public class StockVoteServiceImpl implements StockVoteService {
 
+    private static final Logger log = LoggerFactory.getLogger(StockVoteServiceImpl.class);
     private static final Set<String> VALID_VOTE_TYPES = Set.of("UP", "DOWN");
+    private static final int RESET_HOUR = 10;
 
     private final StockVoteMapper stockVoteMapper;
     private final StockMapper stockMapper;
@@ -66,6 +75,35 @@ public class StockVoteServiceImpl implements StockVoteService {
         }
         // 방금 지웠으므로 myVote를 다시 조회하지 않고 null로 확정
         return buildResult(stock, null);
+    }
+
+    // 매일 오전 10시, 전 종목 투표를 초기화
+    @Scheduled(cron = "0 0 10 * * *")
+    public void resetDailyVotes() {
+        runReset();
+    }
+
+    // 서버가 오전 10시에 꺼져있다 나중에 켜진 경우, 그날의 초기화가 통째로 스킵되는 걸 막기 위해
+    // 기동 시점에도 같은 로직을 한 번 태워서 밀린 초기화를 바로 따라잡음
+    @EventListener(ApplicationReadyEvent.class)
+    public void resetVotesOnStartup() {
+        runReset();
+    }
+
+    private void runReset() {
+        int deleted = stockVoteMapper.deleteVotesBefore(lastResetCutoff());
+        if (deleted > 0) {
+            log.info("[투표 초기화] 전 종목 투표 {}건 삭제", deleted);
+        }
+    }
+
+    // "가장 최근에 이미 지난 오전 10시" 시각을 계산.
+    // 지금이 오늘 10시 이전이면 아직 오늘자 리셋 시각이 안 지났으므로 어제 10시 기준,
+    // 10시 이후면 오늘 10시 기준 — 이 시각 이전 투표는 전부 정리 대상
+    private LocalDateTime lastResetCutoff() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime todayReset = LocalDate.now().atTime(RESET_HOUR, 0);
+        return now.isBefore(todayReset) ? todayReset.minusDays(1) : todayReset;
     }
 
     private StockVoteResultDto buildResult(StockDto stock, String myVote) {

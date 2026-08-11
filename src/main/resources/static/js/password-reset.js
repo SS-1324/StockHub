@@ -18,8 +18,8 @@ const passwordConfirmResult = document.querySelector("#reset-password-confirm-re
 const contextPath = resetForm.dataset.contextPath || "";
 
 // 회원가입과 동일한 이메일·비밀번호 입력 규칙
-const emailLocalPattern = /^(?=.*[a-z])[a-z0-9]{1,50}$/;
-const emailDomainPattern = /^[A-Za-z]+(?:\.com|\.co\.kr|\.net)$/;
+const emailLocalPattern = /^(?=.{1,64}$)(?=.*[a-z])[a-z0-9]+(?:[._%+-][a-z0-9]+)*$/;
+const emailDomainPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*(?:\.[a-z0-9]+(?:-[a-z0-9]+)*)*(?:\.com|\.net|\.co\.kr)$/;
 const passwordPattern =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])[\x21-\x7E]{10,100}$/;
 

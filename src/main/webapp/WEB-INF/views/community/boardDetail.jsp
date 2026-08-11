@@ -13,7 +13,7 @@
     v 값은 CSS 내용을 바꾼 뒤 브라우저가 예전 파일을 재사용하지 않고 새로 받게 하는 캐시 갱신 번호다.
 --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css?v=29">
+      href="${pageContext.request.contextPath}/css/board.css?v=48">
 
 <c:if test="${not empty error}">
     <p class="alert alert-error">${error}</p>
@@ -78,11 +78,14 @@
                value="rank-third" />
     </c:when>
 </c:choose>
-<div class="board-header-meta ${boardRankClass}"
-     data-user-profile="${board.memberId}"
-     role="button"
-     tabindex="0"
-     aria-label="작성자 프로필 보기">
+<div class="board-header-meta ${boardRankClass}">
+
+    <%-- 목록과 동일하게 작성자 사진만 프로필 팝업을 여는 독립 버튼 역할을 맡는다. --%>
+    <span class="community-profile-trigger"
+          data-user-profile="${board.memberId}"
+          role="button"
+          tabindex="0"
+          aria-label="${board.nickname} 프로필 보기">
 
     <c:choose>
 
@@ -106,6 +109,8 @@
         </c:otherwise>
 
     </c:choose>
+
+    </span>
 
     <span>${board.nickname}</span>
     <span>${board.createAtStr}</span>
@@ -158,43 +163,6 @@
     <span class="category-badge">${allowedCategories[board.category]}</span>
 </div>
 
-<%--
-    이전글·다음글은 같은 카테고리 안에서만 이동한다.
-    이동할 글이 없는 방향도 숨기지 않고 비활성 안내를 보여줘서
-    사용자가 기능 누락이 아니라 목록의 처음/끝이라는 사실을 알 수 있게 한다.
---%>
-<div class="board-adjacent-nav" aria-label="이전글 및 다음글">
-    <c:choose>
-        <c:when test="${not empty board.prevBoardId}">
-            <a class="board-adjacent-link" href="${communityUrl}/${board.prevBoardId}">
-                <span class="board-adjacent-label">이전글</span>
-                <span class="board-adjacent-title"><c:out value="${board.prevTitle}" /></span>
-            </a>
-        </c:when>
-        <c:otherwise>
-            <span class="board-adjacent-link is-disabled" aria-disabled="true">
-                <span class="board-adjacent-label">이전글</span>
-                <span class="board-adjacent-title">이전글이 없습니다</span>
-            </span>
-        </c:otherwise>
-    </c:choose>
-
-    <c:choose>
-        <c:when test="${not empty board.nextBoardId}">
-            <a class="board-adjacent-link" href="${communityUrl}/${board.nextBoardId}">
-                <span class="board-adjacent-label">다음글</span>
-                <span class="board-adjacent-title"><c:out value="${board.nextTitle}" /></span>
-            </a>
-        </c:when>
-        <c:otherwise>
-            <span class="board-adjacent-link is-disabled" aria-disabled="true">
-                <span class="board-adjacent-label">다음글</span>
-                <span class="board-adjacent-title">다음글이 없습니다</span>
-            </span>
-        </c:otherwise>
-    </c:choose>
-</div>
-
 </div>
 
 <div class="comment-section" id="comment-section">
@@ -227,12 +195,14 @@
             <div id="comment-${c.commentId}"
                  class="comment-item ${not empty c.parentCommentId ? 'comment-item-reply' : ''}"
                  data-comment-id="${c.commentId}">
-                <%-- [프로필연결-2] 댓글·대댓글 작성자도 같은 프로필 모달을 사용한다. --%>
+                <%-- 댓글 행 전체가 아니라 프로필 사진(또는 기본 원)만 공통 프로필 모달을 연다. --%>
                 <div class="comment-author"
-                     data-member-id="${c.memberId}"
-                     data-user-profile="${c.memberId}"
-                     role="button"
-                     tabindex="0">
+                     data-member-id="${c.memberId}">
+                    <span class="community-profile-trigger"
+                          data-user-profile="${c.memberId}"
+                          role="button"
+                          tabindex="0"
+                          aria-label="${c.nickname} 프로필 보기">
                     <c:choose>
                         <c:when test="${not empty c.profile}">
                             <img class="comment-avatar" src="${c.profile}" alt="${c.nickname}">
@@ -241,6 +211,7 @@
                             <span class="comment-avatar-placeholder">${fn:substring(c.nickname, 0, 1)}</span>
                         </c:otherwise>
                     </c:choose>
+                    </span>
                     <span class="comment-nickname">${c.nickname}</span>
                 </div>
                 <%-- white-space: pre-wrap이 걸려있어서, 아래 태그 사이에 줄바꿈/들여쓰기를 남기면
@@ -294,5 +265,5 @@
 
 </div>
 
-<script src="${pageContext.request.contextPath}/js/board.js?v=4"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=11"></script>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

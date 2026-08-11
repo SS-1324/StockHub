@@ -14,11 +14,10 @@
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
 
-<%-- 거래 허브 페이지 전용 실시간 시세 티커바 (TradingView Ticker Tape 위젯) --%>
-<tv-ticker-tape class="hub-ticker-tape" symbols="NASDAQ:AAPL,NASDAQ:TSLA,NASDAQ:MSFT,NASDAQ:AMZN,NASDAQ:META,NASDAQ:SPCX,NASDAQ:NVDA,NASDAQ:AMD,NASDAQ:GOOGL,NASDAQ:INTC,NASDAQ:NFLX,NASDAQ:MSTR" hide-chart item-size="compact"></tv-ticker-tape>
-
-<h2>주식 거래 허브</h2>
-<p>관심 종목의 실시간 차트를 확인하세요.</p>
+<div class="chart-page-heading">
+    <h2>종목 라운지</h2>
+    <p>관심 종목의 실시간 차트를 확인하세요.</p>
+</div>
 
 <div class="chart-wrapper">
     <div class="chart-header">
@@ -26,6 +25,13 @@
             <span id="chart-symbol-name" class="chart-symbol-name"></span>
         </div>
         <div class="chart-header-right">
+            <!-- 해외 종목 검색 자동완성 (stockhub.js의 setupSymbolSearch 참고) -->
+            <div class="chart-symbol-search" id="chart-symbol-search">
+                <input type="text" id="chart-symbol-search-input" class="chart-symbol-search-input"
+                       placeholder="해외 종목 검색 (예: AAPL, Apple)" autocomplete="off">
+                <div id="chart-symbol-search-list" class="chart-symbol-search-list"></div>
+            </div>
+
             <!-- 빠른 종목 전환 버튼 (JS가 채워 넣음) -->
             <div id="chart-symbol-buttons" class="chart-symbol-buttons"></div>
 
@@ -77,7 +83,6 @@
     <div class="stock-vote-top">
         <div class="stock-vote-badges">
             <span class="stock-vote-badge">살까?팔까?</span>
-            <span class="stock-vote-live">실시간 투표</span>
         </div>
         <span class="stock-vote-participants" id="stock-vote-participants"></span>
     </div>
@@ -108,13 +113,22 @@
 <script>
     // 서버가 결정한 종목 코드 (URL에 code가 없으면 기본 종목)
     const resolvedCode = '<c:out value="${resolvedCode}"/>';
+    // resolvedCode의 거래소(NASDAQ/NYSE 등). 종목을 못 찾았으면 빈 문자열
+    const resolvedExchange = '<c:out value="${resolvedExchange}"/>';
     // 서버가 결정한 캔들 주기: minute/day/week/month (URL에 period가 없으면 day)
     const resolvedPeriod = '<c:out value="${resolvedPeriod}"/>';
     // 채팅 입력창 활성화 여부 판단용 (비로그인 사용자는 채팅 전송 불가)
     const isLoggedIn = <c:out value="${not empty sessionScope.loginMember}"/>;
+    // 빠른전환 버튼 5종목의 거래소 정보 (버튼 클릭마다 네트워크 왕복 없이 바로 트레이딩뷰 심볼 조립용)
+    const quickSwitchExchanges = {
+    <c:forEach var="qs" items="${quickSwitchStocks}" varStatus="loop">'<c:out value="${qs.stockCode}"/>': '<c:out value="${qs.exchange}"/>'<c:if test="${!loop.last}">,</c:if></c:forEach>
+    };
 </script>
-<script src="<c:url value='/js/tradingview-chart.js?v=1'/>"></script>
-<script src="<c:url value='/js/stockhub.js?v=5'/>"></script>
+<script src="<c:url value='/js/tradingview-chart.js?v=2'/>"></script>
+<script src="<c:url value='/js/stockhub.js?v=7'/>"></script>
+
+<%-- 거래 허브 페이지 전용 실시간 시세 티커바 (TradingView Ticker Tape 위젯). footer 바로 위에 margin 없이 붙임 --%>
+<tv-ticker-tape class="hub-ticker-tape" symbols="NASDAQ:AAPL,NASDAQ:TSLA,NASDAQ:MSFT,NASDAQ:AMZN,NASDAQ:META,NASDAQ:SPCX,NASDAQ:NVDA,NASDAQ:AMD,NASDAQ:GOOGL,NASDAQ:INTC,NASDAQ:NFLX,NASDAQ:MSTR" hide-chart item-size="compact"></tv-ticker-tape>
 
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

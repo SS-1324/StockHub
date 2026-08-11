@@ -31,4 +31,10 @@
         WHERE stock_code = #{stockCode} AND member_id = #{memberId}
     </delete>
 
+    <!-- 기준 시각 이전 투표를 전 종목 대상으로 초기화 -->
+    <delete id="deleteVotesBefore">
+        DELETE FROM stock_vote
+        WHERE voted_at &lt; #{before}
+    </delete>
+
 </mapper>

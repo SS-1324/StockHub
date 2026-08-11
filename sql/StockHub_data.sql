@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS member (
     profile       VARCHAR(300) NOT NULL DEFAULT '/images/common_member.png'
         COMMENT '프로필 이미지 저장 경로',
     member_role VARCHAR(20) NOT NULL DEFAULT 'USER' COMMENT '회원 권한(USER/ADMIN)',
+	rank_badge    TINYINT UNSIGNED NULL DEFAULT NULL COMMENT '랭킹 배지(1: 1위, 2: 2위, 3: 3위, NULL: 일반 회원)',
     member_status VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE' COMMENT '회원 상태(ACTIVE/RESTRICTED)',
     create_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입일시',
 

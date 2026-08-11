@@ -16,9 +16,6 @@ import java.util.List;
 @Controller
 public class HomeController {
 
-    private static final List<String> FEATURED_GLOSSARY_TERMS =
-            List.of("본전", "상승세", "하락세");
-
     private final BoardService boardService;
     private final RankingService rankingService;
     private final GlossaryService glossaryService;
@@ -58,12 +55,10 @@ public class HomeController {
                 rankingList.subList(0, Math.min(5, rankingList.size()))
         );
 
-        // DB의 용어 중 메인 화면에 소개할 세 항목만 지정한 순서대로 전달
+        // 새로고침할 때마다 DB 용어사전에서 무작위로 선택한 세 항목을 전달
         List<GlossaryDto> featuredGlossaryTerms;
         try {
-            featuredGlossaryTerms = glossaryService.selectGlossaryByTerms(
-                    FEATURED_GLOSSARY_TERMS
-            );
+            featuredGlossaryTerms = glossaryService.selectRandomGlossaryTerms(3);
         } catch (DataAccessException e) {
             featuredGlossaryTerms = List.of();
         }

@@ -82,25 +82,36 @@
                                 수익금 보드에서는 수익금을 크게 표시한다.
                                 각 숫자는 자신의 값이 양수면 빨강, 음수면 파랑을 사용한다.
                             --%>
+                            <%-- [랭킹비공개보호-2]
+                                 SQL 필터와 별개로 공개값이 Y인 회원만 수익률·수익금을 HTML에 출력한다. --%>
                             <c:choose>
-                                <c:when test="${profitPrimary}">
-                                    <span class="ranking-profit">
-                                        <strong class="${ranking.profit lt 0 ? 'is-negative' : 'is-positive'}">
-                                            <fmt:formatNumber value="${ranking.profit}" pattern="#,##0"/>원
-                                        </strong>
-                                        <span class="${ranking.returnRate lt 0 ? 'is-negative' : 'is-positive'}">
-                                            <fmt:formatNumber value="${ranking.returnRate}" pattern="#,##0.00"/>%
-                                        </span>
-                                    </span>
+                                <c:when test="${ranking.tradeHistoryPublicYn eq 'Y'}">
+                                    <c:choose>
+                                        <c:when test="${profitPrimary}">
+                                            <span class="ranking-profit">
+                                                <strong class="${ranking.profit gt 0 ? 'is-positive' : (ranking.profit lt 0 ? 'is-negative' : 'is-neutral')}">
+                                                    <fmt:formatNumber value="${ranking.profit}" pattern="#,##0"/>원
+                                                </strong>
+                                                <span class="${ranking.returnRate gt 0 ? 'is-positive' : (ranking.returnRate lt 0 ? 'is-negative' : 'is-neutral')}">
+                                                    <fmt:formatNumber value="${ranking.returnRate}" pattern="#,##0.00"/>%
+                                                </span>
+                                            </span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="ranking-profit">
+                                                <strong class="${ranking.returnRate gt 0 ? 'is-positive' : (ranking.returnRate lt 0 ? 'is-negative' : 'is-neutral')}">
+                                                    <fmt:formatNumber value="${ranking.returnRate}" pattern="#,##0.00"/>%
+                                                </strong>
+                                                <span class="${ranking.profit gt 0 ? 'is-positive' : (ranking.profit lt 0 ? 'is-negative' : 'is-neutral')}">
+                                                    <fmt:formatNumber value="${ranking.profit}" pattern="#,##0"/>원
+                                                </span>
+                                            </span>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </c:when>
                                 <c:otherwise>
-                                    <span class="ranking-profit">
-                                        <strong class="${ranking.returnRate lt 0 ? 'is-negative' : 'is-positive'}">
-                                            <fmt:formatNumber value="${ranking.returnRate}" pattern="#,##0.00"/>%
-                                        </strong>
-                                        <span class="${ranking.profit lt 0 ? 'is-negative' : 'is-positive'}">
-                                            <fmt:formatNumber value="${ranking.profit}" pattern="#,##0"/>원
-                                        </span>
+                                    <span class="ranking-profit is-private" aria-label="투자 정보 비공개">
+                                        <strong>비공개</strong>
                                     </span>
                                 </c:otherwise>
                             </c:choose>
@@ -117,28 +128,20 @@
                                     <%-- 관리자 또는 공개 회원만 실제 투자 수치를 볼 수 있다. --%>
                                     <c:choose>
                                         <c:when test="${ranking.tradeHistoryPublicYn eq 'Y'}">
-                                            <div class="ranking-details-intro">
-                                                <strong>
-                                                    <c:choose>
-                                                        <c:when test="${not empty ranking.nickname}">
-                                                            <c:out value="${ranking.nickname}" />님의 투자 정보
-                                                        </c:when>
-                                                        <c:otherwise>회원 투자 정보</c:otherwise>
-                                                    </c:choose>
-                                                </strong>
-                                                <p>현재 랭킹 집계 기준의 투자 내역입니다.</p>
-                                            </div>
-
+                                            <%--
+                                                아코디언 행 자체에 회원 이름이 이미 있고, 아래 카드의 라벨도 수익률·수익금을 설명한다.
+                                                같은 정보를 반복하던 제목과 안내 문장은 제거하고 핵심 수치 카드만 남겨 시선 이동을 줄인다.
+                                            --%>
                                             <div class="ranking-details-stats">
                                                 <div class="ranking-detail-stat">
                                                     <span>수익률</span>
-                                                    <strong class="${ranking.returnRate lt 0 ? 'is-negative' : 'is-positive'}">
+                                                    <strong class="${ranking.returnRate gt 0 ? 'is-positive' : (ranking.returnRate lt 0 ? 'is-negative' : 'is-neutral')}">
                                                         <fmt:formatNumber value="${ranking.returnRate}" pattern="#,##0.00"/>%
                                                     </strong>
                                                 </div>
                                                 <div class="ranking-detail-stat">
                                                     <span>평가손익</span>
-                                                    <strong class="${ranking.profit lt 0 ? 'is-negative' : 'is-positive'}">
+                                                    <strong class="${ranking.profit gt 0 ? 'is-positive' : (ranking.profit lt 0 ? 'is-negative' : 'is-neutral')}">
                                                         <fmt:formatNumber value="${ranking.profit}" pattern="#,##0"/>원
                                                     </strong>
                                                 </div>

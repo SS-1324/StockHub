@@ -48,11 +48,13 @@ public class MemberServiceImpl implements MemberService {
                     + "[\\x21-\\x7E]{10,100}$"
     );
 
-    // 이메일 앞부분은 소문자 또는 소문자·숫자 조합을 사용
+    // 이메일 아이디의 일반적인 기호와 .com·.co.kr·.net 도메인을 허용
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
-            "^(?=.{3,100}$)(?=[a-z0-9]{1,50}@)"
-                    + "(?=[^@]*[a-z])"
-                    + "[a-z0-9]{1,50}@[a-z]+(?:\\.com|\\.co\\.kr|\\.net)$"
+            "^(?=.{3,100}$)(?=[^@]{1,64}@)(?=[^@]*[a-z])"
+                    + "[a-z0-9]+(?:[._%+\\-][a-z0-9]+)*@"
+                    + "[a-z0-9]+(?:-[a-z0-9]+)*"
+                    + "(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)*"
+                    + "(?:\\.com|\\.net|\\.co\\.kr)$"
     );
 
     // 업로드할 수 있는 이미지 확장자
@@ -307,20 +309,6 @@ public class MemberServiceImpl implements MemberService {
             );
         }
 
-        // 이메일 형식과 다른 회원의 중복 이메일을 검사
-        String email = updateDto.getEmail() == null
-                ? ""
-                : updateDto.getEmail().trim().toLowerCase(Locale.ROOT);
-        if (!EMAIL_PATTERN.matcher(email).matches()) {
-            throw new IllegalStateException(
-                    "이메일은 영문 소문자·숫자와 .com, .co.kr, .net 형식으로 입력해주세요."
-            );
-        }
-        if (!email.equalsIgnoreCase(member.getEmail())
-                && memberMapper.countByEmail(email) > 0) {
-            throw new IllegalStateException("이미 사용 중인 이메일입니다.");
-        }
-
         // 닉네임의 공백과 중복을 검사
         String nickname = updateDto.getNickname() == null
                 ? ""
@@ -362,7 +350,6 @@ public class MemberServiceImpl implements MemberService {
         // 공개 여부와 툴팁 값이 없으면 기본값을 사용
         member.setMemberName(memberName);
         member.setNickname(nickname);
-        member.setEmail(email);
         member.setStockPublic(Boolean.TRUE.equals(updateDto.getStockPublic()));
         member.setWordTooltip(Boolean.TRUE.equals(updateDto.getWordTooltip()));
 

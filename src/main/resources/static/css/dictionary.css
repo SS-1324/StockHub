@@ -318,6 +318,78 @@
     line-height: 1.7;
     text-align: left;
 }
+/* 클릭 가능한 용어 카드 */
+.glossary-item {
+    cursor: pointer;
+}
+
+
+/* 주변 화면 어둡게 */
+.glossary-overlay {
+    position: fixed;
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.65);
+
+    opacity: 0;
+    visibility: hidden;
+
+    transition: opacity 0.2s ease;
+
+    z-index: 999;
+}
+
+.glossary-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+/* 클릭한 카드의 확대 복제본 */
+.glossary-enlarged {
+    position: fixed;
+
+    top: 50%;
+    left: 50%;
+
+    width: min(760px, 80vw);
+    min-height: 280px;
+
+    padding: 30px 32px;
+
+    transform: translate(-50%, -50%);
+
+    z-index: 1000;
+
+    background: #fff;
+
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+
+    cursor: default;
+}
+
+
+/* 확대본 제목 */
+.glossary-enlarged .glossary-term {
+    font-size: 22px;
+}
+
+
+/* 확대본 내용 */
+.glossary-enlarged .glossary-definition {
+    font-size: 16px;
+    line-height: 1.8;
+}
+
+
+/* 다크 모드 */
+html[data-theme="dark"] .glossary-enlarged {
+    border-color: #334155;
+    background: #111827;
+}
 
 .category:hover .category-box {
     color: #0565da;

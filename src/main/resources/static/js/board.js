@@ -64,8 +64,163 @@ function preventInlineEditorImages(editor){
     }, true);
 }
 
+/*
+ * [글쓰기서식유지]
+ * Quill은 Backspace로 문자를 지우거나 Enter로 새 문단을 만들 때 커서의 bold/italic 같은
+ * 인라인 속성을 초기화할 수 있다. 키 입력 직전 서식을 저장하고 text-change 이후 복원해서
+ * 사용자가 서식 버튼을 다시 누르지 않아도 다음 글자가 같은 모양으로 이어지게 한다.
+ *
+ * 목록(ol/ul)은 줄 자체의 블록 서식이므로 여기서 복원하지 않는다. 빈 목록을 지우는 것은
+ * 사용자가 목록을 끝내려는 정상 동작일 수 있기 때문이다.
+ */
+function preserveInlineFormatsAcrossEditingKeys(editor){
+    if (!editor || !editor.root || editor.root.dataset.formatMemoryBound) {
+        return;
+    }
+    editor.root.dataset.formatMemoryBound = "true";
+
+    /* 밑줄과 글자색도 Backspace·Enter 이후 이어져야 하는 문자 단위 서식이다. */
+    const inlineFormatNames = ["bold", "italic", "underline", "strike", "size", "color"];
+    let rememberedFormats = {};
+    let formatsBeforeBackspace = null;
+    let formatsBeforeEnter = null;
+
+    function pickInlineFormats(formats){
+        const picked = {};
+        inlineFormatNames.forEach(function(name){
+            if (formats && formats[name]) picked[name] = formats[name];
+        });
+        return picked;
+    }
+
+    function rememberCurrentFormats(){
+        const range = editor.getSelection();
+        if (!range) return;
+
+        rememberedFormats = pickInlineFormats(editor.getFormat(range));
+    }
+
+    function readFormatsAtOrBeforeCursor(range){
+        let formats = editor.getFormat(range);
+        /* 커서 자체에 서식 정보가 없으면 바로 앞 문자의 인라인 서식을 기준으로 삼는다. */
+        if (range.length === 0 && range.index > 0 && Object.keys(pickInlineFormats(formats)).length === 0) {
+            formats = editor.getFormat(range.index - 1, 1);
+        }
+        return pickInlineFormats(formats);
+    }
+
+    function restoreFormatsAtCursor(formatsToRestore){
+        /*
+         * Quill의 키보드 처리가 선택 영역을 갱신한 다음 적용해야 하므로 다음 화면 프레임까지 기다린다.
+         * source를 silent로 지정해 복원 자체가 새로운 text-change를 발생시키는 재귀 호출을 막는다.
+         */
+        requestAnimationFrame(function(){
+            const range = editor.getSelection();
+            if (!range || range.length !== 0) return;
+
+            inlineFormatNames.forEach(function(name){
+                editor.format(name, formatsToRestore[name] || false, "silent");
+            });
+            rememberedFormats = formatsToRestore;
+        });
+    }
+
+    /*
+     * Backspace가 실행되기 "전"에 커서 서식을 저장한다.
+     * text-change 시점에는 Quill이 이미 앞 문자를 지우고 일반 서식으로 바꿨을 수 있으므로
+     * 삭제 후의 getFormat()만 읽으면 사용자가 켜 둔 굵게·기울임 상태를 잃게 된다.
+     */
+    editor.root.addEventListener("keydown", function(event){
+        if (event.key !== "Backspace" && event.key !== "Enter") return;
+
+        const range = editor.getSelection();
+        if (!range) return;
+
+        const formatsBeforeKey = readFormatsAtOrBeforeCursor(range);
+        if (event.key === "Backspace") {
+            formatsBeforeBackspace = formatsBeforeKey;
+        } else {
+            /* Enter가 새 문단을 만들기 전에 현재 굵게·기울임 등의 인라인 서식을 저장한다. */
+            formatsBeforeEnter = formatsBeforeKey;
+        }
+        rememberedFormats = formatsBeforeKey;
+    }, true);
+
+    /* 커서가 문서 맨 앞이라 실제 삭제가 없었던 Backspace 기록은 다음 입력에 넘기지 않는다. */
+    editor.root.addEventListener("keyup", function(event){
+        if (event.key === "Backspace") formatsBeforeBackspace = null;
+        if (event.key === "Enter") formatsBeforeEnter = null;
+    }, true);
+
+    editor.on("selection-change", function(range){
+        if (range) rememberCurrentFormats();
+    });
+
+    editor.on("text-change", function(delta, oldDelta, source){
+        /* API로 기존 글을 불러오는 경우가 아니라 사용자가 직접 편집한 경우에만 개입한다. */
+        if (source !== "user") return;
+
+        /* Delta는 Quill이 이번 입력에서 추가·삭제한 내용만 담으므로 키 결과를 정확히 구분할 수 있다. */
+        const containsDeletion = delta.ops.some(function(operation){
+            return Object.prototype.hasOwnProperty.call(operation, "delete");
+        });
+        const containsLineBreak = delta.ops.some(function(operation){
+            return typeof operation.insert === "string" && operation.insert.includes("\n");
+        });
+
+        /*
+         * Backspace로 문자가 실제 삭제된 경우에는 삭제 직전 서식을 현재 커서에 복구한다.
+         * 따라서 한 글자만 지웠든 본문 전체를 지웠든 다음 입력도 같은 서식으로 이어진다.
+         */
+        if (containsDeletion && formatsBeforeBackspace) {
+            const formatsToRestore = formatsBeforeBackspace;
+            formatsBeforeBackspace = null;
+            restoreFormatsAtCursor(formatsToRestore);
+            return;
+        }
+
+        /*
+         * Enter로 새 줄이 추가되면 Quill이 커서의 문자 서식을 초기화할 수 있다.
+         * Enter 직전 서식을 새 줄의 빈 커서에 되돌려 다음 입력이 같은 모양으로 이어지게 한다.
+         */
+        if (containsLineBreak && formatsBeforeEnter) {
+            const formatsToRestore = formatsBeforeEnter;
+            formatsBeforeEnter = null;
+            restoreFormatsAtCursor(formatsToRestore);
+            return;
+        }
+
+        if (editor.getLength() > 1) {
+            rememberCurrentFormats();
+            return;
+        }
+
+        requestAnimationFrame(function(){
+            editor.setSelection(0, 0, "silent");
+            inlineFormatNames.forEach(function(name){
+                editor.format(name, rememberedFormats[name] || false, "silent");
+            });
+        });
+    });
+
+    /*
+     * 툴바 이벤트보다 먼저 값을 읽으면 변경 전 서식이 저장될 수 있다.
+     * click과 select(change) 처리가 끝난 다음 프레임에서 실제 활성 서식을 기억한다.
+     */
+    const toolbar = editor.getModule("toolbar");
+    if (toolbar && toolbar.container) {
+        toolbar.container.addEventListener("click", function(){
+            requestAnimationFrame(rememberCurrentFormats);
+        });
+        toolbar.container.addEventListener("change", function(){
+            requestAnimationFrame(rememberCurrentFormats);
+        });
+    }
+}
+
 if (typeof quill !== "undefined") {
     preventInlineEditorImages(quill);
+    preserveInlineFormatsAcrossEditingKeys(quill);
 }
 
 /* [AJAX-1: 게시글 등록] 글쓰기 폼 제출 - 일반 폼 네비게이션 대신 fetch로 보내고, 성공하면 location.replace()로 상세 이동.
@@ -571,9 +726,7 @@ function initCharCounters(container){
 
 initCharCounters(document);
 
-/* 목록 카드 - 고정된 미리보기 줄 수를 넘는 본문에만 "더보기" 버튼을 동적으로 붙인다.
- * 목록 안에서 본문을 펼치면 카드 높이와 footer 위치가 달라지므로, 더보기는 상세 화면으로 이동시킨다.
- */
+/* 목록 카드 - 고정된 미리보기 줄 수를 넘는 본문에만 "더보기" 버튼을 동적으로 붙인다. */
 function enhanceCardSnippets(container){
     container.querySelectorAll(".board-card-snippet").forEach(function(snippet){
         if (snippet.dataset.enhanced) {
@@ -584,8 +737,8 @@ function enhanceCardSnippets(container){
         const card = snippet.closest(".board-card");
         if (card && card.classList.contains("has-no-image")) {
             /* [카드본문-1]
-             * 이미지 없는 글은 빈 줄이 3줄 제한을 차지하지 않게 정리한다.
-             * 따라서 실제 내용 기준으로 첫 3줄이 모두 보이고, 넘칠 때만 더보기를 만든다.
+             * 이미지 없는 글은 빈 줄이 CSS의 6줄 제한을 차지하지 않게 정리한다.
+             * 따라서 실제 내용 기준으로 최대 6줄을 보여주고, 넘칠 때만 더보기를 만든다.
              */
             snippet.textContent = snippet.textContent
                 .replace(/\r\n?/g, "\n")
@@ -602,16 +755,54 @@ function enhanceCardSnippets(container){
         moreBtn.className = "board-card-more-btn";
         moreBtn.textContent = "더보기";
         moreBtn.addEventListener("click", function(ev){
-            // 카드 비율은 그대로 유지하고 전체 내용을 확인할 수 있는 상세 화면으로 이동한다.
+            /* [카드본문펼치기-2] 카드 이동을 막고 현재 카드의 본문만 더보기/접기 상태로 전환한다. */
             ev.preventDefault();
             ev.stopPropagation();
-            window.location.href = card.href;
+            const expanded = snippet.classList.toggle("expanded");
+            card.classList.toggle("content-expanded", expanded);
+            moreBtn.textContent = expanded ? "접기" : "더보기";
+            moreBtn.setAttribute("aria-expanded", String(expanded));
         });
+        moreBtn.setAttribute("aria-expanded", "false");
         snippet.insertAdjacentElement("afterend", moreBtn);
     });
 }
 
 const boardListEl = document.querySelector("#board-list");
+
+/*
+ * [커뮤니티새로고침위치]
+ * 브라우저는 일반적으로 새로고침에도 이전 스크롤 위치를 복원한다. 긴 피드에서는 사용자가
+ * 중간 글부터 보게 되므로, 커뮤니티 목록을 '새로고침(reload)'한 경우에만 최상단으로 이동한다.
+ * 게시글을 읽고 뒤로가기로 목록에 돌아오는 back_forward 탐색은 제외해 읽던 위치를 보존한다.
+ */
+function scrollCommunityListToTopOnReload(){
+    if (!boardListEl) return;
+
+    const navigationEntry = typeof performance.getEntriesByType === "function"
+        ? performance.getEntriesByType("navigation")[0]
+        : null;
+    const isReload = navigationEntry
+        ? navigationEntry.type === "reload"
+        : Boolean(performance.navigation && performance.navigation.type === 1);
+
+    if (!isReload) return;
+
+    const canControlRestoration = "scrollRestoration" in history;
+    const previousRestoration = canControlRestoration ? history.scrollRestoration : "auto";
+    if (canControlRestoration) history.scrollRestoration = "manual";
+
+    window.addEventListener("pageshow", function(){
+        /* 브라우저의 자체 위치 복원이 끝난 다음 프레임에서 즉시 최상단을 확정한다. */
+        window.scrollTo(0, 0);
+        requestAnimationFrame(function(){
+            window.scrollTo(0, 0);
+            if (canControlRestoration) history.scrollRestoration = previousRestoration;
+        });
+    }, {once: true});
+}
+
+scrollCommunityListToTopOnReload();
 if (boardListEl) {
     enhanceCardSnippets(boardListEl);
 }

@@ -39,7 +39,7 @@ class StockVoteServiceImplTest {
     }
 
     private StockDto stock(String code, String name, int price) {
-        return new StockDto(code, name, price, "설명", null);
+        return new StockDto(code, name, price, "설명", null, null);
     }
 
     private VoteCountsDto counts(long up, long down) {

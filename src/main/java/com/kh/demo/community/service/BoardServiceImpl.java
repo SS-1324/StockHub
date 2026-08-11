@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -44,15 +45,42 @@ public class BoardServiceImpl implements BoardService {
     // board 테이블 컬럼 크기에 맞춘 길이 제한
     private static final int MAX_TITLE_LENGTH = 200;
     private static final int MAX_CONTENT_LENGTH = 3000;
+    /*
+     * HOT·인기글은 제목이 없을 때 본문 일부를 대신 표시한다.
+     * 서버에서 최대 길이와 최소 단어 경계를 함께 관리해 JSP와 CSS가 임의로 문자열을 자르지 않게 한다.
+     */
+    private static final int WIDGET_PREVIEW_MAX_LENGTH = 44;
+    private static final int WIDGET_PREVIEW_MIN_WORD_BREAK = 28;
 
-    // [하이퍼링크-3] Quill 에디터에서 허용할 HTML 태그와 속성.
-    // a 태그의 href/target/rel만 허용하고 http(s) 주소만 통과시켜 스크립트 링크를 차단한다.
+    /*
+     * Quill 글자색 팔레트와 동일한 값만 허용한다.
+     * span의 style 전체를 무조건 허용하지 않고 color 한 속성만 검사해 저장한다.
+     */
+    private static final Set<String> ALLOWED_TEXT_COLOR_STYLES = Set.of(
+            "color:rgb(230,0,0)",
+            "color:rgb(255,153,0)",
+            "color:rgb(0,138,0)",
+            "color:rgb(0,102,204)",
+            "color:rgb(153,51,255)",
+            "color:#e60000",
+            "color:#ff9900",
+            "color:#008a00",
+            "color:#0066cc",
+            "color:#9933ff"
+    );
+
+    /*
+     * [게시글HTML허용목록]
+     * Quill이 만드는 문단·목록·문자 서식만 통과시키는 1차 XSS 방어선이다.
+     * 링크는 http(s)만 허용하고, span style은 아래 sanitizeContent에서 색상 목록을 다시 검사한다.
+     */
     private static final Safelist CONTENT_SAFELIST = Safelist.none()
             .addTags(
                     "p",
                     "br",
                     "strong",
                     "em",
+                    "u",
                     "s",
                     "a",
                     "ol",
@@ -68,7 +96,8 @@ public class BoardServiceImpl implements BoardService {
             )
             .addAttributes(
                     "span",
-                    "class"
+                    "class",
+                    "style"
             )
             .addProtocols(
                     "a",
@@ -214,6 +243,71 @@ public class BoardServiceImpl implements BoardService {
                 category,
                 keywords
         );
+    }
+
+    /* [커뮤니티위젯-1]
+     * HOT과 인기글은 현재 피드 10개를 브라우저에서 다시 정렬하지 않고
+     * DB의 최근 24시간 공개 게시글을 기준으로 각각의 정렬 규칙을 적용한다.
+     */
+    @Override
+    public List<BoardDto> getHotBoards(int size) {
+        List<BoardDto> boards = boardMapper.selectHotBoards(normalizeWidgetSize(size));
+        prepareWidgetPreviews(boards);
+        return boards;
+    }
+
+    @Override
+    public List<BoardDto> getPopularBoards(int size) {
+        List<BoardDto> boards = boardMapper.selectPopularBoards(normalizeWidgetSize(size));
+        prepareWidgetPreviews(boards);
+        return boards;
+    }
+
+    // 사이드바가 과도한 목록을 요청하지 않도록 1~10개 범위로 제한한다.
+    private int normalizeWidgetSize(int size) {
+        return Math.max(1, Math.min(size, 10));
+    }
+
+    /*
+     * [커뮤니티사이드바-본문미리보기]
+     * Quill 본문에는 <p>, <strong>, <ol> 같은 HTML 태그가 들어 있으므로 그대로 출력하지 않는다.
+     * 허용된 HTML만 남긴 뒤 화면에 보이는 글자만 추출하고, 줄바꿈과 연속 공백은 한 칸으로 합친다.
+     * 마지막에는 44글자를 무조건 끊기보다 28글자 이후의 마지막 공백을 우선해 문장이 덜 어색하게 잘리도록 한다.
+     */
+    private void prepareWidgetPreviews(List<BoardDto> boards) {
+        for (BoardDto board : boards) {
+            String content = board.getContent() == null ? "" : board.getContent();
+            String plainText = htmlToPlainTextPreservingLineBreaks(sanitizeContent(content))
+                    .replace('\u00A0', ' ')
+                    .replace("\u200B", "")
+                    .replace("\uFEFF", "")
+                    .replaceAll("\\s+", " ")
+                    .trim();
+
+            board.setContent(truncateWidgetPreview(plainText));
+        }
+    }
+
+    /*
+     * Unicode 코드 포인트 기준으로 잘라 이모지나 조합 문자가 중간에서 깨지는 것을 막는다.
+     * 최대 44자 안의 마지막 공백이 28자 이후에 있으면 단어 단위로 자르고 말줄임표를 붙인다.
+     */
+    private String truncateWidgetPreview(String text) {
+        int codePointCount = text.codePointCount(0, text.length());
+        if (codePointCount <= WIDGET_PREVIEW_MAX_LENGTH) {
+            return text;
+        }
+
+        int maxEndIndex = text.offsetByCodePoints(0, WIDGET_PREVIEW_MAX_LENGTH);
+        String candidate = text.substring(0, maxEndIndex);
+        int lastSpaceIndex = candidate.lastIndexOf(' ');
+
+        /* 너무 앞에서 끊기는 것을 막고, 적당한 위치에 공백이 있을 때만 단어 경계를 사용한다. */
+        if (lastSpaceIndex >= WIDGET_PREVIEW_MIN_WORD_BREAK) {
+            candidate = candidate.substring(0, lastSpaceIndex);
+        }
+
+        return candidate.stripTrailing() + "…";
     }
 
     @Override
@@ -464,32 +558,7 @@ public class BoardServiceImpl implements BoardService {
                 )
         );
 
-        attachAdjacentBoards(board);
-
         return board;
-    }
-
-    // 같은 카테고리의 이전글과 다음글 정보 추가
-    private void attachAdjacentBoards(BoardDto board) {
-        BoardDto prev = boardMapper.selectPrevBoard(
-                board.getBoardId(),
-                board.getCategory()
-        );
-
-        if (prev != null) {
-            board.setPrevBoardId(prev.getBoardId());
-            board.setPrevTitle(prev.getTitle());
-        }
-
-        BoardDto next = boardMapper.selectNextBoard(
-                board.getBoardId(),
-                board.getCategory()
-        );
-
-        if (next != null) {
-            board.setNextBoardId(next.getBoardId());
-            board.setNextTitle(next.getTitle());
-        }
     }
 
     @Override
@@ -617,12 +686,34 @@ public class BoardServiceImpl implements BoardService {
         }
     }
 
-    // 허용된 태그와 속성만 남기고 나머지는 제거
+    /*
+     * [게시글HTML정제]
+     * 1단계로 Jsoup Safelist가 스크립트·이벤트 속성·허용되지 않은 태그를 제거한다.
+     * 2단계로 남은 span style을 정규화한 뒤 Quill 팔레트의 color 값만 허용한다.
+     * 이 메서드는 작성·수정·미리보기에서 공통 사용되므로 저장과 출력의 보안 기준이 동일하다.
+     */
     private String sanitizeContent(String rawHtml) {
-        return Jsoup.clean(
+        String cleanedHtml = Jsoup.clean(
                 rawHtml == null ? "" : rawHtml,
                 CONTENT_SAFELIST
         );
+
+        Document document = Jsoup.parseBodyFragment(cleanedHtml);
+        for (Element span : document.select("span[style]")) {
+            String normalizedStyle = span.attr("style")
+                    .toLowerCase(Locale.ROOT)
+                    .replaceAll("\\s+", "");
+
+            if (normalizedStyle.endsWith(";")) {
+                normalizedStyle = normalizedStyle.substring(0, normalizedStyle.length() - 1);
+            }
+
+            if (!ALLOWED_TEXT_COLOR_STYLES.contains(normalizedStyle)) {
+                span.removeAttr("style");
+            }
+        }
+
+        return document.body().html();
     }
 
     // 카테고리 값 검증

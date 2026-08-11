@@ -36,4 +36,9 @@ public class RankingServiceImpl implements RankingService {
         /* [프로필순위-3] 컨트롤러가 정규화한 기준을 MyBatis 순위 조회에 전달한다. */
         return rankingMapper.selectProfileRankPosition(memberId, sortByProfit);
     }
+
+    @Override
+    public RankingDto getProfileInvestmentSummary(String memberId) {
+        return rankingMapper.selectProfileInvestmentSummary(memberId);
+    }
 }

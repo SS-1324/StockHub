@@ -137,8 +137,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentTrigger = null;
 
     /* [프로필위치-1]
-     * 카드 작성자 영역은 카드 폭 전체를 차지하므로 그 사각형을 사용하면 팝업이 멀리 떨어진다.
-     * 실제 프로필 이미지(또는 기본 프로필 원)를 찾아 그 오른쪽 좌표만 위치 기준으로 사용한다.
+     * 커뮤니티는 사진 전용 트리거, 랭킹은 사진·이름 트리거처럼 화면별 클릭 범위가 다르다.
+     * 어느 트리거에서 열어도 내부의 실제 이미지(또는 기본 프로필 원)를 우선 찾아
+     * 팝업이 넓은 행 끝이 아니라 사진 바로 오른쪽에 놓이도록 위치 기준을 통일한다.
      */
     const resolveProfileAnchor = () => {
         if (!currentTrigger) return null;
@@ -163,6 +164,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const triggerRect = anchor.getBoundingClientRect();
         const availableWidth = window.innerWidth - triggerRect.right - gap - margin;
+        const isRankingProfile = Boolean(currentTrigger.closest?.(".ranking-row"));
+        /*
+         * [랭킹프로필클릭-2] 랭킹 팝업은 360px까지만 사용한다.
+         * 프로필 오른쪽의 수익률·수익금 숫자를 가리지 않으면서도 팝업 안의
+         * 작성글·팔로우·투자 수치는 모두 읽을 수 있는 폭이다.
+         */
+        const preferredMaxWidth = isRankingProfile ? 360 : 430;
+        modal.style.maxWidth = Math.max(280, Math.min(preferredMaxWidth, availableWidth)) + "px";
         modal.style.maxWidth = Math.max(280, Math.min(430, availableWidth)) + "px";
         const modalRect = modal.getBoundingClientRect();
 
@@ -221,8 +230,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const rankLabel = profile.rankType === "profit" ? "수익금 RANKER" : "수익률 RANKER";
         badge.textContent = profile.badge === "RANKER"
             ? rankLabel + (profile.rankPosition ? " · " + profile.rankPosition + "위" : "")
-            : "USER";
+            : profile.badge === "ADMIN" ? "ADMIN" : "USER";
         badge.classList.toggle("is-ranker", profile.badge === "RANKER");
+        badge.classList.toggle("is-admin", profile.badge === "ADMIN");
 
         modalOverlay.querySelector("[data-profile-follower-count]").textContent = profile.followerCount;
         modalOverlay.querySelector("[data-profile-following-count]").textContent = profile.followingCount;

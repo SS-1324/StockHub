@@ -5,24 +5,17 @@ const memberNameInput = document.querySelector("#member-name");
 const memberNameResult = document.querySelector("#profile-name-result");
 const nicknameInput = document.querySelector("#nickname");
 const nicknameResult = document.querySelector("#profile-nickname-result");
-const emailInput = document.querySelector("#email");
-const emailResult = document.querySelector("#profile-email-result");
 const passwordInput = document.querySelector("#new-password");
 const passwordConfirmInput = document.querySelector("#new-password-confirm");
 const passwordRuleResult = document.querySelector("#password-rule-result");
 const passwordConfirmResult = document.querySelector("#password-confirm-result");
-const brokerageInput = document.querySelector("#brokerage-id");
-const accountInput = document.querySelector("#account-no");
-const accountResult = document.querySelector("#account-result");
 const deleteProfileForm = document.querySelector("#delete-profile-image-form");
 const currentProfileUrl = profileForm.dataset.currentProfileUrl;
 const contextPath = profileForm.dataset.contextPath || "";
 
-// 이름·닉네임·이메일과 프로필 이미지 입력 규칙
+// 이름·닉네임과 프로필 이미지 입력 규칙
 const memberNamePattern = /^[가-힣A-Za-z]{1,50}$/;
 const nicknamePattern = /^[가-힣A-Za-z0-9]{2,10}$/;
-const emailPattern =
-    /^(?=.{3,100}$)(?=[a-z0-9]{1,50}@)(?=[^@]*[a-z])[a-z0-9]{1,50}@[a-z]+(?:\.com|\.co\.kr|\.net)$/;
 const passwordPattern =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])[\x21-\x7E]{10,100}$/;
 const allowedProfileExtensionPattern = /\.(jpe?g|png|webp)$/i;
@@ -145,42 +138,7 @@ memberNameInput.addEventListener("input", function () {
         : "form-tip form-tip-error";
 });
 
-// 이메일이 바뀔 때마다 팝업 없이 입력칸 아래에 형식 상태를 표시
-emailInput.addEventListener("input", function () {
-    emailInput.value = emailInput.value.toLowerCase().replace(/\s/g, "");
-    checkProfileEmail();
-});
-
-function checkProfileEmail() {
-    const email = emailInput.value.trim();
-    const valid = emailPattern.test(email);
-
-    emailResult.textContent = valid
-        ? "사용 가능한 이메일 형식입니다."
-        : "예: stockhub1@gmail.com처럼 영문 소문자·숫자와 .com, .co.kr, .net 형식으로 입력해주세요.";
-    emailResult.className = valid
-        ? "form-tip form-tip-ok"
-        : "form-tip form-tip-error";
-    return valid;
-}
-
-// 계좌 입력값에서 숫자가 아닌 문자를 바로 제거
-accountInput?.addEventListener("input", function () {
-    const originalValue = accountInput.value;
-    const onlyNumber = originalValue.replace(/[^0-9]/g, "").slice(0, 50);
-
-    // 숫자가 아닌 문자가 제거되었으면 입력 안내를 표시
-    if (originalValue !== onlyNumber) {
-        accountResult.textContent = "계좌번호는 - 없이 숫자만 입력해주세요.";
-        accountResult.className = "form-tip form-tip-error";
-    } else {
-        accountResult.textContent = "";
-    }
-
-    accountInput.value = onlyNumber;
-});
-
-// 전송 전에 프로필 이미지·닉네임·계좌 입력값을 다시 확인
+// 전송 전에 프로필 이미지·이름·닉네임·비밀번호 입력값을 다시 확인
 profileForm.addEventListener("submit", function (e) {
     // 프로필 이미지가 선택된 경우 허용된 형식인지 다시 확인
     const profileFile = profileInput.files[0];
@@ -213,13 +171,6 @@ profileForm.addEventListener("submit", function (e) {
         e.preventDefault();
         alert("닉네임 입력 규칙을 확인해주세요.");
         nicknameInput.focus();
-        return;
-    }
-
-    // 이메일 오류는 경고창 대신 입력칸 아래의 빨간 안내로 표시
-    if (!checkProfileEmail()) {
-        e.preventDefault();
-        emailInput.focus();
         return;
     }
 
@@ -256,21 +207,6 @@ profileForm.addEventListener("submit", function (e) {
         return;
     }
 
-    // 증권사와 계좌번호 중 하나만 입력하면 전송 중단
-    const hasBrokerage = Boolean(brokerageInput?.value);
-    const hasAccount = Boolean(accountInput?.value);
-    if (hasBrokerage !== hasAccount) {
-        e.preventDefault();
-        alert("증권사와 계좌번호를 함께 입력해주세요.");
-        return;
-    }
-
-    // 입력한 계좌번호에 숫자 이외 문자가 있으면 전송 중단
-    if (hasAccount && !/^[0-9]{1,50}$/.test(accountInput.value)) {
-        e.preventDefault();
-        alert("계좌번호는 - 없이 숫자만 입력해주세요.");
-        accountInput.focus();
-    }
 });
 
 // 새 비밀번호 규칙과 확인 값의 상태를 표시

@@ -17,9 +17,29 @@
         SELECT stock_code,
                stock_name,
                current_price,
-               description
+               description,
+               exchange
         FROM stock
         WHERE stock_code = #{stockCode}
+    </select>
+
+    <!-- 거래 허브 종목 검색 자동완성: exchange가 있는(해외) 종목만 대상으로 코드/이름 부분일치 검색, 코드/이름 접두 일치 우선 정렬 -->
+    <select id="searchStocks" resultType="com.kh.demo.brokerage.dto.StockDto">
+        SELECT stock_code,
+               stock_name,
+               exchange
+        FROM stock
+        WHERE exchange IS NOT NULL
+          AND (stock_code LIKE CONCAT('%', #{keyword}, '%')
+               OR stock_name LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY
+            CASE
+                WHEN stock_code LIKE CONCAT(#{keyword}, '%') THEN 0
+                WHEN stock_name LIKE CONCAT(#{keyword}, '%') THEN 1
+                ELSE 2
+            END,
+            stock_code ASC
+        LIMIT 8
     </select>
 
 </mapper>

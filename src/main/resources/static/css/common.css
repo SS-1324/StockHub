@@ -56,7 +56,9 @@ a{
     color: inherit;
 }
 
-
+html[data-theme="dark"] dt {
+    color: #fff;
+}
 
 /* 성공·실패 안내 메시지의 공통 모양 */
 .alert{
@@ -167,10 +169,14 @@ html[data-theme="dark"] .site-header{
     transition: background-color 0.18s ease, color 0.18s ease;
 }
 
-.main-nav-link:hover,
-.main-nav-link.is-active{
+.main-nav-link:hover{
     background: var(--header-blue-soft);
     color: var(--header-blue-dark);
+}
+
+.main-nav-link.is-active{
+    background: var(--header-blue-soft);
+    color: var(--header-blue);
 }
 
 /* 커뮤니티 및 용어사전 메뉴 감싸는 영역 */
@@ -293,8 +299,7 @@ html[data-theme="dark"] .theme-dark-icon{
     display: none;
 }
 
-.header-login-link,
-.header-join-link{
+.header-login-link{
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -319,17 +324,6 @@ html[data-theme="dark"] .theme-dark-icon{
     border-color: #93c5fd;
     background: var(--header-blue-soft);
     color: var(--header-blue-dark);
-}
-
-.header-join-link{
-    border: 1px solid var(--header-blue);
-    background: var(--header-blue);
-    color: #ffffff;
-}
-
-.header-join-link:hover{
-    border-color: #0565da;
-    background: #0565da;
 }
 
 /* 로그인 후 표시되는 프로필 메뉴 */
@@ -367,8 +361,24 @@ html[data-theme="dark"] .theme-dark-icon{
     object-fit: cover;
 }
 
-<<<<<<< HEAD
-=======
+/* 투명한 기본 프로필은 다크 모드에서도 밝은 원 안에 선명하게 표시 */
+html[data-theme="dark"] .header-profile-image{
+    background: #f1f5f9;
+    filter: none;
+    opacity: 1;
+}
+
+/* 랭킹 프레임과 내부 프로필 이미지가 항상 같은 원형을 유지한다. */
+.header-profile-rank-frame{
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 50%;
+    line-height: 0;
+}
+
 /*
  * [프레임색상통일-1] 헤더·내 정보·프로필 팝업이 같은 금·은·동 장식값을 공유한다.
  * 한 곳의 값을 바꾸면 모든 프로필 프레임이 동시에 바뀌므로 화면별 색상 차이가 다시 생기지 않는다.
@@ -420,7 +430,8 @@ html[data-theme="dark"] .theme-dark-icon{
 .account-profile-rank-frame.rank-first,
 .account-profile-rank-frame.rank-second,
 .account-profile-rank-frame.rank-third{
-    padding: 4px;
+    /* [내정보프레임통일-1] 커뮤니티·랭킹·팝업 프레임과 같은 외곽 두께를 사용한다. */
+    padding: 3px;
 }
 
 .account-profile-rank-frame.rank-first{
@@ -444,7 +455,12 @@ html[data-theme="dark"] .theme-dark-icon{
 .account-profile-rank-frame.rank-first > .profile-preview-placeholder,
 .account-profile-rank-frame.rank-second > .profile-preview-placeholder,
 .account-profile-rank-frame.rank-third > .profile-preview-placeholder{
-    border-color: var(--header-bg);
+    /*
+     * [내정보프레임통일-2]
+     * --header-bg는 헤더 밖에서 값이 없어 검은 currentColor로 계산될 수 있다.
+     * 다른 금·은·동 프레임과 동일하게 2px 흰색 경계를 직접 지정한다.
+     */
+    border: 2px solid #ffffff;
 }
 
 .profile-preview-wrap.profile-edit-rank-frame{
@@ -458,7 +474,6 @@ html[data-theme="dark"] .theme-dark-icon{
     box-sizing: border-box;
 }
 
->>>>>>> origin/rize
 .header-profile-nickname{
     max-width: 110px;
     overflow: hidden;
@@ -533,34 +548,10 @@ html[data-theme="dark"] .theme-dark-icon{
 .site-logo:focus-visible,
 .main-nav-link:focus-visible,
 .header-login-link:focus-visible,
-.header-join-link:focus-visible,
 .header-icon-button:focus-visible,
 .header-profile-toggle:focus-visible{
     outline: 3px solid rgba(8, 116, 247, 0.22);
     outline-offset: 2px;
-}
-
-/* 메인 화면의 중앙 안내 영역 */
-.hero{
-    padding: 48px 0;
-    text-align: center;
-}
-
-/* 메인 화면의 StockHub 제목 */
-.hero-title{
-    font-size: 32px;
-    margin-bottom: 12px;
-}
-
-/* 메인 화면의 안내 문구 */
-.hero-desc{
-    color: #666;
-    margin-bottom: 32px;
-}
-
-/* 메인 화면의 로그인·회원가입 버튼 */
-.hero-actions > a{
-    margin: 0 6px;
 }
 
 /* 각 JSP의 본문을 감싸는 영역 */
@@ -793,10 +784,6 @@ body.modal-open{
     text-align: right;
 }
 
-.inquiry-alert{
-    margin-bottom: 18px;
-}
-
 /* 문의하기 전송 버튼을 오른쪽 아래에 배치 */
 .inquiry-actions{
     display: flex;
@@ -971,18 +958,6 @@ body.modal-open{
     margin-bottom: 18px;
 }
 
-/* 로그인 화면 내용을 한 열로 정돈 */
-.login-panel{
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 10px 0 24px;
-}
-
-.login-title{
-    margin-bottom: 28px;
-}
-
 /* 화면에는 숨기고 보조기기에는 입력창 이름을 전달 */
 .sr-only{
     position: absolute;
@@ -1038,20 +1013,6 @@ body.modal-open{
 
 .login-member-links a:hover{
     color: #0874f7;
-}
-
-/* 로그인 화면 아래 홈 이동 로고 */
-.login-home-logo{
-    display: block;
-    width: fit-content;
-    margin: 36px auto 0;
-    line-height: 0;
-}
-
-.login-home-logo img{
-    display: block;
-    width: 150px;
-    height: auto;
 }
 
 /* 회원가입·로그인 폼의 최대 너비 */
@@ -1310,6 +1271,13 @@ select
     margin: 0 auto;
 }
 
+/* 회원 탈퇴 제목을 안내문과 같은 왼쪽 선에 맞춤 */
+.withdraw-card > .page-title{
+    max-width: none;
+    margin: 0 0 20px;
+    text-align: left;
+}
+
 /* 회원 탈퇴 경고 안내 영역 */
 .withdraw-warning{
     margin-bottom: 24px;
@@ -1394,14 +1362,12 @@ html[data-theme="dark"] .container{
     color: #e5e7eb;
 }
 
-html[data-theme="dark"] .hero-title,
 html[data-theme="dark"] .page-title,
 html[data-theme="dark"] label,
 html[data-theme="dark"] .choice-group legend{
     color: #f8fafc;
 }
 
-html[data-theme="dark"] .hero-desc,
 html[data-theme="dark"] .form-tip,
 html[data-theme="dark"] .email-at,
 html[data-theme="dark"] .profile-preview-placeholder{
@@ -1730,7 +1696,6 @@ html[data-theme="dark"] .login-member-links{
 }
 
 @media (max-width: 680px){
-    .header-join-link,
     .header-profile-nickname,
     .header-profile-arrow{
         display: none;
@@ -1971,20 +1936,15 @@ body.member-profile-modal-open{
     color: #9a6500;
 }
 
-.member-profile-edit-link{
-    padding: 11px 18px;
-    border: 1px solid #cbd8eb;
-    border-radius: 12px;
-    background: #fff;
-    color: #253550;
-    font-size: 13px;
-    font-weight: 700;
-    text-decoration: none;
+/* [프로필권한배지-3] USER·RANKER와 구분되는 관리자 전용 배지 색상. */
+.member-profile-badge.is-admin{
+    background: #f1edff;
+    color: #6b4fd3;
 }
 
-.member-profile-edit-link:hover{
-    border-color: #7ba2f7;
-    color: #1965dd;
+html[data-theme="dark"] .member-profile-badge.is-admin{
+    background: #3a315d;
+    color: #c8b8ff;
 }
 
 .member-profile-stats{
@@ -2043,123 +2003,6 @@ button.member-profile-stat.is-active{
     font-size: 20px;
 }
 
-.member-profile-panel{
-    min-height: 190px;
-    max-height: 300px;
-    overflow-y: auto;
-    margin: 0 40px;
-    padding: 10px 0 24px;
-    border-top: 1px solid #e6ebf3;
-}
-
-.member-profile-panel[hidden]{
-    display: none;
-}
-
-/* [프로필게시글-3] 이전 스크립트 캐시가 남아 있어도 작성글 목록은 모달 아래에 표시하지 않는다. */
-.member-profile-stats:has([data-profile-tab="posts"].is-active)
-    + .member-profile-panel{
-    display: none;
-}
-
-.member-profile-list{
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.member-profile-list li{
-    border-bottom: 1px solid #edf0f5;
-}
-
-.member-profile-post-list a,
-.member-profile-follow-member{
-    display: flex;
-    width: 100%;
-    padding: 14px 6px;
-    border: 0;
-    background: transparent;
-    color: #172238;
-    text-align: left;
-}
-
-.member-profile-post-list a{
-    flex-direction: column;
-    gap: 5px;
-    text-decoration: none;
-}
-
-.member-profile-post-list a:hover strong{
-    color: #2f66f6;
-    text-decoration: underline;
-}
-
-.member-profile-list-meta{
-    color: #8793a6;
-    font-size: 11px;
-}
-
-.member-profile-follow-member{
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-}
-
-.member-profile-follow-member:hover{
-    background: #f7f9fd;
-}
-
-.member-profile-follow-member img{
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.member-profile-follow-member > span{
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.member-profile-follow-member small{
-    color: #8793a6;
-}
-
-.member-profile-empty{
-    margin: 0;
-    padding: 72px 16px;
-    color: #8793a6;
-    text-align: center;
-}
-
-.member-profile-inquiry-list details{
-    padding: 14px 6px;
-    border-bottom: 1px solid #edf0f5;
-}
-
-.member-profile-inquiry-list summary{
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    cursor: pointer;
-}
-
-.member-profile-inquiry-list summary span{
-    flex: 0 0 auto;
-    color: #2f66f6;
-    font-size: 12px;
-}
-
-.member-profile-inquiry-answer{
-    margin: 10px 0 0;
-    padding: 12px;
-    border-radius: 10px;
-    background: #f6f8fc;
-    color: #394861;
-    white-space: pre-wrap;
-}
-
 html[data-theme="dark"] .member-profile-modal{
     border-color: #344057;
     background: linear-gradient(135deg, #151d30, #202642);
@@ -2173,31 +2016,23 @@ html[data-theme="dark"] .member-profile-summary{
 }
 
 html[data-theme="dark"] .member-profile-heading,
-html[data-theme="dark"] .member-profile-identity h3,
-html[data-theme="dark"] .member-profile-post-list a,
-html[data-theme="dark"] .member-profile-follow-member{
+html[data-theme="dark"] .member-profile-identity h3{
     color: #f4f7ff;
 }
 
-html[data-theme="dark"] .member-profile-summary,
-html[data-theme="dark"] .member-profile-panel,
-html[data-theme="dark"] .member-profile-list li,
-html[data-theme="dark"] .member-profile-inquiry-list details{
+html[data-theme="dark"] .member-profile-summary{
     border-color: #313d55;
 }
 
 html[data-theme="dark"] .member-profile-stat,
-html[data-theme="dark"] .member-profile-inquiry-answer,
-html[data-theme="dark"] .member-profile-modal-close,
-html[data-theme="dark"] .member-profile-edit-link{
+html[data-theme="dark"] .member-profile-modal-close{
     border-color: #40506a;
     background: #222d43;
     color: #b8c5da;
 }
 
 html[data-theme="dark"] button.member-profile-stat:hover,
-html[data-theme="dark"] button.member-profile-stat.is-active,
-html[data-theme="dark"] .member-profile-follow-member:hover{
+html[data-theme="dark"] button.member-profile-stat.is-active{
     background: #293858;
     color: #83a5ff;
 }
@@ -2274,10 +2109,6 @@ html[data-theme="dark"] .member-profile-follow-member:hover{
         padding: 8px;
     }
 
-    .member-profile-panel{
-        margin-inline: 18px;
-        padding-inline: 0;
-    }
 }
 
 /* =========================================================
@@ -2372,6 +2203,8 @@ body.member-profile-modal-open{
     width: 70px;
     height: 70px;
     border-width: 3px;
+    /* [프로필원본유지-1] 투명 PNG 뒤로 금·은·동 그라데이션이 비치지 않게 한다. */
+    background: #ffffff;
 }
 
 .member-profile-identity h3{
@@ -2392,12 +2225,6 @@ body.member-profile-modal-open{
     transform: translateY(-11px);
     padding: 5px 8px;
     font-size: 9px;
-}
-
-.member-profile-edit-link{
-    padding: 7px 10px;
-    border-radius: 9px;
-    font-size: 11px;
 }
 
 /* [팔로우토글-7] 기본은 파란 팔로우 버튼, 연결된 상태는 연한 배경의 팔로잉 버튼으로 구분한다. */
@@ -2458,17 +2285,6 @@ html[data-theme="dark"] .member-profile-follow-toggle.is-following{
     font-size: 16px;
 }
 
-.member-profile-panel{
-    min-height: 110px;
-    max-height: 220px;
-    margin: 0 18px;
-    padding: 8px 0 16px;
-}
-
-.member-profile-empty{
-    padding: 42px 12px;
-}
-
 @media (max-width: 460px){
     .member-profile-modal{
         width: min(370px, calc(100vw - 16px));
@@ -2525,12 +2341,23 @@ html[data-theme="dark"] .member-profile-follow-toggle.is-following{
 /* =========================================================
    [프로필토스UI-1] 장식적인 원형 지표를 걷어낸 간결한 가로형 프로필 카드
    ========================================================= */
+.member-profile-modal-overlay{
+    /* [프로필위치-4] 전체 화면 fixed 레이어를 없애 팝업이 문서의 원래 위치에 남게 한다. */
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: 0;
+    pointer-events: none;
+}
+
 .member-profile-modal{
+    position: absolute;
     width: min(410px, calc(100vw - 24px));
     border: 1px solid #e5e8ee;
     border-radius: 20px;
     background: #ffffff;
     box-shadow: 0 18px 48px rgba(25, 39, 70, .18);
+    pointer-events: auto;
 }
 
 .member-profile-content{
@@ -2605,12 +2432,17 @@ html[data-theme="dark"] .member-profile-follow-toggle.is-following{
 
 .member-profile-stats{
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 8px;
     padding: 16px 0 0;
 }
 
+.member-profile-stats[hidden]{
+    display: none !important;
+}
+
 .member-profile-stat{
+    grid-column: span 2;
     flex: none;
     flex-direction: row;
     justify-content: space-between;
@@ -2622,6 +2454,7 @@ html[data-theme="dark"] .member-profile-follow-toggle.is-following{
     border-radius: 12px;
     background: #f4f6f8;
     color: #4e5968;
+    text-decoration: none;
 }
 
 .member-profile-stats span{
@@ -2665,6 +2498,17 @@ html[data-theme="dark"] .member-profile-stats strong{
     color: #f2f5fb;
 }
 
+/* [프로필손익색상-2] 라이트·다크 모드 모두 상승은 빨강, 하락은 파랑을 유지한다. */
+.member-profile-stats strong.value-positive,
+html[data-theme="dark"] .member-profile-stats strong.value-positive{
+    color: #f04452;
+}
+
+.member-profile-stats strong.value-negative,
+html[data-theme="dark"] .member-profile-stats strong.value-negative{
+    color: #3182f6;
+}
+
 @media (max-width: 460px){
     .member-profile-summary{
         grid-template-columns: 64px minmax(0, 1fr);
@@ -2682,5 +2526,9 @@ html[data-theme="dark"] .member-profile-stats strong{
         grid-template-columns: 1fr;
         gap: 7px;
         padding-inline: 0;
+    }
+
+    .member-profile-stat{
+        grid-column: auto;
     }
 }
