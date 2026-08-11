@@ -84,6 +84,9 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
     let rememberedFormats = {};
     let formatsBeforeBackspace = null;
     let formatsBeforeEnter = null;
+    let isComposing = false;
+    let compositionRevision = 0;
+    let editRevision = 0;
 
     function pickInlineFormats(formats){
         const picked = {};
@@ -113,8 +116,13 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
         /*
          * Quill의 키보드 처리가 선택 영역을 갱신한 다음 적용해야 하므로 다음 화면 프레임까지 기다린다.
          * source를 silent로 지정해 복원 자체가 새로운 text-change를 발생시키는 재귀 호출을 막는다.
+         * 예약 이후 새 입력이 생기거나 한글 조합이 시작되면 오래된 복원 작업을 취소한다.
+         * 늦게 실행된 작업이 IME 커서에 개입하면 글자의 입력 순서가 뒤섞일 수 있기 때문이다.
          */
+        const scheduledRevision = editRevision;
         requestAnimationFrame(function(){
+            if (isComposing || scheduledRevision !== editRevision) return;
+
             const range = editor.getSelection();
             if (!range || range.length !== 0) return;
 
@@ -126,11 +134,35 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
     }
 
     /*
-     * Backspace가 실행되기 "전"에 커서 서식을 저장한다.
+     * 한글 IME는 한 글자를 조합하는 동안 insert/delete를 반복해서 발생시킨다.
+     * 이 기간에는 일반 Backspace·Enter 처리로 오인하지 않도록 서식 복원을 멈추고,
+     * compositionend 다음 프레임에 현재 커서의 서식만 다시 기억한다.
+     */
+    editor.root.addEventListener("compositionstart", function(){
+        isComposing = true;
+        compositionRevision += 1;
+        formatsBeforeBackspace = null;
+        formatsBeforeEnter = null;
+    });
+
+    editor.root.addEventListener("compositionend", function(){
+        const endingCompositionRevision = compositionRevision;
+        requestAnimationFrame(function(){
+            /* 다음 한글 조합이 이미 시작됐다면 이전 compositionend의 예약 작업은 무시한다. */
+            if (endingCompositionRevision !== compositionRevision) return;
+
+            isComposing = false;
+            rememberCurrentFormats();
+        });
+    });
+
+    /*
+     * Backspace가 실행되기 전에 커서 서식을 저장한다.
      * text-change 시점에는 Quill이 이미 앞 문자를 지우고 일반 서식으로 바꿨을 수 있으므로
      * 삭제 후의 getFormat()만 읽으면 사용자가 켜 둔 굵게·기울임 상태를 잃게 된다.
      */
     editor.root.addEventListener("keydown", function(event){
+        if (isComposing || event.isComposing || event.keyCode === 229) return;
         if (event.key !== "Backspace" && event.key !== "Enter") return;
 
         const range = editor.getSelection();
@@ -153,12 +185,17 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
     }, true);
 
     editor.on("selection-change", function(range){
-        if (range) rememberCurrentFormats();
+        if (range && !isComposing) rememberCurrentFormats();
     });
 
     editor.on("text-change", function(delta, oldDelta, source){
         /* API로 기존 글을 불러오는 경우가 아니라 사용자가 직접 편집한 경우에만 개입한다. */
         if (source !== "user") return;
+
+        editRevision += 1;
+
+        /* 한글 조합 과정의 삽입·삭제는 일반 편집 키 결과가 아니므로 건드리지 않는다. */
+        if (isComposing) return;
 
         /* Delta는 Quill이 이번 입력에서 추가·삭제한 내용만 담으므로 키 결과를 정확히 구분할 수 있다. */
         const containsDeletion = delta.ops.some(function(operation){
@@ -195,7 +232,10 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
             return;
         }
 
+        const scheduledRevision = editRevision;
         requestAnimationFrame(function(){
+            if (isComposing || scheduledRevision !== editRevision) return;
+
             editor.setSelection(0, 0, "silent");
             inlineFormatNames.forEach(function(name){
                 editor.format(name, rememberedFormats[name] || false, "silent");
@@ -737,13 +777,30 @@ function enhanceCardSnippets(container){
         const card = snippet.closest(".board-card");
         if (card && card.classList.contains("has-no-image")) {
             /* [카드본문-1]
-             * 이미지 없는 글은 빈 줄이 CSS의 6줄 제한을 차지하지 않게 정리한다.
-             * 따라서 실제 내용 기준으로 최대 6줄을 보여주고, 넘칠 때만 더보기를 만든다.
+             * 이미지 없는 글의 연속 빈 줄은 CSS의 6줄 제한을 불필요하게 차지하므로 <br>만 정리한다.
+             * 주의: snippet.textContent를 다시 대입하면 strong/em/span 같은 Quill 서식 태그가 전부 삭제된다.
+             * 따라서 DOM 노드를 유지한 채 앞·뒤·연속 <br>만 제거해 굵기·색상·크기 서식을 보존한다.
              */
-            snippet.textContent = snippet.textContent
-                .replace(/\r\n?/g, "\n")
-                .replace(/\n[\t ]*\n+/g, "\n")
-                .trim();
+            Array.from(snippet.childNodes).forEach(function(node){
+                if (node.nodeType === Node.TEXT_NODE && !node.textContent.trim()) {
+                    node.remove();
+                }
+            });
+
+            let previousWasBreak = true;
+            Array.from(snippet.childNodes).forEach(function(node){
+                const isBreak = node.nodeType === Node.ELEMENT_NODE && node.tagName === "BR";
+                if (isBreak && previousWasBreak) {
+                    node.remove();
+                    return;
+                }
+                previousWasBreak = isBreak;
+            });
+
+            const lastNode = snippet.lastChild;
+            if (lastNode && lastNode.nodeType === Node.ELEMENT_NODE && lastNode.tagName === "BR") {
+                lastNode.remove();
+            }
         }
 
         if (snippet.scrollHeight <= snippet.clientHeight + 1) {

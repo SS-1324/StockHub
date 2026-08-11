@@ -15,7 +15,7 @@
 
 <%-- 커뮤니티 전용 CSS --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css?v=48">
+      href="${pageContext.request.contextPath}/css/board.css?v=50">
 
 
 <%-- =========================================================
@@ -229,7 +229,7 @@
 
 
 <%-- 게시판 전용 JavaScript --%>
-<script src="${pageContext.request.contextPath}/js/board.js?v=11"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=13"></script>
 
 <%-- 공통 푸터 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

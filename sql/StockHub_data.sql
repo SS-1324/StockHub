@@ -460,7 +460,7 @@ CREATE TABLE IF NOT EXISTS goal (
 CREATE TABLE IF NOT EXISTS board (
     board_id    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '게시글 번호(PK)',
     member_id   VARCHAR(50)     NULL COMMENT '작성자(FK, 회원 탈퇴 시 NULL)',
-    category    VARCHAR(50)     NOT NULL COMMENT '카테고리(자유/질문/공지 등)',
+    category    VARCHAR(50)     NOT NULL COMMENT '커뮤니티 카테고리(free/tip/profit/review)',
     title       VARCHAR(200)    NOT NULL COMMENT '제목',
     content     TEXT            NOT NULL COMMENT '내용',
     count       BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '조회수',

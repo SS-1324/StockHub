@@ -697,6 +697,20 @@ html[data-theme="dark"] .board-widget-label.is-hot{
     -webkit-line-clamp: unset;
 }
 
+/*
+ * 홈의 커뮤니티 카드와 동일하게 Quill 인라인 서식을 목록 미리보기에도 표시한다.
+ * strong/em/s는 브라우저·공통 CSS에 따라 기본값이 달라질 수 있어 명시하고,
+ * ql-size-*는 Quill CSS가 없는 목록 화면에서도 저장된 글자 크기를 복원한다.
+ */
+.board-card-snippet strong{ font-weight: 700; }
+.board-card-snippet em{ font-style: italic; }
+.board-card-snippet s{ text-decoration: line-through; }
+.board-card-snippet u{ text-decoration: underline; }
+
+.board-card-snippet .ql-size-small{ font-size: 0.75em; }
+.board-card-snippet .ql-size-large{ font-size: 1.5em; }
+.board-card-snippet .ql-size-huge{ font-size: 2.5em; }
+
 .board-card-more-btn{
     display: block;
     /* [카드본문-2] flex 카드에서 버튼이 가로 전체로 늘어나 글자가 가운데 놓이지 않도록 왼쪽에 고정한다. */
@@ -1325,6 +1339,31 @@ html[data-theme="dark"] .board-widget-label.is-hot{
 */
 .btn-like.active .reaction-count{
     color: #171717;
+}
+
+/*
+    다크모드에서는 라이트모드의 검정 active 색상이 카드 배경에 묻히므로 별도 대비색을 사용한다.
+    선택 전 아이콘은 밝은 회색 윤곽선, 선택된 하트는 빨강, 북마크는 파랑으로 구분해
+    작은 아이콘만 보더라도 기능 종류와 선택 상태를 동시에 알아볼 수 있게 한다.
+*/
+html[data-theme="dark"] .board-meta-bottom .btn-icon,
+html[data-theme="dark"] .reaction-count{
+    color: #b8c4d8;
+}
+
+html[data-theme="dark"] .board-meta-bottom .btn-icon:hover,
+html[data-theme="dark"] .btn-like.active:hover,
+html[data-theme="dark"] .btn-bookmark.active:hover{
+    background: #253149;
+}
+
+html[data-theme="dark"] .btn-like.active,
+html[data-theme="dark"] .btn-like.active .reaction-count{
+    color: #ff6f7d;
+}
+
+html[data-theme="dark"] .btn-bookmark.active{
+    color: #8fb0ff;
 }
 
 .meta-count{
