@@ -697,6 +697,20 @@ html[data-theme="dark"] .board-widget-label.is-hot{
     -webkit-line-clamp: unset;
 }
 
+/*
+ * 홈의 커뮤니티 카드와 동일하게 Quill 인라인 서식을 목록 미리보기에도 표시한다.
+ * strong/em/s는 브라우저·공통 CSS에 따라 기본값이 달라질 수 있어 명시하고,
+ * ql-size-*는 Quill CSS가 없는 목록 화면에서도 저장된 글자 크기를 복원한다.
+ */
+.board-card-snippet strong{ font-weight: 700; }
+.board-card-snippet em{ font-style: italic; }
+.board-card-snippet s{ text-decoration: line-through; }
+.board-card-snippet u{ text-decoration: underline; }
+
+.board-card-snippet .ql-size-small{ font-size: 0.75em; }
+.board-card-snippet .ql-size-large{ font-size: 1.5em; }
+.board-card-snippet .ql-size-huge{ font-size: 2.5em; }
+
 .board-card-more-btn{
     display: block;
     /* [카드본문-2] flex 카드에서 버튼이 가로 전체로 늘어나 글자가 가운데 놓이지 않도록 왼쪽에 고정한다. */

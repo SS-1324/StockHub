@@ -126,7 +126,7 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
     }
 
     /*
-     * Backspace가 실행되기 "전"에 커서 서식을 저장한다.
+     * Backspace가 실행되기 전에 커서 서식을 저장한다.
      * text-change 시점에는 Quill이 이미 앞 문자를 지우고 일반 서식으로 바꿨을 수 있으므로
      * 삭제 후의 getFormat()만 읽으면 사용자가 켜 둔 굵게·기울임 상태를 잃게 된다.
      */
@@ -737,13 +737,30 @@ function enhanceCardSnippets(container){
         const card = snippet.closest(".board-card");
         if (card && card.classList.contains("has-no-image")) {
             /* [카드본문-1]
-             * 이미지 없는 글은 빈 줄이 CSS의 6줄 제한을 차지하지 않게 정리한다.
-             * 따라서 실제 내용 기준으로 최대 6줄을 보여주고, 넘칠 때만 더보기를 만든다.
+             * 이미지 없는 글의 연속 빈 줄은 CSS의 6줄 제한을 불필요하게 차지하므로 <br>만 정리한다.
+             * 주의: snippet.textContent를 다시 대입하면 strong/em/span 같은 Quill 서식 태그가 전부 삭제된다.
+             * 따라서 DOM 노드를 유지한 채 앞·뒤·연속 <br>만 제거해 굵기·색상·크기 서식을 보존한다.
              */
-            snippet.textContent = snippet.textContent
-                .replace(/\r\n?/g, "\n")
-                .replace(/\n[\t ]*\n+/g, "\n")
-                .trim();
+            Array.from(snippet.childNodes).forEach(function(node){
+                if (node.nodeType === Node.TEXT_NODE && !node.textContent.trim()) {
+                    node.remove();
+                }
+            });
+
+            let previousWasBreak = true;
+            Array.from(snippet.childNodes).forEach(function(node){
+                const isBreak = node.nodeType === Node.ELEMENT_NODE && node.tagName === "BR";
+                if (isBreak && previousWasBreak) {
+                    node.remove();
+                    return;
+                }
+                previousWasBreak = isBreak;
+            });
+
+            const lastNode = snippet.lastChild;
+            if (lastNode && lastNode.nodeType === Node.ELEMENT_NODE && lastNode.tagName === "BR") {
+                lastNode.remove();
+            }
         }
 
         if (snippet.scrollHeight <= snippet.clientHeight + 1) {
