@@ -26,6 +26,16 @@ public class GlossaryServiceImpl implements GlossaryService {
         return glossaryMapper.selectGlossaryByTerms(terms);
     }
 
+    // 요청할 때마다 DB에서 무작위 용어를 지정한 개수만큼 조회
+    @Override
+    public List<GlossaryDto> selectRandomGlossaryTerms(int limit) {
+        if (limit <= 0) {
+            return List.of();
+        }
+
+        return glossaryMapper.selectRandomGlossaryTerms(limit);
+    }
+
     // 카테고리별 조회
     @Override
     public List<GlossaryDto> selectGlossaryByCategory(String category) {

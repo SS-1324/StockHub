@@ -43,6 +43,14 @@
         )
     </select>
 
+    <!-- 메인 화면 등에 표시할 용어를 요청할 때마다 무작위로 조회 -->
+    <select id="selectRandomGlossaryTerms" resultMap="glossaryResultMap">
+        SELECT term_id, term, definition, category
+        FROM glossary
+        ORDER BY RAND()
+        LIMIT #{limit}
+    </select>
+
     <!-- 용어 번호로 상세 조회 -->
     <select id="selectGlossaryById" resultMap="glossaryResultMap">
         SELECT term_id, term, definition, category

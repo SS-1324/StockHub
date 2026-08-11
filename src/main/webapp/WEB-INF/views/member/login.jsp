@@ -33,16 +33,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap"
           rel="stylesheet">
     <link rel="stylesheet" href="${commonCssUrl}?v=30">
-    <link rel="stylesheet" href="${authCssUrl}?v=9">
+    <link rel="stylesheet" href="${authCssUrl}?v=11">
     <script src="${headerJsUrl}?v=17" defer></script>
 </head>
 <body class="auth-page auth-page-login">
-<button id="theme-toggle" class="header-icon-button auth-theme-toggle"
-        type="button" aria-label="화면 색상 모드 변경" title="화면 색상 모드 변경">
-    <span class="theme-light-icon" aria-hidden="true">☀️</span>
-    <span class="theme-dark-icon" aria-hidden="true">🌙</span>
-</button>
 <main class="auth-shell">
+    <button id="theme-toggle" class="header-icon-button auth-theme-toggle"
+            type="button" aria-label="화면 색상 모드 변경" title="화면 색상 모드 변경">
+        <span class="theme-light-icon" aria-hidden="true">☀️</span>
+        <span class="theme-dark-icon" aria-hidden="true">🌙</span>
+    </button>
+
     <%-- 세 인증 화면에서 공통으로 사용하는 브랜드 이미지 영역 --%>
     <section class="auth-visual">
         <img class="auth-visual-image auth-visual-image-light"
