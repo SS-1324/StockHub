@@ -6,7 +6,7 @@
 <!-- 글쓰기 화면에 굵게/폰트크기/링크 기능을 위한 Quill 에디터 -->
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
 <%-- Quill 기본 CSS 다음에 게시판 CSS를 불러야 편집기 테두리와 모서리 설정이 덮어써지지 않는다. --%>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css?v=50">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css?v=51">
 
 <h2 class="page-title board-form-title">게시글 작성</h2>
 
@@ -87,5 +87,5 @@
         document.getElementById('content').value = quill.getSemanticHTML();
     });
 </script>
-<script src="${pageContext.request.contextPath}/js/board.js?v=13"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=14"></script>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />
