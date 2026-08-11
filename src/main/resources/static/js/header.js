@@ -166,7 +166,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const triggerRect = anchor.getBoundingClientRect();
         const availableWidth = window.innerWidth - triggerRect.right - gap - margin;
-        modal.style.maxWidth = Math.max(280, Math.min(430, availableWidth)) + "px";
+        const isRankingProfile = Boolean(currentTrigger.closest?.(".ranking-row"));
+        /*
+         * [랭킹프로필클릭-2] 랭킹 팝업은 360px까지만 사용한다.
+         * 프로필 오른쪽의 수익률·수익금 숫자를 가리지 않으면서도 팝업 안의
+         * 작성글·팔로우·투자 수치는 모두 읽을 수 있는 폭이다.
+         */
+        const preferredMaxWidth = isRankingProfile ? 360 : 430;
+        modal.style.maxWidth = Math.max(280, Math.min(preferredMaxWidth, availableWidth)) + "px";
 
         /*
          * [프로필위치-3] viewport 고정 좌표가 아니라 문서 좌표를 사용한다.

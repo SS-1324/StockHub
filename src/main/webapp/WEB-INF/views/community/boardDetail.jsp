@@ -257,5 +257,5 @@
 
 </div>
 
-<script src="${pageContext.request.contextPath}/js/board.js?v=5"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=11"></script>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />
