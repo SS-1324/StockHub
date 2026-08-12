@@ -21,6 +21,7 @@ const emailCodeArea = document.querySelector("#email-code-area");
 const emailCodeInput = document.querySelector("#email-code");
 const emailVerifyButton = document.querySelector("#verify-email-code-btn");
 const emailCodeResult = document.querySelector("#email-code-result");
+const emailVerificationTimer = document.querySelector("#email-verification-timer");
 const joinForm = document.querySelector("#join-form");
 const contextPath = joinForm.dataset.contextPath || "";
 
@@ -47,6 +48,10 @@ let passwordRulePassed = false;
 let passwordMatched = false;
 let verificationRequestEmail = null;
 let verifiedEmail = null;
+const emailVerificationSeconds = 3 * 60;
+let emailVerificationDeadline = 0;
+let emailVerificationTimerId = null;
+let emailVerificationExpired = false;
 
 // 선택한 프로필 이미지를 화면에 미리 표시
 profileInput.addEventListener("change", function (e) {
@@ -218,14 +223,13 @@ emailDomainSelect.addEventListener("change", function () {
     resetEmailVerification();
 });
 
-// 인증 버튼을 누르면 외부 메일 없이 개발용 코드를 생성
+// 인증 버튼을 누르면 입력한 이메일로 3분짜리 인증번호를 발송
 emailSendButton.addEventListener("click", async function () {
     if (!checkEmail()) {
         return;
     }
 
     const fullEmail = getFullEmail();
-    const wasVerified = verifiedEmail === fullEmail;
     emailSendButton.disabled = true;
 
     try {
@@ -240,45 +244,64 @@ emailSendButton.addEventListener("click", async function () {
         const result = await response.json();
 
         if (!result.success) {
+            resetEmailVerificationState();
             showResult(
                 emailResult,
-                result.message || "개발용 인증코드 생성에 실패했습니다.",
+                result.message || "인증번호 발송에 실패했습니다. 잠시 후 다시 시도해주세요.",
                 false
             );
             return;
         }
 
-        // 새 코드를 받으면 이전 인증 완료 상태를 취소하고 다시 입력할 수 있게 초기화
+        // 새 번호가 발송되면 이전 인증 상태를 취소하고 3분 타이머를 시작
         verificationRequestEmail = fullEmail;
         verifiedEmail = null;
+        emailVerificationExpired = false;
         emailInput.value = fullEmail;
-        emailResult.textContent = `개발모드 인증코드: ${result.data}`;
-        emailResult.className = "form-tip form-tip-info";
+        showResult(
+            emailResult,
+            result.message || "인증번호가 발송되었습니다.",
+            true
+        );
         emailCodeArea.hidden = false;
         emailCodeInput.value = "";
         emailCodeInput.readOnly = false;
         emailVerifyButton.disabled = false;
-
-        // 인증 완료 후 재발급한 경우 새 코드를 다시 확인해야 함을 표시
-        if (wasVerified) {
-            showResult(emailCodeResult, "코드를 다시 확인해주세요.", false);
-        } else {
-            emailCodeResult.textContent = "";
-            emailCodeResult.className = "form-tip";
-        }
+        emailCodeResult.textContent = "";
+        emailCodeResult.className = "form-tip";
+        emailSendButton.textContent = "재발송";
+        startEmailVerificationTimer();
 
         emailCodeInput.focus();
     } catch (e) {
-        showResult(emailResult, "개발용 인증코드 생성 중 오류가 발생했습니다.", false);
+        resetEmailVerificationState();
+        showResult(
+            emailResult,
+            "인증번호 발송에 실패했습니다. 잠시 후 다시 시도해주세요.",
+            false
+        );
     } finally {
         emailSendButton.disabled = false;
     }
 });
 
-// 인증 코드에는 숫자 6자리까지만 입력
+// 인증 코드에는 대문자 영문과 숫자 6자리까지만 입력
 emailCodeInput.addEventListener("input", function () {
     emailCodeInput.value =
-        emailCodeInput.value.replace(/[^0-9]/g, "").slice(0, 6);
+        emailCodeInput.value
+            .replace(/[^A-Za-z0-9]/g, "")
+            .toUpperCase()
+            .slice(0, 6);
+
+    if (emailVerificationExpired) {
+        showResult(
+            emailCodeResult,
+            "인증 시간이 지났습니다. 코드를 재발급받으세요.",
+            false
+        );
+        return;
+    }
+
     emailCodeResult.textContent = "";
     emailCodeResult.className = "form-tip";
 });
@@ -288,8 +311,17 @@ emailVerifyButton.addEventListener("click", async function () {
     const fullEmail = getFullEmail();
     const code = emailCodeInput.value.trim();
 
-    if (verificationRequestEmail !== fullEmail || !/^[0-9]{6}$/.test(code)) {
-        showResult(emailCodeResult, "코드를 다시 확인해주세요.", false);
+    if (emailVerificationExpired) {
+        showResult(
+            emailCodeResult,
+            "인증 시간이 지났습니다. 코드를 재발급받으세요.",
+            false
+        );
+        return;
+    }
+
+    if (verificationRequestEmail !== fullEmail || !/^[A-Z0-9]{6}$/.test(code)) {
+        showResult(emailCodeResult, "잘못된 코드입니다.", false);
         return;
     }
 
@@ -310,16 +342,32 @@ emailVerifyButton.addEventListener("click", async function () {
             verifiedEmail = fullEmail;
             emailInput.value = fullEmail;
             emailCodeInput.readOnly = true;
-            showResult(emailCodeResult, "인증되었습니다.", true);
+            stopEmailVerificationTimer();
+            emailVerificationTimer.hidden = true;
+            showResult(
+                emailCodeResult,
+                result.message || "사용가능한 이메일입니다.",
+                true
+            );
         } else {
             verifiedEmail = null;
-            showResult(emailCodeResult, "코드를 다시 확인해주세요.", false);
+            const message = result.message || "잘못된 코드입니다.";
+            if (message === "인증 시간이 지났습니다. 코드를 재발급받으세요.") {
+                expireEmailVerification();
+            } else {
+                showResult(emailCodeResult, message, false);
+            }
         }
     } catch (e) {
         verifiedEmail = null;
-        showResult(emailCodeResult, "코드를 다시 확인해주세요.", false);
+        showResult(
+            emailCodeResult,
+            "인증번호 확인 중 오류가 발생했습니다.",
+            false
+        );
     } finally {
-        emailVerifyButton.disabled = verifiedEmail === fullEmail;
+        emailVerifyButton.disabled =
+            verifiedEmail === fullEmail || emailVerificationExpired;
     }
 });
 
@@ -472,17 +520,83 @@ function getFullEmail() {
 
 // 이메일이 수정되면 이전 코드와 인증 결과를 모두 초기화
 function resetEmailVerification() {
-    verificationRequestEmail = null;
-    verifiedEmail = null;
     emailInput.value = "";
     emailResult.textContent = "";
     emailResult.className = "form-tip";
+    resetEmailVerificationState();
+}
+
+// 이메일 인증번호·타이머·인증 완료 상태를 초기화
+function resetEmailVerificationState() {
+    stopEmailVerificationTimer();
+    verificationRequestEmail = null;
+    verifiedEmail = null;
+    emailVerificationExpired = false;
+    emailVerificationDeadline = 0;
     emailCodeInput.value = "";
     emailCodeInput.readOnly = false;
     emailVerifyButton.disabled = false;
     emailCodeResult.textContent = "";
     emailCodeResult.className = "form-tip";
     emailCodeArea.hidden = true;
+    emailVerificationTimer.hidden = false;
+    emailVerificationTimer.textContent = "3:00";
+    emailVerificationTimer.classList.remove("is-expired");
+    emailSendButton.textContent = "인증";
+}
+
+// 인증번호 발송 직후 3:00부터 1초 단위로 남은 시간을 갱신
+function startEmailVerificationTimer() {
+    stopEmailVerificationTimer();
+    emailVerificationExpired = false;
+    emailVerificationDeadline =
+        Date.now() + emailVerificationSeconds * 1000;
+    emailVerificationTimer.hidden = false;
+    emailVerificationTimer.classList.remove("is-expired");
+    updateEmailVerificationTimer();
+    emailVerificationTimerId = window.setInterval(
+        updateEmailVerificationTimer,
+        250
+    );
+}
+
+// 실제 종료 시각을 기준으로 계산하여 브라우저 지연에도 타이머가 밀리지 않게 함
+function updateEmailVerificationTimer() {
+    const remainingSeconds = Math.max(
+        0,
+        Math.ceil((emailVerificationDeadline - Date.now()) / 1000)
+    );
+    const minutes = Math.floor(remainingSeconds / 60);
+    const seconds = String(remainingSeconds % 60).padStart(2, "0");
+    emailVerificationTimer.textContent = `${minutes}:${seconds}`;
+
+    if (remainingSeconds === 0) {
+        expireEmailVerification();
+    }
+}
+
+// 3분이 지나면 확인 버튼을 막고 요청한 만료 문구를 빨간색으로 표시
+function expireEmailVerification() {
+    stopEmailVerificationTimer();
+    emailVerificationExpired = true;
+    verifiedEmail = null;
+    emailVerificationTimer.hidden = false;
+    emailVerificationTimer.textContent = "0:00";
+    emailVerificationTimer.classList.add("is-expired");
+    emailVerifyButton.disabled = true;
+    showResult(
+        emailCodeResult,
+        "인증 시간이 지났습니다. 코드를 재발급받으세요.",
+        false
+    );
+}
+
+// 실행 중인 타이머가 있으면 중지
+function stopEmailVerificationTimer() {
+    if (emailVerificationTimerId !== null) {
+        window.clearInterval(emailVerificationTimerId);
+        emailVerificationTimerId = null;
+    }
 }
 
 // 비밀번호 규칙과 확인 값의 상태를 표시

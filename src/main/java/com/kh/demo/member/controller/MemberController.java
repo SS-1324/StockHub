@@ -4,6 +4,7 @@ import com.kh.demo.common.SessionConst;
 import com.kh.demo.common.dto.ApiResponse;
 import com.kh.demo.member.dto.MemberDto;
 import com.kh.demo.member.dto.ProfileUpdateDto;
+import com.kh.demo.member.service.EmailVerificationResult;
 import com.kh.demo.member.service.EmailVerificationService;
 import com.kh.demo.member.service.MemberService;
 import com.kh.demo.member.service.PasswordResetService;
@@ -119,16 +120,16 @@ public class MemberController {
         return ApiResponse.success(message, duplicate);
     }
 
-    // 외부 메일 없이 테스트할 수 있는 개발용 인증 코드를 생성
+    // 3분 동안 사용할 인증번호를 실제 이메일로 발송
     @PostMapping("/email/send")
     @ResponseBody
-    public ApiResponse<String> createEmailVerificationCode(@RequestParam String email,
-                                                           HttpSession session) {
+    public ApiResponse<Void> sendEmailVerificationCode(@RequestParam String email,
+                                                       HttpSession session) {
         try {
-            String code = emailVerificationService.createDevelopmentCode(email);
+            emailVerificationService.sendVerificationCode(email);
             // 새 코드가 생성되면 이전 세션의 인증 완료 상태를 제거
             session.removeAttribute(VERIFIED_EMAIL);
-            return ApiResponse.success("개발용 인증코드가 생성되었습니다.", code);
+            return ApiResponse.success("인증번호가 발송되었습니다.", null);
         } catch (IllegalStateException e) {
             return ApiResponse.fail(e.getMessage());
         }
@@ -143,17 +144,22 @@ public class MemberController {
         try {
             String normalizedEmail =
                     emailVerificationService.normalizeAndValidateEmail(email);
-            boolean verified =
+            EmailVerificationResult result =
                     emailVerificationService.verifyCode(normalizedEmail, code);
 
-            if (verified) {
+            if (result == EmailVerificationResult.VERIFIED) {
                 // 가입 요청에서도 같은 이메일인지 확인할 수 있도록 세션에 저장
                 session.setAttribute(VERIFIED_EMAIL, normalizedEmail);
-                return ApiResponse.success("인증되었습니다.", true);
+                return ApiResponse.success("사용가능한 이메일입니다.", true);
             }
 
             session.removeAttribute(VERIFIED_EMAIL);
-            return ApiResponse.success("코드를 다시 확인해주세요.", false);
+            if (result == EmailVerificationResult.EXPIRED) {
+                return ApiResponse.fail(
+                        "인증 시간이 지났습니다. 코드를 재발급받으세요."
+                );
+            }
+            return ApiResponse.fail("잘못된 코드입니다.");
         } catch (IllegalStateException e) {
             session.removeAttribute(VERIFIED_EMAIL);
             return ApiResponse.fail(e.getMessage());

@@ -29,6 +29,10 @@ public interface MemberMapper {
     int insertEmailVerification(@Param("email") String email,
                                 @Param("code") String code);
 
+    // 가장 최근 인증번호가 일치하는지 또는 만료되었는지 조회
+    String selectLatestEmailVerificationStatus(@Param("email") String email,
+                                               @Param("code") String code);
+
     // 이메일과 코드가 일치하면 인증 완료로 변경
     int verifyEmailCode(@Param("email") String email,
                         @Param("code") String code);
