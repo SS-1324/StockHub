@@ -218,11 +218,11 @@
         </section>
 
         <%-- [커뮤니티사이드바-4] 실제 광고 연동 전 사용하는 교체 가능한 내부 프로모션 영역 --%>
-        <a class="board-ad-widget" href="${tradeHubUrl}" aria-label="주식 거래 허브 바로가기">
+        <a class="board-ad-widget" href="${tradeHubUrl}" aria-label="주식 종목 라운지 바로가기">
             <span class="board-ad-label">AD</span>
             <strong>차트를 보며<br>투자 이야기를 확인하세요</strong>
             <small>실시간 차트와 관심 종목을 한곳에서</small>
-            <span class="board-ad-action">거래 허브 보기 →</span>
+            <span class="board-ad-action">종목 라운지 보기 →</span>
         </a>
     </aside>
 </div>
