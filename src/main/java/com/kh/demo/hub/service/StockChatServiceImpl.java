@@ -122,6 +122,13 @@ public class StockChatServiceImpl implements StockChatService {
         return recent;
     }
 
+    @Override
+    public List<ChatMessageDto> getOlderMessages(String stockCode, Long beforeChatId, int limit) {
+        List<ChatMessageDto> older = stockChatMapper.selectOlderChats(stockCode, beforeChatId, limit);
+        Collections.reverse(older);
+        return older;
+    }
+
     // 매일 새벽 4시, 보관 기간(30일)이 지난 채팅을 정리
     @Scheduled(cron = "0 0 4 * * *")
     public void cleanupOldMessages() {

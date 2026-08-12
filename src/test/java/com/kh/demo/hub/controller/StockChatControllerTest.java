@@ -59,6 +59,16 @@ class StockChatControllerTest {
     }
 
     @Test
+    void olderMessagesDelegatesToServiceWithBeforeChatIdAndPageSize() {
+        List<ChatMessageDto> messages = List.of(new ChatMessageDto());
+        when(stockChatService.getOlderMessages("AAPL", 100L, 25)).thenReturn(messages);
+
+        ApiResponse<List<ChatMessageDto>> response = stockChatController.olderMessages("AAPL", 100L);
+
+        assertSame(messages, response.getData());
+    }
+
+    @Test
     void sendChatRejectsWhenNoLoginInWebSocketSession() {
         SimpMessageHeaderAccessor accessor = headerAccessorWithLoginMember(null);
 

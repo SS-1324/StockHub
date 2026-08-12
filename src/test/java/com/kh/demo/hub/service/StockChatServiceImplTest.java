@@ -83,4 +83,21 @@ class StockChatServiceImplTest {
         assertEquals(2L, result.get(1).getChatId());
         verify(stockChatMapper, times(1)).selectRecentChats("AAPL", 50);
     }
+
+    @Test
+    void getOlderMessagesReturnsOldestFirstAndPassesBeforeChatId() {
+        ChatMessageDto newer = new ChatMessageDto();
+        newer.setChatId(48L);
+        ChatMessageDto older = new ChatMessageDto();
+        older.setChatId(47L);
+        // selectOlderChats도 최신순으로 내려주므로 서비스가 뒤집어서 오래된순으로 돌려줘야 함
+        when(stockChatMapper.selectOlderChats("AAPL", 50L, 25)).thenReturn(
+                new java.util.ArrayList<>(List.of(newer, older)));
+
+        List<ChatMessageDto> result = stockChatService.getOlderMessages("AAPL", 50L, 25);
+
+        assertEquals(47L, result.get(0).getChatId());
+        assertEquals(48L, result.get(1).getChatId());
+        verify(stockChatMapper, times(1)).selectOlderChats("AAPL", 50L, 25);
+    }
 }

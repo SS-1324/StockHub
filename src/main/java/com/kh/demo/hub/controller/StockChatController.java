@@ -14,6 +14,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
@@ -24,6 +25,8 @@ import java.util.Map;
 public class StockChatController {
 
     private static final int RECENT_MESSAGE_LIMIT = 50;
+    // 무한스크롤로 과거 메시지를 추가 로드할 때 한 번에 가져오는 개수
+    private static final int OLDER_MESSAGE_PAGE_SIZE = 25;
 
     private final StockChatService stockChatService;
     private final SimpMessagingTemplate messagingTemplate;
@@ -40,6 +43,16 @@ public class StockChatController {
     public ApiResponse<List<ChatMessageDto>> recentMessages(@PathVariable String stockCode) {
         return ApiResponse.success(
                 stockChatService.getRecentMessages(stockCode, RECENT_MESSAGE_LIMIT)
+        );
+    }
+
+    // 채팅 패널에서 위로 스크롤했을 때 beforeChatId보다 이전 메시지를 추가로 불러오는 REST API
+    @GetMapping("/api/hub/chat/{stockCode}/older")
+    @ResponseBody
+    public ApiResponse<List<ChatMessageDto>> olderMessages(@PathVariable String stockCode,
+                                                            @RequestParam Long beforeChatId) {
+        return ApiResponse.success(
+                stockChatService.getOlderMessages(stockCode, beforeChatId, OLDER_MESSAGE_PAGE_SIZE)
         );
     }
 

@@ -44,6 +44,27 @@
         LIMIT #{limit}
     </select>
 
+    <!-- 특정 종목의 chat_id 기준 이전(과거) 채팅을 작성자 닉네임과 함께 최신순으로 조회.
+         chat_id는 AUTO_INCREMENT라 시간순과 일치하므로 커서로 사용 -->
+    <select id="selectOlderChats"
+            resultType="com.kh.demo.hub.dto.ChatMessageDto">
+        SELECT
+            c.chat_id,
+            c.stock_code,
+            c.member_id,
+            m.nickname,
+            c.content,
+            c.chart_price,
+            c.create_at,
+            DATE_FORMAT(c.create_at, '%H:%i') AS create_at_str
+        FROM stock_chat c
+        LEFT JOIN member m ON c.member_id = m.member_id
+        WHERE c.stock_code = #{stockCode}
+        AND c.chat_id &lt; #{beforeChatId}
+        ORDER BY c.create_at DESC, c.chat_id DESC
+        LIMIT #{limit}
+    </select>
+
     <!-- 보관 기간이 지난 채팅을 정리 (기준 시각 이전 = 삭제 대상) -->
     <delete id="deleteChatsBefore">
         DELETE FROM stock_chat

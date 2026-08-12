@@ -14,6 +14,7 @@
 <c:url var="rankingUrl" value="/ranking" />
 <c:url var="communityUrl" value="/community" />
 <c:url var="defaultProfileUrl" value="/images/common_member.png" />
+<c:url var="loginUrl" value="/member/login" />
 
 <%-- 공통 헤더를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
@@ -319,6 +320,8 @@
 </script>
 <script src="${pageContext.request.contextPath}/js/tradingview-chart.js?v=2"></script>
 <script src="${pageContext.request.contextPath}/js/stockhub.js?v=7"></script>
+
+<script src="${pageContext.request.contextPath}/js/session-timer.js"></script>
 
 <%-- 공통 푸터를 현재 페이지에 포함 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

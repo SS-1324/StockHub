@@ -53,6 +53,8 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <!-- FontAwesome 아이콘 불러오기 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script>
         (() => {
             try {
@@ -195,6 +197,16 @@
                             </c:choose>
                             <a class="header-logout-link" href="${logoutUrl}">로그아웃</a>
                         </div>
+                        <%-- 세션 타이머 (ADMIN이 아닌 경우에만 표시) --%>
+                        <c:if test="${not empty sessionExpiresAt and fn:toUpperCase(sessionScope.loginMember.memberRole) ne 'ADMIN'}">
+                            <div class="header-session-timer"
+                                 data-session-expires-at="${sessionExpiresAt}">
+                                <span id="header-session-remaining-time">--:--</span>
+                                <button class="session-extend-btn" onclick="extendSession()" title="세션 30분 연장" aria-label="세션 30분 연장">
+                                    <i class="fa-solid fa-arrows-rotate"></i>
+                                </button>
+                            </div>
+                        </c:if>
                     </div>
                 </c:when>
                 <c:otherwise>
