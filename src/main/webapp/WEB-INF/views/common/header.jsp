@@ -70,6 +70,9 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%-- header.js가 모든 fetch 요청에 자동으로 CSRF 헤더를 붙일 때 여기서 토큰 값을 읽는다. --%>
+    <meta name="_csrf" content="${_csrf.token}">
+    <meta name="_csrf_header" content="${_csrf.headerName}">
     <title>StockHub</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -82,7 +85,7 @@
     <c:if test="${not empty requestScope.pageCssUrl}">
         <link rel="stylesheet" href="${requestScope.pageCssUrl}">
     </c:if>
-    <script src="${headerJsUrl}?v=22" defer></script>
+    <script src="${headerJsUrl}?v=23" defer></script>
 </head>
 <body>
 <%-- 로고, 페이지 이동 메뉴, 회원 메뉴를 표시하는 공통 헤더 --%>

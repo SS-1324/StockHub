@@ -70,6 +70,7 @@
             <p class="dashboard-link-desc">증권사와 계좌번호, 예금주명을 입력하면 그 증권사가 이미 갖고 있던 거래 이력을 그대로 불러옵니다.</p>
             <form class="dashboard-inline-form"
                   action="${pageContext.request.contextPath}/member/dashboard/link-account" method="post">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                 <select name="brokerageId" required>
                     <option value="">증권사 선택</option>
                     <c:forEach var="b" items="${brokerages}">
@@ -184,6 +185,7 @@
                                 </c:if>
                                 <form class="dashboard-goal-cancel-form"
                                       action="${pageContext.request.contextPath}/member/dashboard/goal/cancel" method="post">
+                                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                                     <input type="hidden" name="goalId" value="${goal.goalId}">
                                     <button type="submit" class="dashboard-goal-cancel-btn">취소</button>
                                 </form>
@@ -202,6 +204,7 @@
 
         <form id="goal-form-panel" class="dashboard-inline-form dashboard-goal-form" hidden
               action="${pageContext.request.contextPath}/member/dashboard/goal" method="post">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
             <select name="goalType">
                 <option value="RETURN_RATE">수익률(%)</option>
                 <option value="PROFIT_AMOUNT">수익금(원)</option>

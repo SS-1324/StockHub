@@ -16,6 +16,7 @@
 
 <form id="board-write-form" class="form form-flex" action="${communityUrl}/write"
       method="post" enctype="multipart/form-data">
+    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 
     <div class="form-row">
         <label for="category">카테고리</label>
@@ -88,5 +89,5 @@
         document.getElementById('content').value = quill.root.innerHTML;
     });
 </script>
-<script src="${pageContext.request.contextPath}/js/board.js?v=14"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=15"></script>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

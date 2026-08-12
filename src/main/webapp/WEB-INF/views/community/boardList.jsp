@@ -236,7 +236,7 @@
 
 
 <%-- 게시판 전용 JavaScript --%>
-<script src="${pageContext.request.contextPath}/js/board.js?v=14"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=15"></script>
 
 <%-- 공통 푸터 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

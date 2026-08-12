@@ -27,6 +27,8 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" content="${_csrf.token}">
+    <meta name="_csrf_header" content="${_csrf.headerName}">
     <title>로그인 | StockHub</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,7 +36,7 @@
           rel="stylesheet">
     <link rel="stylesheet" href="${commonCssUrl}?v=30">
     <link rel="stylesheet" href="${authCssUrl}?v=11">
-    <script src="${headerJsUrl}?v=17" defer></script>
+    <script src="${headerJsUrl}?v=18" defer></script>
 </head>
 <body class="auth-page auth-page-login">
 <main class="auth-shell">
@@ -78,6 +80,7 @@
                 <form class="form login-form auth-login-form"
                       action="${pageContext.request.contextPath}/member/login"
                       method="post">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                     <input type="hidden" name="redirectURL" value="${param.redirectURL}">
 
                     <div class="login-field">

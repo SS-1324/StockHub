@@ -51,6 +51,7 @@
             <a class="board-post-menu-item" href="${communityUrl}/edit/${board.boardId}">수정</a>
             <form action="${communityUrl}/delete/${board.boardId}" method="post"
                   onsubmit="return confirm('게시글을 삭제하시겠습니까?');">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                 <button type="submit" class="board-post-menu-item is-danger">삭제</button>
             </form>
         </div>
@@ -270,5 +271,5 @@
 
 </div>
 
-<script src="${pageContext.request.contextPath}/js/board.js?v=14"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=15"></script>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

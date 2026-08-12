@@ -30,7 +30,9 @@
 <%-- 프로필 이미지 삭제 버튼이 요청할 별도 폼 --%>
 <form id="delete-profile-image-form"
       action="${pageContext.request.contextPath}/member/mypage/profile-image/delete"
-      method="post"></form>
+      method="post">
+    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+</form>
 
 <c:if test="${not empty profileImageDeleted}">
     <p class="alert alert-success profile-alert">
@@ -44,6 +46,7 @@
       data-current-profile-url="${currentProfileUrl}"
       data-context-path="${pageContext.request.contextPath}"
       method="post" enctype="multipart/form-data">
+    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 
     <%-- 현재 프로필 이미지와 새 이미지 선택 영역 --%>
     <div class="form-row form-row-center">
