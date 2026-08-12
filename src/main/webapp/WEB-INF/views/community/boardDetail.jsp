@@ -112,8 +112,11 @@
 
     </span>
 
-    <span>${board.nickname}</span>
-    <span>${board.createAtStr}</span>
+ <%-- 작성자 닉네임 제대로 보이도록  --%>
+     <div class="board-card-header-text">
+           <span class="board-card-nickname">${board.nickname}</span>
+           <span class="board-card-date">${board.createAtStr}</span>
+       </div>
 </div>
 
 <div class="board-content">${board.highlightedContent}</div>
