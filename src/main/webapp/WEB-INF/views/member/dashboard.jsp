@@ -4,12 +4,12 @@
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <c:url var="dashboardCssUrl" value="/css/dashboard.css">
-    <c:param name="v" value="3" />
+    <c:param name="v" value="6" />
 </c:url>
 <c:set var="pageCssUrl" value="${dashboardCssUrl}" scope="request" />
 <c:url var="defaultProfileUrl" value="/images/common_member.png" />
 <c:url var="dashboardJsUrl" value="/js/dashboard.js">
-    <c:param name="v" value="2" />
+    <c:param name="v" value="5" />
 </c:url>
 
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
@@ -83,11 +83,25 @@
         </div>
     </header>
 
+    <%-- 여러 증권사를 연동했을 때만 나오는 "전체/증권사별 보기" 필터. 하나 바꾸면 아래 화면
+         전체(총자산~최근활동)가 그 기준으로 다시 그려지는 하나의 값이라, 통 하나로만 둔다 --%>
+    <c:if test="${fn:length(myBrokerageNames) > 1}">
+        <script id="dashboard-brokerage-data" type="application/json">${brokerageFilterDataJson}</script>
+        <div class="dashboard-brokerage-filter-bar">
+            <select id="dashboard-brokerage-filter" class="dashboard-brokerage-filter" aria-label="증권사 필터">
+                <option value="__ALL__">전체</option>
+                <c:forEach var="name" items="${myBrokerageNames}">
+                    <option value="<c:out value='${name}'/>"><c:out value="${name}"/></option>
+                </c:forEach>
+            </select>
+        </div>
+    </c:if>
+
     <%-- 총 자산 요약 카드: 증권사가 여러 곳이어도 여기 하나로 합산해서 보여주는 게 핵심 --%>
     <dl class="dashboard-summary dashboard-summary-total">
         <div class="dashboard-summary-row">
             <dt>총 자산</dt>
-            <dd><fmt:formatNumber value="${totalAsset}" pattern="#,##0"/>원</dd>
+            <dd id="dashboard-total-asset" data-all="${totalAsset}"><fmt:formatNumber value="${totalAsset}" pattern="#,##0"/>원</dd>
         </div>
         <div class="dashboard-summary-row">
             <dt class="dashboard-profit-label">
@@ -115,7 +129,7 @@
         </div>
         <div class="dashboard-summary-row">
             <dt>현금 잔고</dt>
-            <dd><fmt:formatNumber value="${stockSummary.currentBalance}" pattern="#,##0"/>원</dd>
+            <dd id="dashboard-cash-balance" data-all="${stockSummary.currentBalance}"><fmt:formatNumber value="${stockSummary.currentBalance}" pattern="#,##0"/>원</dd>
         </div>
         <div class="dashboard-summary-footer">
             <a class="dashboard-section-link"
@@ -223,6 +237,7 @@
                     <option value="quantity">수량순</option>
                     <option value="name">가나다순</option>
                     <option value="price">현재가순</option>
+                    <option value="value">평가금액순</option>
                 </select>
             </c:if>
         </div>
@@ -243,11 +258,17 @@
                         </thead>
                         <tbody id="stock-holdings-tbody">
                         <c:forEach var="holding" items="${stockSummary.holdings}">
+                            <%-- 증권사 필터가 이 값들을 읽어서, 특정 증권사를 고르면 그 증권사 몫으로 셀 내용을
+                                 바꿔치고, 그 증권사에 없는 종목은 행 자체를 숨긴다(브로커리지 이름은 우리
+                                 brokerage 테이블에서 나오는 값이라 JSON 이스케이프 없이 그대로 써도 안전하다) --%>
+                            <c:set var="accountsJson">[<c:forEach var="acc" items="${holding.accountBreakdown}" varStatus="st">{"brokerage":"${acc.brokerageName}","quantity":${acc.quantity},"avgPrice":${acc.avgPrice},"currentValue":${acc.currentValue},"returnRate":${acc.returnRate}}<c:if test="${!st.last}">,</c:if></c:forEach>]</c:set>
                             <tr data-name="<c:out value='${holding.stockName}'/>"
                                 data-quantity="${holding.quantity}"
+                                data-avg-price="${holding.avgPrice}"
                                 data-price="${holding.currentPrice}"
                                 data-value="${holding.currentValue}"
-                                data-return-rate="${holding.returnRate}">
+                                data-return-rate="${holding.returnRate}"
+                                data-accounts="${fn:escapeXml(accountsJson)}">
                                 <td data-label="종목">
                                     <strong><c:out value="${holding.stockName}"/></strong>
                                     <span class="dashboard-code"><c:out value="${holding.stockCode}"/></span>
@@ -279,7 +300,7 @@
     <section class="dashboard-holdings" aria-labelledby="product-holdings-title">
         <div class="dashboard-section-heading">
             <h2 id="product-holdings-title">보유 상품</h2>
-            <span><c:out value="${fn:length(productSummary.holdings)}"/>개</span>
+            <span id="product-holdings-count"><c:out value="${fn:length(productSummary.holdings)}"/>개</span>
         </div>
 
         <c:choose>
@@ -296,9 +317,15 @@
                             <th scope="col">수익률</th>
                         </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="product-holdings-tbody">
                         <c:forEach var="holding" items="${productSummary.holdings}">
-                            <tr>
+                            <c:set var="accountsJson">[<c:forEach var="acc" items="${holding.accountBreakdown}" varStatus="st">{"brokerage":"${acc.brokerageName}","quantity":${acc.quantity},"avgNav":${acc.avgNav},"currentValue":${acc.currentValue},"returnRate":${acc.returnRate}}<c:if test="${!st.last}">,</c:if></c:forEach>]</c:set>
+                            <tr data-quantity="${holding.quantity}"
+                                data-avg-nav="${holding.avgNav}"
+                                data-current-nav="${holding.currentNav}"
+                                data-value="${holding.currentValue}"
+                                data-return-rate="${holding.returnRate}"
+                                data-accounts="${fn:escapeXml(accountsJson)}">
                                 <td data-label="상품">
                                     <strong><c:out value="${holding.productName}"/></strong>
                                     <span class="dashboard-code"><c:out value="${holding.productType}"/></span>
@@ -438,7 +465,7 @@
             <c:when test="${not empty timeline}">
                 <ul class="dashboard-timeline-list" id="dashboard-timeline-list">
                     <c:forEach var="event" items="${timeline}">
-                        <li>
+                        <li data-brokerage="<c:out value='${event.brokerageName}'/>">
                             <span class="dashboard-timeline-badge dashboard-timeline-badge-${event.category}"><c:out value="${event.badge}"/></span>
                             <span class="dashboard-timeline-desc"><c:out value="${event.description}"/></span>
                             <span class="dashboard-timeline-amount"><fmt:formatNumber value="${event.amount}" pattern="#,##0"/>원</span>

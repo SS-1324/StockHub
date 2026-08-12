@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     drawAssetTrendChart();
     setupAnalyticsDownload();
     setupTimelinePagination();
+    setupBrokerageFilter();
 
     // 캔버스는 CSS가 아니라 직접 그린 픽셀이라, 테마 토글(header.js가 <html data-theme>를 바꿈)에
     // 맞춰 색을 다시 골라 새로 그려야 다크모드에서도 어색하지 않다
@@ -36,42 +37,57 @@ function setupTogglePanel(toggleSelector, panelSelector) {
     });
 }
 
+// 총 손익 카드의 기간 탭. 증권사 필터가 "전체"가 아닐 때는 기간별 수치가 없어(평가손익 하나뿐)
+// 탭을 비활성화하는데, 그때도 재사용할 수 있도록 렌더링 로직을 밖에서도 부를 수 있게 만든다.
 function setupPeriodTabs() {
     const tabs = document.querySelectorAll(".dashboard-period-tab");
     const valueEl = document.getElementById("dashboard-period-profit");
     const amountEl = document.getElementById("dashboard-period-profit-amount");
-    const rateEl = document.getElementById("dashboard-period-profit-rate");
     if (tabs.length === 0 || !valueEl || !amountEl) {
         return;
     }
-    const formatter = new Intl.NumberFormat("ko-KR");
 
     tabs.forEach((tab) => {
         tab.addEventListener("click", () => {
+            if (tab.disabled) {
+                return;
+            }
             tabs.forEach((t) => t.classList.remove("is-active"));
             tab.classList.add("is-active");
-
-            const period = tab.dataset.period;
-            const amount = Number(valueEl.dataset[period] || 0);
-            const sign = amount > 0 ? "+" : "";
-            amountEl.textContent = `${sign}${formatter.format(amount)}원`;
-            valueEl.classList.remove("value-positive", "value-negative");
-            if (amount > 0) {
-                valueEl.classList.add("value-positive");
-            } else if (amount < 0) {
-                valueEl.classList.add("value-negative");
-            }
-
-            // 기간마다 수익률(%)도 금액과 나란히 표시해 탭 간 표시 방식을 통일한다
-            if (rateEl) {
-                const rateKey = period + "Rate";
-                const rate = Number(valueEl.dataset[rateKey] || 0);
-                const rateSign = rate > 0 ? "+" : "";
-                rateEl.textContent = `(${rateSign}${rate.toFixed(2)}%)`;
-                rateEl.hidden = false;
-            }
+            renderActivePeriodTab();
         });
     });
+}
+
+const KRW_FORMATTER = new Intl.NumberFormat("ko-KR");
+
+// 현재 is-active인 기간 탭 기준으로 총 손익 dd를 다시 그린다
+function renderActivePeriodTab() {
+    const valueEl = document.getElementById("dashboard-period-profit");
+    const amountEl = document.getElementById("dashboard-period-profit-amount");
+    const rateEl = document.getElementById("dashboard-period-profit-rate");
+    const activeTab = document.querySelector(".dashboard-period-tab.is-active");
+    if (!valueEl || !amountEl || !activeTab) {
+        return;
+    }
+
+    const period = activeTab.dataset.period;
+    const amount = Number(valueEl.dataset[period] || 0);
+    const sign = amount > 0 ? "+" : "";
+    amountEl.textContent = `${sign}${KRW_FORMATTER.format(amount)}원`;
+    valueEl.classList.remove("value-positive", "value-negative");
+    if (amount > 0) {
+        valueEl.classList.add("value-positive");
+    } else if (amount < 0) {
+        valueEl.classList.add("value-negative");
+    }
+
+    if (rateEl) {
+        const rate = Number(valueEl.dataset[period + "Rate"] || 0);
+        const rateSign = rate > 0 ? "+" : "";
+        rateEl.textContent = `(${rateSign}${rate.toFixed(2)}%)`;
+        rateEl.hidden = false;
+    }
 }
 
 // "1주 · 1종목"을 한 줄에 다 보여주는 대신, 버튼 하나로 둘을 번갈아 보여준다
@@ -102,6 +118,7 @@ function setupHoldingsSort() {
         quantity: (a, b) => Number(b.dataset.quantity) - Number(a.dataset.quantity),
         name: (a, b) => a.dataset.name.localeCompare(b.dataset.name, "ko"),
         price: (a, b) => Number(b.dataset.price) - Number(a.dataset.price),
+        value: (a, b) => Number(b.dataset.value) - Number(a.dataset.value),
     };
 
     select.addEventListener("change", () => {
@@ -322,7 +339,10 @@ function setupAnalyticsDownload() {
     });
 }
 
-// 최근 활동을 15개씩 페이지로 나눠서 보여준다
+// 최근 활동을 15개씩 페이지로 나눠서 보여준다. 증권사 필터가 걸리면 그 증권사 몫만 골라서
+// 다시 페이지를 나눠야 하므로, 바깥(증권사 필터)에서 다시 부를 수 있게 핸들을 남겨둔다.
+let timelineFilterHandle = null;
+
 function setupTimelinePagination() {
     const list = document.getElementById("dashboard-timeline-list");
     const pagination = document.getElementById("dashboard-timeline-pagination");
@@ -330,21 +350,33 @@ function setupTimelinePagination() {
         return;
     }
     const PAGE_SIZE = 15;
-    const items = Array.from(list.children);
-    const pageCount = Math.ceil(items.length / PAGE_SIZE);
-    if (pageCount <= 1) {
-        return;
+    const allItems = Array.from(list.children);
+    let currentPage = 1;
+    let brokerageFilter = "__ALL__";
+
+    function eligibleItems() {
+        return allItems.filter((item) => brokerageFilter === "__ALL__" || item.dataset.brokerage === brokerageFilter);
     }
 
-    let currentPage = 1;
-
     function render() {
-        items.forEach((item, i) => {
-            const page = Math.floor(i / PAGE_SIZE) + 1;
+        const items = eligibleItems();
+        const pageCount = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+        currentPage = Math.min(currentPage, pageCount);
+
+        allItems.forEach((item) => {
+            const position = items.indexOf(item);
+            if (position === -1) {
+                item.hidden = true;
+                return;
+            }
+            const page = Math.floor(position / PAGE_SIZE) + 1;
             item.hidden = page !== currentPage;
         });
 
         pagination.innerHTML = "";
+        if (pageCount <= 1) {
+            return;
+        }
 
         const prevBtn = document.createElement("button");
         prevBtn.type = "button";
@@ -382,4 +414,196 @@ function setupTimelinePagination() {
     }
 
     render();
+
+    timelineFilterHandle = (brokerage) => {
+        brokerageFilter = brokerage;
+        currentPage = 1;
+        render();
+    };
+}
+
+// ==================== 증권사 필터 ====================
+// "여러 증권사를 연동해도 전부 다 합쳐 보여준다"는 이 사이트의 원래 목적을, 합친 숫자 뒤에
+// 숨겨두지 않고 "전체/증권사별"로 직접 걸러볼 수 있게 하는 기능. 페이지 맨 위에 필터 하나만 두고,
+// 값이 바뀌면 아래 화면 전체(총자산~최근활동)가 서버 왕복 없이 다시 그려진다.
+//
+// 총 손익만 예외: "전체"일 때는 실현손익까지 포함한 정교한 계산(주/달/년 탭)을 그대로 쓰지만,
+// 특정 증권사로 좁히면 계좌 단위 자산 스냅샷 이력까지 새로 쌓아야 해서 범위를 넘어가므로,
+// 그 증권사의 보유 주식·상품 "평가손익" 하나로 근사하고 기간 탭은 잠근다.
+function setupBrokerageFilter() {
+    const select = document.getElementById("dashboard-brokerage-filter");
+    if (!select) {
+        return;
+    }
+
+    const dataScript = document.getElementById("dashboard-brokerage-data");
+    let brokerageData = {};
+    if (dataScript) {
+        try {
+            brokerageData = JSON.parse(dataScript.textContent);
+        } catch (e) {
+            brokerageData = {};
+        }
+    }
+
+    select.addEventListener("change", () => {
+        applyBrokerageFilter(select.value, brokerageData);
+    });
+}
+
+function applyBrokerageFilter(brokerage, brokerageData) {
+    const isAll = brokerage === "__ALL__";
+
+    updateSummaryFigure("dashboard-total-asset", isAll, brokerageData.totalAsset, brokerage);
+    updateSummaryFigure("dashboard-cash-balance", isAll, brokerageData.currentBalance, brokerage);
+    applyProfitFilter(isAll, brokerage, brokerageData);
+    applyStockBrokerageFilter(brokerage);
+    applyProductBrokerageFilter(brokerage);
+
+    if (timelineFilterHandle) {
+        timelineFilterHandle(brokerage);
+    }
+}
+
+function updateSummaryFigure(elementId, isAll, brokerageMap, brokerage) {
+    const el = document.getElementById(elementId);
+    if (!el) {
+        return;
+    }
+    const value = isAll ? Number(el.dataset.all || 0) : Number((brokerageMap && brokerageMap[brokerage]) || 0);
+    el.textContent = `${KRW_FORMATTER.format(value)}원`;
+}
+
+function applyProfitFilter(isAll, brokerage, brokerageData) {
+    const periodTabs = document.querySelectorAll(".dashboard-period-tab");
+    const profitEl = document.getElementById("dashboard-period-profit");
+    const amountEl = document.getElementById("dashboard-period-profit-amount");
+    const rateEl = document.getElementById("dashboard-period-profit-rate");
+    if (!profitEl || !amountEl) {
+        return;
+    }
+
+    if (isAll) {
+        periodTabs.forEach((t) => {
+            t.disabled = false;
+        });
+        renderActivePeriodTab();
+        return;
+    }
+
+    // 특정 증권사로 좁힌 화면 - 기간 탭은 의미가 없어 잠그고, 평가손익 하나만 보여준다
+    periodTabs.forEach((t) => {
+        t.disabled = true;
+    });
+    const amount = (brokerageData.totalProfit && brokerageData.totalProfit[brokerage]) || 0;
+    const rate = (brokerageData.totalReturnRate && brokerageData.totalReturnRate[brokerage]) || 0;
+    const sign = amount > 0 ? "+" : "";
+    amountEl.textContent = `${sign}${KRW_FORMATTER.format(amount)}원`;
+    profitEl.classList.remove("value-positive", "value-negative");
+    if (amount > 0) {
+        profitEl.classList.add("value-positive");
+    } else if (amount < 0) {
+        profitEl.classList.add("value-negative");
+    }
+    if (rateEl) {
+        const rateSign = rate > 0 ? "+" : "";
+        rateEl.textContent = `(${rateSign}${Number(rate).toFixed(2)}%, 평가손익 기준)`;
+        rateEl.hidden = false;
+    }
+}
+
+// 보유 주식 표를 증권사 기준으로 다시 그린다 - 그 증권사에 없는 종목은 행을 숨기고,
+// 있는 종목은 셀 내용을 그 증권사 몫(수량/평균매입가/평가금액/수익률)으로 바꿔치기한다.
+function applyStockBrokerageFilter(brokerage) {
+    const tbody = document.getElementById("stock-holdings-tbody");
+    const toggle = document.getElementById("stock-holdings-count-toggle");
+    if (!tbody) {
+        return;
+    }
+    const isAll = brokerage === "__ALL__";
+    let totalQuantity = 0;
+    let visibleCount = 0;
+
+    Array.from(tbody.querySelectorAll("tr")).forEach((row) => {
+        let match = null;
+        if (!isAll) {
+            const accounts = JSON.parse(row.dataset.accounts || "[]");
+            match = accounts.find((a) => a.brokerage === brokerage) || null;
+            if (!match) {
+                row.hidden = true;
+                return;
+            }
+        }
+        row.hidden = false;
+        visibleCount += 1;
+
+        const quantity = match ? match.quantity : Number(row.dataset.quantity);
+        const avgPrice = match ? match.avgPrice : Number(row.dataset.avgPrice);
+        const value = match ? match.currentValue : Number(row.dataset.value);
+        const returnRate = match ? match.returnRate : Number(row.dataset.returnRate);
+        totalQuantity += quantity;
+
+        const cells = row.querySelectorAll("td");
+        cells[1].textContent = `${KRW_FORMATTER.format(Math.round(quantity))}주`;
+        cells[2].textContent = `${KRW_FORMATTER.format(Math.round(avgPrice))}원`;
+        cells[4].textContent = `${KRW_FORMATTER.format(Math.round(value))}원`;
+        setReturnRateCell(cells[5], returnRate);
+    });
+
+    if (toggle) {
+        toggle.dataset.quantityText = `${KRW_FORMATTER.format(totalQuantity)}주`;
+        toggle.dataset.stockText = `${visibleCount}종목`;
+        toggle.textContent = toggle.dataset.mode === "quantity" ? toggle.dataset.quantityText : toggle.dataset.stockText;
+    }
+}
+
+// 보유 상품 표도 같은 방식으로 증권사별 몫을 반영한다
+function applyProductBrokerageFilter(brokerage) {
+    const tbody = document.getElementById("product-holdings-tbody");
+    const countEl = document.getElementById("product-holdings-count");
+    if (!tbody) {
+        return;
+    }
+    const isAll = brokerage === "__ALL__";
+    let visibleCount = 0;
+
+    Array.from(tbody.querySelectorAll("tr")).forEach((row) => {
+        let match = null;
+        if (!isAll) {
+            const accounts = JSON.parse(row.dataset.accounts || "[]");
+            match = accounts.find((a) => a.brokerage === brokerage) || null;
+            if (!match) {
+                row.hidden = true;
+                return;
+            }
+        }
+        row.hidden = false;
+        visibleCount += 1;
+
+        const quantity = match ? match.quantity : Number(row.dataset.quantity);
+        const avgNav = match ? match.avgNav : Number(row.dataset.avgNav);
+        const value = match ? match.currentValue : Number(row.dataset.value);
+        const returnRate = match ? match.returnRate : Number(row.dataset.returnRate);
+
+        const cells = row.querySelectorAll("td");
+        cells[1].textContent = `${quantity.toLocaleString("ko-KR", { maximumFractionDigits: 4 })}좌`;
+        cells[2].textContent = `${avgNav.toLocaleString("ko-KR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}원`;
+        cells[4].textContent = `${KRW_FORMATTER.format(Math.round(value))}원`;
+        setReturnRateCell(cells[5], returnRate);
+    });
+
+    if (countEl) {
+        countEl.textContent = `${visibleCount}개`;
+    }
+}
+
+function setReturnRateCell(cell, returnRate) {
+    const sign = returnRate > 0 ? "+" : "";
+    cell.textContent = `${sign}${Number(returnRate).toFixed(2)}%`;
+    cell.classList.remove("value-positive", "value-negative");
+    if (returnRate > 0) {
+        cell.classList.add("value-positive");
+    } else if (returnRate < 0) {
+        cell.classList.add("value-negative");
+    }
 }

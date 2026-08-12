@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -80,6 +81,7 @@ public class DashboardController {
         MyProductSummaryDto productSummary = myProductService.getMyProductSummary(memberId);
         List<GoalDto> activeGoals = goalService.getMyActiveGoals(memberId);
         boolean hasGoalHistory = !goalService.getMyGoalHistory(memberId).isEmpty();
+        List<AccountDto> myAccounts = accountService.getMyAccounts(memberId);
 
         // 총 자산 = 현금 잔고 + 주식 평가금액(매입금액+평가손익) + 상품 평가금액
         long stockCurrentValue = (stockSummary.getTotalPurchaseAmount() == null ? 0L : stockSummary.getTotalPurchaseAmount())
@@ -94,11 +96,11 @@ public class DashboardController {
         BigDecimal totalReturnRate = periodProfit.getAllRate();
 
         model.addAttribute("member", memberService.getMemberProfile(memberId));
-        model.addAttribute("myAccounts", accountService.getMyAccounts(memberId));
+        model.addAttribute("myAccounts", myAccounts);
         model.addAttribute("brokerages", brokerageService.getAllBrokerages());
         model.addAttribute("stockSummary", stockSummary);
         model.addAttribute("productSummary", productSummary);
-        model.addAttribute("timeline", buildTimeline(memberId));
+        model.addAttribute("timeline", buildTimeline(memberId, myAccounts));
         Map<Long, Integer> goalProgress = new HashMap<>();
         Map<Long, Boolean> goalSuccess = new HashMap<>();
         computeGoalProgress(activeGoals, memberId, totalAsset, goalProgress, goalSuccess);
@@ -111,6 +113,14 @@ public class DashboardController {
         model.addAttribute("totalAsset", totalAsset);
         model.addAttribute("totalProfit", totalProfit);
         model.addAttribute("totalReturnRate", totalReturnRate);
+
+        // 증권사 필터: "전체"가 아니라 특정 증권사를 골랐을 때 화면 전체(총자산/총손익/현금잔고/보유주식/
+        // 보유상품/최근활동)가 그 증권사 것만으로 다시 그려지도록, 증권사별 수치를 미리 계산해 JSON으로 심어둔다.
+        // (평가손익 기준 - "전체" 화면의 총손익처럼 실현손익까지 정교하게 계산하려면 계좌 단위 자산 스냅샷이
+        // 새로 필요해서, 필터된 화면에서는 그보다 단순한 평가손익으로 근사한다)
+        List<String> myBrokerageNames = myAccounts.stream().map(AccountDto::getBrokerageName).distinct().toList();
+        model.addAttribute("myBrokerageNames", myBrokerageNames);
+        model.addAttribute("brokerageFilterDataJson", buildBrokerageFilterDataJson(myAccounts, stockSummary, productSummary));
         model.addAttribute("portfolioAnalytics", portfolioAnalyticsService.getMyPortfolioAnalytics(memberId, stockSummary));
 
         return "member/dashboard";
@@ -177,37 +187,146 @@ public class DashboardController {
     @GetMapping("/member/dashboard/history")
     public String tradeHistory(HttpSession session, Model model) {
         String memberId = SessionUtil.requireLoginMemberId(session);
+        List<RealizedProfitDto> realizedProfits = realizedProfitService.getMyRealizedProfits(memberId);
+        MyStockSummaryDto stockSummary = myStockService.getMyStockSummary(memberId);
+
+        long totalBuyAmount = 0;
+        long totalSellAmount = 0;
+        long totalProfitAmount = 0;
+        for (RealizedProfitDto r : realizedProfits) {
+            totalBuyAmount += r.getBuyPrice().multiply(r.getQuantity()).longValue();
+            totalSellAmount += r.getSellPrice().multiply(r.getQuantity()).longValue();
+            totalProfitAmount += r.getProfitAmount();
+        }
+        BigDecimal totalProfitRate = totalBuyAmount <= 0
+                ? BigDecimal.ZERO
+                : BigDecimal.valueOf(totalProfitAmount * 100).divide(BigDecimal.valueOf(totalBuyAmount), 2, RoundingMode.HALF_UP);
+
+        // 현재 보유 중인 주식의 평가금액 = 매입금액 + 평가손익 (dashboard()의 총자산 계산과 같은 방식)
+        long currentHoldingsValue = (stockSummary.getTotalPurchaseAmount() == null ? 0L : stockSummary.getTotalPurchaseAmount())
+                + (stockSummary.getProfitAmount() == null ? 0L : stockSummary.getProfitAmount());
+
         model.addAttribute("member", memberService.getMemberProfile(memberId));
-        model.addAttribute("realizedProfits", realizedProfitService.getMyRealizedProfits(memberId));
+        model.addAttribute("realizedProfits", realizedProfits);
+        model.addAttribute("stockSummary", stockSummary);
+        model.addAttribute("totalBuyAmount", totalBuyAmount);
+        model.addAttribute("totalSellAmount", totalSellAmount);
+        model.addAttribute("totalProfitAmount", totalProfitAmount);
+        model.addAttribute("totalProfitRate", totalProfitRate);
+        model.addAttribute("currentHoldingsValue", currentHoldingsValue);
         return "member/tradeHistory";
     }
 
     // trade/product_transaction/cash_transaction을 한 타임라인으로 합쳐서 최신순 상위 N개만 반환
-    private List<TimelineEventDto> buildTimeline(String memberId) {
+    private List<TimelineEventDto> buildTimeline(String memberId, List<AccountDto> myAccounts) {
+        Map<Long, String> brokerageByAccount = new HashMap<>();
+        for (AccountDto acc : myAccounts) {
+            brokerageByAccount.put(acc.getAccountId(), acc.getBrokerageName());
+        }
+
         List<TimelineEventDto> events = new ArrayList<>();
 
         for (TradeDto t : tradeService.getMyTrades(memberId)) {
             boolean isBuy = "BUY".equals(t.getTradeType());
             String description = t.getStockName() + " " + t.getQuantity() + "주";
             long amount = (long) t.getPrice() * t.getQuantity();
-            events.add(new TimelineEventDto(t.getTradeAt(), isBuy ? "buy" : "sell", isBuy ? "매수" : "매도", description, amount));
+            events.add(new TimelineEventDto(t.getTradeAt(), isBuy ? "buy" : "sell", isBuy ? "매수" : "매도", description, amount,
+                    t.getAccountId(), brokerageByAccount.get(t.getAccountId())));
         }
         for (ProductTransactionDto t : productTransactionService.getMyTransactions(memberId)) {
             boolean isSubscribe = "SUBSCRIBE".equals(t.getTransactionType());
             String description = t.getProductName() + " " + t.getQuantity() + "좌";
             events.add(new TimelineEventDto(t.getTransactionAt(), isSubscribe ? "subscribe" : "redeem",
-                    isSubscribe ? "가입" : "환매", description, t.getAmount()));
+                    isSubscribe ? "가입" : "환매", description, t.getAmount(),
+                    t.getAccountId(), brokerageByAccount.get(t.getAccountId())));
         }
         for (CashTransactionDto t : cashTransactionService.getMyTransactions(memberId)) {
             boolean isDeposit = "DEPOSIT".equals(t.getTransactionType());
             events.add(new TimelineEventDto(t.getTransactionAt(), isDeposit ? "deposit" : "withdrawal",
-                    isDeposit ? "입금" : "출금", t.getMemo(), t.getAmount()));
+                    isDeposit ? "입금" : "출금", t.getMemo(), t.getAmount(),
+                    t.getAccountId(), brokerageByAccount.get(t.getAccountId())));
         }
 
         return events.stream()
                 .sorted(Comparator.comparing(TimelineEventDto::getOccurredAt).reversed())
                 .limit(TIMELINE_LIMIT)
                 .toList();
+    }
+
+    // 증권사 필터가 화면을 다시 그릴 때 쓸 수치(총자산/평가손익/현금잔고)를 "전체"는 빼고
+    // 증권사 이름별로만 계산해 JSON 문자열로 반환한다("전체"는 이미 서버에서 계산해 보여주고 있어서 중복 불필요)
+    private String buildBrokerageFilterDataJson(List<AccountDto> myAccounts, MyStockSummaryDto stockSummary,
+                                                 MyProductSummaryDto productSummary) {
+        Map<String, Long> cashByBrokerage = new LinkedHashMap<>();
+        Map<String, Long> investedValueByBrokerage = new LinkedHashMap<>();
+        Map<String, Long> profitByBrokerage = new LinkedHashMap<>();
+
+        for (AccountDto acc : myAccounts) {
+            cashByBrokerage.merge(acc.getBrokerageName(), acc.getBalance() == null ? 0L : acc.getBalance(), Long::sum);
+        }
+        if (stockSummary.getHoldings() != null) {
+            for (MyStockHoldingDto h : stockSummary.getHoldings()) {
+                if (h.getAccountBreakdown() == null) {
+                    continue;
+                }
+                for (MyStockHoldingAccountDto row : h.getAccountBreakdown()) {
+                    investedValueByBrokerage.merge(row.getBrokerageName(), row.getCurrentValue() == null ? 0L : row.getCurrentValue(), Long::sum);
+                    profitByBrokerage.merge(row.getBrokerageName(), row.getProfitAmount() == null ? 0L : row.getProfitAmount(), Long::sum);
+                }
+            }
+        }
+        if (productSummary.getHoldings() != null) {
+            for (MyProductHoldingDto h : productSummary.getHoldings()) {
+                if (h.getAccountBreakdown() == null) {
+                    continue;
+                }
+                for (MyProductHoldingAccountDto row : h.getAccountBreakdown()) {
+                    investedValueByBrokerage.merge(row.getBrokerageName(), row.getCurrentValue() == null ? 0L : row.getCurrentValue(), Long::sum);
+                    profitByBrokerage.merge(row.getBrokerageName(), row.getProfitAmount() == null ? 0L : row.getProfitAmount(), Long::sum);
+                }
+            }
+        }
+
+        Map<String, Long> totalAssetByBrokerage = new LinkedHashMap<>();
+        Map<String, BigDecimal> returnRateByBrokerage = new LinkedHashMap<>();
+        for (String name : myAccounts.stream().map(AccountDto::getBrokerageName).distinct().toList()) {
+            long cash = cashByBrokerage.getOrDefault(name, 0L);
+            long invested = investedValueByBrokerage.getOrDefault(name, 0L);
+            long profit = profitByBrokerage.getOrDefault(name, 0L);
+            long purchase = invested - profit;
+            totalAssetByBrokerage.put(name, cash + invested);
+            returnRateByBrokerage.put(name, purchase <= 0
+                    ? BigDecimal.ZERO
+                    : BigDecimal.valueOf(profit * 100).divide(BigDecimal.valueOf(purchase), 2, RoundingMode.HALF_UP));
+        }
+
+        StringBuilder json = new StringBuilder("{");
+        json.append("\"totalAsset\":").append(toJsonObject(totalAssetByBrokerage)).append(",");
+        json.append("\"totalProfit\":").append(toJsonObject(profitByBrokerage)).append(",");
+        json.append("\"totalReturnRate\":").append(toJsonObject(returnRateByBrokerage)).append(",");
+        json.append("\"currentBalance\":").append(toJsonObject(cashByBrokerage));
+        json.append("}");
+        return json.toString();
+    }
+
+    // 증권사 이름(문자열) -> 숫자 맵 하나를 JSON 오브젝트 문자열로 직접 조립한다
+    // (이 프로젝트는 JSP 렌더링 위주라 Jackson 등 JSON 라이브러리가 클래스패스에 없어 손으로 만든다)
+    private String toJsonObject(Map<String, ? extends Number> values) {
+        StringBuilder sb = new StringBuilder("{");
+        boolean first = true;
+        for (Map.Entry<String, ? extends Number> entry : values.entrySet()) {
+            if (!first) {
+                sb.append(",");
+            }
+            first = false;
+            sb.append("\"").append(escapeJson(entry.getKey())).append("\":").append(entry.getValue());
+        }
+        sb.append("}");
+        return sb.toString();
+    }
+
+    private String escapeJson(String value) {
+        return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     // 목표별 대비 도달률(%) 계산 - 0~100 사이로 잘라서 원형 그래프에 바로 쓸 수 있게 한다 (goalId -> 퍼센트/성공여부)

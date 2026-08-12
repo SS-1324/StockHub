@@ -43,6 +43,31 @@
         ORDER BY current_value DESC, fp.product_id
     </select>
 
+    <select id="selectPortfolioHoldingsByAccount"
+            parameterType="string"
+            resultType="com.kh.demo.brokerage.dto.MyProductHoldingAccountDto">
+        SELECT fp.product_id,
+               ph.account_id,
+               b.brokerage_name,
+               ph.quantity,
+               ph.avg_nav,
+               fp.nav AS current_nav,
+               CAST(fp.nav * ph.quantity AS SIGNED) AS current_value,
+               CAST((fp.nav - ph.avg_nav) * ph.quantity AS SIGNED) AS profit_amount,
+               CASE
+                   WHEN ph.avg_nav = 0 THEN 0
+                   ELSE (fp.nav - ph.avg_nav) * 100.0 / ph.avg_nav
+               END AS return_rate
+        FROM account_link al
+        JOIN product_holding ph ON ph.account_id = al.account_id
+        JOIN account a ON a.account_id = ph.account_id
+        JOIN brokerage b ON b.brokerage_id = a.brokerage_id
+        JOIN financial_product fp ON fp.product_id = ph.product_id
+        WHERE al.member_id = #{memberId}
+          AND ph.quantity > 0
+        ORDER BY fp.product_id, current_value DESC
+    </select>
+
     <insert id="insertHolding" parameterType="com.kh.demo.brokerage.dto.ProductHoldingDto"
             useGeneratedKeys="true" keyProperty="productHoldingId">
         INSERT INTO product_holding(account_id, product_id, quantity, avg_nav, purchase_amount, update_at)
