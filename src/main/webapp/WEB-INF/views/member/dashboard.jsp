@@ -299,8 +299,10 @@
     <%-- 보유 상품(펀드/채권/ELS) --%>
     <section class="dashboard-holdings" aria-labelledby="product-holdings-title">
         <div class="dashboard-section-heading">
-            <h2 id="product-holdings-title">보유 상품</h2>
-            <span id="product-holdings-count"><c:out value="${fn:length(productSummary.holdings)}"/>개</span>
+            <div class="dashboard-holdings-title-group">
+                <h2 id="product-holdings-title">보유 상품</h2>
+                <span id="product-holdings-count"><c:out value="${fn:length(productSummary.holdings)}"/>개</span>
+            </div>
         </div>
 
         <c:choose>
