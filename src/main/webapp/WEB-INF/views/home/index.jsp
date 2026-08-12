@@ -319,7 +319,7 @@
     const resolvedPeriod = "day";
 </script>
 <script src="${pageContext.request.contextPath}/js/tradingview-chart.js?v=2"></script>
-<script src="${pageContext.request.contextPath}/js/stockhub.js?v=7"></script>
+<script src="${pageContext.request.contextPath}/js/stockhub.js?v=8"></script>
 
 <script src="${pageContext.request.contextPath}/js/session-timer.js"></script>
 

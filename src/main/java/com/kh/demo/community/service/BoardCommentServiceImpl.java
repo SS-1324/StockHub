@@ -1,5 +1,6 @@
 package com.kh.demo.community.service;
 
+import com.kh.demo.common.util.HtmlTextUtil;
 import com.kh.demo.community.dto.BoardCommentDto;
 import com.kh.demo.community.mapper.BoardCommentMapper;
 import com.kh.demo.community.mapper.BoardMapper;
@@ -120,6 +121,9 @@ public class BoardCommentServiceImpl implements BoardCommentService {
         }
         if (content.length() > MAX_CONTENT_LENGTH) {
             throw new IllegalArgumentException("댓글은 " + MAX_CONTENT_LENGTH + "자를 넘을 수 없습니다.");
+        }
+        if (HtmlTextUtil.hasDisallowedControlCharacter(content)) {
+            throw new IllegalArgumentException("사용할 수 없는 문자가 포함되어 있습니다.");
         }
     }
 

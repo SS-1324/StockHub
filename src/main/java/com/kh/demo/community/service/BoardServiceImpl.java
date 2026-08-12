@@ -1,5 +1,6 @@
     package com.kh.demo.community.service;
     
+    import com.kh.demo.common.util.HtmlTextUtil;
     import com.kh.demo.community.dto.BoardDto;
     import com.kh.demo.community.dto.BoardImageDto;
     import com.kh.demo.community.mapper.BoardBookmarkMapper;
@@ -49,6 +50,9 @@
         // board 테이블 컬럼 크기에 맞춘 길이 제한
         private static final int MAX_TITLE_LENGTH = 200;
         private static final int MAX_CONTENT_LENGTH = 3000;
+        // 빈 줄(<p><br></p>)은 눈에 보이는 글자 수가 거의 없어 MAX_CONTENT_LENGTH를 우회할 수 있으므로,
+        // 줄바꿈 자체의 개수(p/br 태그 수)도 별도로 제한한다.
+        private static final int MAX_CONTENT_LINES = 300;
         // 검색어가 너무 길면 공백 기준으로 쪼갠 단어 수만큼 LIKE 조건이 늘어나므로 상한을 둔다
         private static final int MAX_KEYWORD_LENGTH = 100;
         /*
@@ -745,23 +749,43 @@
     
             if (boardDto.getTitle().length()
                     > MAX_TITLE_LENGTH) {
-    
+
                 throw new IllegalArgumentException(
                         "제목은 "
                                 + MAX_TITLE_LENGTH
                                 + "자를 넘을 수 없습니다."
                 );
             }
-    
-            String visibleContent = Jsoup.parseBodyFragment(
-                            sanitizeContent(boardDto.getContent())
-                    )
+
+            if (HtmlTextUtil.hasDisallowedControlCharacter(boardDto.getTitle())
+                    || HtmlTextUtil.hasDisallowedControlCharacter(boardDto.getContent())) {
+                throw new IllegalArgumentException(
+                        "사용할 수 없는 문자가 포함되어 있습니다."
+                );
+            }
+
+            Document contentDocument = Jsoup.parseBodyFragment(
+                    sanitizeContent(boardDto.getContent())
+            );
+
+            // 글자 수만 세면 빈 줄은 텍스트가 거의 없어 MAX_CONTENT_LENGTH를 통과하므로,
+            // 개행을 극단적으로 많이 넣어 화면을 무한정 늘리는 시도는 줄 수 자체로 따로 막는다.
+            int lineCount = contentDocument.select("p, br, li").size();
+            if (lineCount > MAX_CONTENT_LINES) {
+                throw new IllegalArgumentException(
+                        "줄바꿈은 최대 "
+                                + MAX_CONTENT_LINES
+                                + "번까지 사용할 수 있습니다."
+                );
+            }
+
+            String visibleContent = contentDocument
                     .text()
                     .replace('\u00A0', ' ')
                     .replace("\u200B", "")
                     .replace("\uFEFF", "")
                     .trim();
-    
+
             if (visibleContent.isBlank()) {
     
                 throw new IllegalArgumentException(

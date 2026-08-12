@@ -7,7 +7,7 @@
 <!-- 글쓰기 화면과 동일한 Quill 에디터 -->
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
 <%-- Quill 기본 CSS보다 뒤에서 게시판용 편집기 모양을 적용한다. --%>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css?v=52">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css?v=53">
 
 <h2 class="page-title board-form-title">게시글 수정</h2>
 
