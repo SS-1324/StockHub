@@ -12,4 +12,7 @@ public interface StockChatService {
 
     // 특정 종목의 최근 채팅을 오래된순으로 반환 (화면에 위->아래 시간순으로 그리기 위함)
     List<ChatMessageDto> getRecentMessages(String stockCode, int limit);
+
+    // beforeChatId보다 이전(과거) 채팅을 오래된순으로 반환 (무한스크롤로 과거 메시지 추가 로드)
+    List<ChatMessageDto> getOlderMessages(String stockCode, Long beforeChatId, int limit);
 }

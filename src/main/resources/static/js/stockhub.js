@@ -224,6 +224,16 @@ function setupChatPanel(initialStockCode) {
     let stompClient = null;
     let subscription = null;
 
+    // 무한스크롤(위로 스크롤 = 과거 메시지 추가 로드) 상태.
+    // 종목을 열거나 전환할 때마다 초기화해야 다른 종목의 커서가 섞이지 않음
+    let oldestLoadedChatId = null;
+    let hasMoreHistory = true;
+    let isLoadingHistory = false;
+    // 서버 StockChatController의 RECENT_MESSAGE_LIMIT / OLDER_MESSAGE_PAGE_SIZE와 동일하게 맞춤
+    const RECENT_MESSAGES_LIMIT = 50;
+    const OLDER_MESSAGES_PAGE_SIZE = 25;
+    const LOAD_MORE_SCROLL_THRESHOLD = 40;
+
     function setOpen(isOpen) {
         panel.classList.toggle('open', isOpen);
         panel.setAttribute('aria-hidden', String(!isOpen));
@@ -239,14 +249,9 @@ function setupChatPanel(initialStockCode) {
         messagesEl.appendChild(placeholder);
     }
 
-    // 채팅 메시지 하나를 그려 넣음. 다른 사용자가 입력한 내용이 들어오는 자리라
+    // 채팅 메시지 하나의 DOM 엘리먼트를 만듦. 다른 사용자가 입력한 내용이 들어오는 자리라
     // innerHTML은 절대 쓰지 않고 textContent로만 채움 (XSS 방지)
-    function appendMessage(chatMessage) {
-        // 실시간으로 첫 메시지가 들어오는 경우, "아직 채팅이 없습니다" 등
-        // showPlaceholder()가 남겨둔 안내 문구가 그대로 남아있으므로 먼저 지워줌
-        const existingPlaceholder = messagesEl.querySelector('.chat-panel-placeholder');
-        if (existingPlaceholder) existingPlaceholder.remove();
-
+    function buildMessageElement(chatMessage) {
         const item = document.createElement('div');
         item.className = 'chat-message';
 
@@ -270,25 +275,85 @@ function setupChatPanel(initialStockCode) {
 
         item.appendChild(meta);
         item.appendChild(content);
-        messagesEl.appendChild(item);
+        return item;
+    }
+
+    // 실시간 수신/최초 로드 시 맨 아래에 메시지를 붙이고 바닥으로 스크롤
+    function appendMessage(chatMessage) {
+        // 실시간으로 첫 메시지가 들어오는 경우, "아직 채팅이 없습니다" 등
+        // showPlaceholder()가 남겨둔 안내 문구가 그대로 남아있으므로 먼저 지워줌
+        const existingPlaceholder = messagesEl.querySelector('.chat-panel-placeholder');
+        if (existingPlaceholder) existingPlaceholder.remove();
+
+        messagesEl.appendChild(buildMessageElement(chatMessage));
         messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    // 무한스크롤로 불러온 과거 메시지들을 맨 위에 붙임. appendMessage와 달리 바닥으로
+    // 스크롤하면 안 되고, 사용자가 보고 있던 위치를 그대로 유지해야 함
+    function prependMessages(chatMessages) {
+        const prevScrollHeight = messagesEl.scrollHeight;
+        const prevScrollTop = messagesEl.scrollTop;
+
+        const fragment = document.createDocumentFragment();
+        chatMessages.forEach((chatMessage) => fragment.appendChild(buildMessageElement(chatMessage)));
+        messagesEl.insertBefore(fragment, messagesEl.firstChild);
+
+        messagesEl.scrollTop = messagesEl.scrollHeight - prevScrollHeight + prevScrollTop;
     }
 
     // 채팅 패널을 열거나 종목을 바꿀 때 과거 메시지를 REST로 먼저 불러옴
     function loadRecentMessages(stockCode) {
+        oldestLoadedChatId = null;
+        hasMoreHistory = true;
+        isLoadingHistory = false;
+
         showPlaceholder('채팅 불러오는 중...');
         fetch(`/api/hub/chat/${encodeURIComponent(stockCode)}/recent`)
             .then((res) => res.json())
             .then((res) => {
                 if (!res.success || !res.data || res.data.length === 0) {
                     showPlaceholder('아직 채팅이 없습니다. 첫 메시지를 남겨보세요.');
+                    hasMoreHistory = false;
                     return;
                 }
                 messagesEl.innerHTML = '';
                 res.data.forEach(appendMessage);
+                oldestLoadedChatId = res.data[0].chatId;
+                hasMoreHistory = res.data.length >= RECENT_MESSAGES_LIMIT;
             })
             .catch(() => showPlaceholder('채팅을 불러오지 못했습니다.'));
     }
+
+    // 채팅 목록 맨 위로 스크롤하면 beforeChatId보다 이전 메시지를 25개씩 추가로 불러옴
+    function loadOlderMessages(stockCode) {
+        if (isLoadingHistory || !hasMoreHistory || oldestLoadedChatId == null) return;
+        isLoadingHistory = true;
+
+        fetch(`/api/hub/chat/${encodeURIComponent(stockCode)}/older?beforeChatId=${oldestLoadedChatId}`)
+            .then((res) => res.json())
+            .then((res) => {
+                if (!res.success || !res.data || res.data.length === 0) {
+                    hasMoreHistory = false;
+                    return;
+                }
+                prependMessages(res.data);
+                oldestLoadedChatId = res.data[0].chatId;
+                hasMoreHistory = res.data.length >= OLDER_MESSAGES_PAGE_SIZE;
+            })
+            .catch(() => {
+                // 실패해도 hasMoreHistory는 유지 - 다음 스크롤에서 재시도
+            })
+            .finally(() => {
+                isLoadingHistory = false;
+            });
+    }
+
+    messagesEl.addEventListener('scroll', () => {
+        if (messagesEl.scrollTop <= LOAD_MORE_SCROLL_THRESHOLD) {
+            loadOlderMessages(currentStockCode);
+        }
+    });
 
     // 종목 방 구독을 stockCode로 갈아끼움 (기존 구독은 해제)
     function subscribeStock(stockCode) {
