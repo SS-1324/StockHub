@@ -139,8 +139,14 @@
                 <div class="dashboard-goal-list">
                     <c:forEach var="goal" items="${activeGoals}">
                         <div class="dashboard-goal-card">
-                            <div class="dashboard-goal-ring" style="--progress: ${goalProgress[goal.goalId]};">
-                                <span class="dashboard-goal-ring-value"><c:out value="${goalProgress[goal.goalId]}"/>%</span>
+                            <div class="dashboard-goal-ring ${goalSuccess[goal.goalId] ? 'is-success' : ''}"
+                                 style="--progress: ${goalProgress[goal.goalId]};">
+                                <span class="dashboard-goal-ring-value">
+                                    <c:choose>
+                                        <c:when test="${goalSuccess[goal.goalId]}">&#10003;</c:when>
+                                        <c:otherwise><c:out value="${goalProgress[goal.goalId]}"/>%</c:otherwise>
+                                    </c:choose>
+                                </span>
                             </div>
                             <div class="dashboard-goal-info">
                                 <p class="dashboard-goal-target">

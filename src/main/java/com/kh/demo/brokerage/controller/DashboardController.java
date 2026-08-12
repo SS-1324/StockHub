@@ -99,9 +99,14 @@ public class DashboardController {
         model.addAttribute("stockSummary", stockSummary);
         model.addAttribute("productSummary", productSummary);
         model.addAttribute("timeline", buildTimeline(memberId));
+        Map<Long, Integer> goalProgress = new HashMap<>();
+        Map<Long, Boolean> goalSuccess = new HashMap<>();
+        computeGoalProgress(activeGoals, memberId, totalAsset, goalProgress, goalSuccess);
+
         model.addAttribute("activeGoals", activeGoals);
         model.addAttribute("hasGoalHistory", hasGoalHistory);
-        model.addAttribute("goalProgress", computeGoalProgress(activeGoals, memberId, totalAsset));
+        model.addAttribute("goalProgress", goalProgress);
+        model.addAttribute("goalSuccess", goalSuccess);
         model.addAttribute("periodProfit", periodProfit);
         model.addAttribute("totalAsset", totalAsset);
         model.addAttribute("totalProfit", totalProfit);
@@ -204,15 +209,23 @@ public class DashboardController {
                 .toList();
     }
 
-    // 목표별 대비 도달률(%) 계산 - 0~100 사이로 잘라서 원형 그래프에 바로 쓸 수 있게 한다 (goalId -> 퍼센트)
+    // 목표별 대비 도달률(%) 계산 - 0~100 사이로 잘라서 원형 그래프에 바로 쓸 수 있게 한다 (goalId -> 퍼센트/성공여부)
     // 목표를 "세운 시점부터 지금까지"의 성과만 반영해야 한다 - 목표 세우기 전에 이미 벌어놓은 손익까지
     // 그 목표의 진행률로 잡으면 안 되기 때문에, 각 목표의 create_at을 기준일로 삼아 개별 계산한다.
-    private Map<Long, Integer> computeGoalProgress(List<GoalDto> goals, String memberId, long totalAsset) {
-        Map<Long, Integer> result = new HashMap<>();
+    private void computeGoalProgress(List<GoalDto> goals, String memberId, long totalAsset,
+                                      Map<Long, Integer> progressOut, Map<Long, Boolean> successOut) {
+        LocalDate today = LocalDate.now();
 
         for (GoalDto goal : goals) {
             LocalDate goalStart = goal.getCreateAt().toLocalDate();
-            long profitSinceGoal = realizedProfitService.getProfitSince(memberId, totalAsset, goalStart);
+
+            // 목표일이 지났으면 그 시점 자산 스냅샷으로 고정한다 - 이후 매수/매도가 더 생겨도
+            // 이 목표의 결과는 더 이상 안 움직인다 (목표일 전이면 지금 이 순간의 라이브 총자산 사용)
+            boolean isPastDeadline = goal.getTargetDate() != null && !goal.getTargetDate().isAfter(today);
+            long assetForProgress = isPastDeadline
+                    ? realizedProfitService.getBaselineAsset(memberId, goal.getTargetDate())
+                    : totalAsset;
+            long profitSinceGoal = realizedProfitService.getProfitSince(memberId, assetForProgress, goalStart);
 
             BigDecimal current;
             if ("PROFIT_AMOUNT".equals(goal.getGoalType())) {
@@ -223,13 +236,17 @@ public class DashboardController {
                         ? BigDecimal.ZERO
                         : BigDecimal.valueOf(profitSinceGoal * 100).divide(BigDecimal.valueOf(baselineAsset), 2, RoundingMode.HALF_UP);
             }
-            int percent = (goal.getTargetValue() == null || goal.getTargetValue().signum() <= 0)
+            int rawPercent = (goal.getTargetValue() == null || goal.getTargetValue().signum() <= 0)
                     ? 0
                     : current.multiply(BigDecimal.valueOf(100))
                             .divide(goal.getTargetValue(), 0, RoundingMode.HALF_UP)
                             .intValue();
-            result.put(goal.getGoalId(), Math.max(0, Math.min(100, percent)));
+
+            // 성공 표시는 목표일이 지나 결과가 확정된 뒤에만 켠다 - 아직 진행 중인데 일시적으로
+            // 100%를 넘긴 걸 축하해버리면 나중에 다시 미달로 내려갈 때 혼란스럽다
+            boolean success = isPastDeadline && rawPercent >= 100;
+            progressOut.put(goal.getGoalId(), Math.max(0, Math.min(100, rawPercent)));
+            successOut.put(goal.getGoalId(), success);
         }
-        return result;
     }
 }

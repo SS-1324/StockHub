@@ -574,6 +574,17 @@
     background: conic-gradient(#0874f7 calc(var(--progress) * 1%), #eef2f8 0);
 }
 
+/* 목표일이 지나 목표치를 달성한 채로 확정된 목표 - 녹색 링 + 체크마크로만 표시,
+   미달성 쪽은 별도 표시 없이 그냥 마지막 진행률에서 멈춘 파란 링 그대로 둔다 */
+.dashboard-goal-ring.is-success{
+    background: conic-gradient(#16a34a calc(var(--progress) * 1%), #eef2f8 0);
+}
+
+.dashboard-goal-ring.is-success .dashboard-goal-ring-value{
+    color: #16a34a;
+    font-size: 28px;
+}
+
 .dashboard-goal-ring::before{
     content: "";
     position: absolute;
