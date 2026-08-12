@@ -9,6 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
     drawPortfolioDonut();
     drawAssetTrendChart();
     setupAnalyticsDownload();
+    setupAnalyticsShare();
+    setupAnalyticsDetailModal();
     setupTimelinePagination();
     setupBrokerageFilter();
 
@@ -128,10 +130,13 @@ function setupHoldingsSort() {
     });
 }
 
+// 파스텔톤으로 통일 - 진한 원색은 종목이 많아질수록 화면이 번잡해 보여서 톤을 낮췄다
 const PORTFOLIO_DONUT_COLORS = [
-    "#0874f7", "#22c55e", "#f59e0b", "#e5484d", "#8b5cf6",
-    "#06b6d4", "#ec4899", "#84cc16", "#f97316", "#64748b",
+    "#93c5fd", "#86efac", "#fde68a", "#fca5a5", "#c4b5fd",
+    "#67e8f9", "#f9a8d4", "#bef264", "#fdba74", "#cbd5e1",
 ];
+
+const LEGEND_TWO_COL_THRESHOLD = 6;
 
 // 캔버스에 실제 도형을 그려야(=CSS가 아니어야) PNG 다운로드(canvas.toDataURL)가 가능하다
 function drawPortfolioDonut() {
@@ -191,6 +196,9 @@ function drawPortfolioDonut() {
         legend.appendChild(li);
     });
 
+    // 보유 종목이 많을 때(예: 12개) 세로로 계속 늘어지지 않도록 6개|6개 식 2열로 접는다
+    legend.classList.toggle("is-two-col", holdings.length > LEGEND_TWO_COL_THRESHOLD);
+
     // 가운데를 뚫어 링(도넛) 모양으로 만들고, 종목 수/총액을 적는다 - 구멍 색은 카드 배경과 맞춘다
     const dark = isDarkTheme();
     ctx.beginPath();
@@ -229,7 +237,7 @@ function drawAssetTrendChart() {
     const height = canvas.height;
     const ctx = prepareHiDpiCanvas(canvas, width, height);
 
-    const padding = { top: 16, right: 16, bottom: 24, left: 68 };
+    const padding = { top: 16, right: 16, bottom: 28, left: 74 };
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
 
@@ -268,25 +276,189 @@ function drawAssetTrendChart() {
     ctx.lineTo(xOf(0), padding.top + chartHeight);
     ctx.closePath();
     const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartHeight);
-    gradient.addColorStop(0, "rgba(8,116,247,0.18)");
-    gradient.addColorStop(1, "rgba(8,116,247,0.02)");
+    gradient.addColorStop(0, "rgba(147,197,253,0.35)");
+    gradient.addColorStop(1, "rgba(147,197,253,0.03)");
     ctx.fillStyle = gradient;
     ctx.fill();
 
-    // 선 자체
+    // 선 자체 (파스텔톤 - 원색 파랑보다 톤을 낮췄다)
     ctx.beginPath();
     points.forEach((p, i) => (i === 0 ? ctx.moveTo(xOf(i), yOf(p.value)) : ctx.lineTo(xOf(i), yOf(p.value))));
-    ctx.strokeStyle = "#0874f7";
+    ctx.strokeStyle = "#60a5fa";
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // x축 라벨: 처음/중간/마지막 날짜만 (다 찍으면 겹쳐서 안 보인다)
+    // x축 라벨: 처음/중간/마지막 날짜만 (다 찍으면 겹쳐서 안 보인다). 처음 라벨은 왼쪽 정렬,
+    // 마지막 라벨은 오른쪽 정렬로 바깥쪽을 향하게 해서 왼쪽 y축의 "0원" 라벨과 겹치지 않게 한다
+    // (가운데 정렬로 두면 좌하단 모서리에서 두 라벨이 바짝 붙어 읽기 어려웠다)
     ctx.fillStyle = "#9ca3af";
-    ctx.textAlign = "center";
     ctx.textBaseline = "top";
-    [0, Math.floor((points.length - 1) / 2), points.length - 1].forEach((i) => {
-        ctx.fillText(points[i].date, xOf(i), padding.top + chartHeight + 8);
+    const labelIndexes = [0, Math.floor((points.length - 1) / 2), points.length - 1];
+    labelIndexes.forEach((i, idx) => {
+        ctx.textAlign = idx === 0 ? "left" : idx === labelIndexes.length - 1 ? "right" : "center";
+        ctx.fillText(points[i].date, xOf(i), padding.top + chartHeight + 10);
     });
+}
+
+// ==================== 통계 카드 상세정보 모달 ====================
+// 매매 승률/평균 보유기간/최고·최악의 매매/집중도/국내해외 비중 카드를 눌렀을 때, 그 요약 숫자
+// 뒤에 깔린 실제 데이터(전체 매매 내역 또는 종목별 비중)를 표/막대 목록으로 보여준다.
+
+function readRealizedProfits() {
+    const script = document.getElementById("dashboard-realized-profits");
+    if (!script) {
+        return [];
+    }
+    try {
+        return JSON.parse(script.textContent) || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function readHoldingsFromTable() {
+    return Array.from(document.querySelectorAll("#stock-holdings-tbody tr"))
+        .map((row) => ({
+            name: row.dataset.name,
+            value: Number(row.dataset.value) || 0,
+            isForeign: row.dataset.foreign === "true",
+        }))
+        .filter((h) => h.value > 0);
+}
+
+function setupAnalyticsDetailModal() {
+    const modal = document.getElementById("dashboard-analytics-modal");
+    const titleEl = document.getElementById("dashboard-modal-title");
+    const bodyEl = document.getElementById("dashboard-modal-body");
+    const buttons = document.querySelectorAll(".dashboard-analytics-stat-clickable");
+    if (!modal || !titleEl || !bodyEl || buttons.length === 0) {
+        return;
+    }
+
+    function openModal(title, bodyHtml) {
+        titleEl.textContent = title;
+        bodyEl.innerHTML = bodyHtml;
+        modal.hidden = false;
+    }
+
+    function closeModal() {
+        modal.hidden = true;
+    }
+
+    buttons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const detail = btn.dataset.detail;
+            const title = btn.dataset.detailTitle || "상세정보";
+            if (detail === "trades") {
+                openModal(title, buildTradesDetailHtml(btn.dataset.highlight));
+            } else if (detail === "concentration") {
+                openModal(title, buildConcentrationDetailHtml());
+            } else if (detail === "region") {
+                openModal(title, buildRegionDetailHtml());
+            }
+        });
+    });
+
+    modal.querySelectorAll("[data-modal-close]").forEach((el) => el.addEventListener("click", closeModal));
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !modal.hidden) {
+            closeModal();
+        }
+    });
+}
+
+function buildTradesDetailHtml(highlight) {
+    const trades = readRealizedProfits();
+    if (trades.length === 0) {
+        return `<p class="dashboard-modal-empty">아직 마감된(전량 매도한) 매매 내역이 없습니다.</p>`;
+    }
+
+    // "최고의 매매"/"최악의 매매" 카드에서 열었다면 그 거래를 표에서 하이라이트한다
+    let highlightIndex = -1;
+    if (highlight === "best" || highlight === "worst") {
+        highlightIndex = trades.reduce((bestIdx, t, i) => {
+            if (bestIdx === -1) return i;
+            const better = highlight === "best"
+                ? t.profitAmount > trades[bestIdx].profitAmount
+                : t.profitAmount < trades[bestIdx].profitAmount;
+            return better ? i : bestIdx;
+        }, -1);
+    }
+
+    const sorted = trades
+        .map((t, i) => ({ ...t, _originalIndex: i }))
+        .sort((a, b) => (a.sellAt < b.sellAt ? 1 : a.sellAt > b.sellAt ? -1 : 0));
+
+    const rows = sorted.map((t) => {
+        const sign = t.profitAmount > 0 ? "+" : "";
+        const profitClass = t.profitAmount > 0 ? "value-positive" : t.profitAmount < 0 ? "value-negative" : "";
+        const rowClass = t._originalIndex === highlightIndex ? " class=\"is-highlight\"" : "";
+        return `<tr${rowClass}>
+            <td>${escapeHtml(t.itemName)}</td>
+            <td>${escapeHtml(t.buyAt)}</td>
+            <td>${escapeHtml(t.sellAt)}</td>
+            <td>${t.holdingDays}일</td>
+            <td class="${profitClass}">${sign}${KRW_FORMATTER.format(t.profitAmount)}원</td>
+            <td class="${profitClass}">${sign}${Number(t.returnRate).toFixed(2)}%</td>
+        </tr>`;
+    }).join("");
+
+    return `<table class="dashboard-modal-table">
+        <thead><tr><th>종목</th><th>매수</th><th>매도</th><th>보유기간</th><th>손익</th><th>수익률</th></tr></thead>
+        <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function buildConcentrationDetailHtml() {
+    const holdings = readHoldingsFromTable().sort((a, b) => b.value - a.value);
+    if (holdings.length === 0) {
+        return `<p class="dashboard-modal-empty">보유 중인 주식이 없습니다.</p>`;
+    }
+    const total = holdings.reduce((sum, h) => sum + h.value, 0);
+    const rows = holdings.map((h, i) => {
+        const percent = (h.value / total) * 100;
+        const color = PORTFOLIO_DONUT_COLORS[i % PORTFOLIO_DONUT_COLORS.length];
+        return `<div class="dashboard-modal-bar-row">
+            <span class="dashboard-modal-bar-name">${escapeHtml(h.name)}</span>
+            <span class="dashboard-modal-bar-track"><span class="dashboard-modal-bar-fill" style="width:${percent.toFixed(1)}%;background:${color};"></span></span>
+            <span class="dashboard-modal-bar-percent">${percent.toFixed(1)}%</span>
+        </div>`;
+    }).join("");
+    return `<p class="dashboard-modal-summary">보유 종목 ${holdings.length}개, 총 평가금액 ${KRW_FORMATTER.format(total)}원 기준 비중입니다.</p>${rows}`;
+}
+
+function buildRegionDetailHtml() {
+    const holdings = readHoldingsFromTable();
+    if (holdings.length === 0) {
+        return `<p class="dashboard-modal-empty">보유 중인 주식이 없습니다.</p>`;
+    }
+    const domestic = holdings.filter((h) => !h.isForeign).sort((a, b) => b.value - a.value);
+    const foreign = holdings.filter((h) => h.isForeign).sort((a, b) => b.value - a.value);
+    const domesticTotal = domestic.reduce((sum, h) => sum + h.value, 0);
+    const foreignTotal = foreign.reduce((sum, h) => sum + h.value, 0);
+    const total = domesticTotal + foreignTotal;
+
+    function group(label, list, listTotal, color) {
+        if (list.length === 0) {
+            return "";
+        }
+        const percent = total > 0 ? (listTotal / total) * 100 : 0;
+        const names = list.map((h) => escapeHtml(h.name)).join(", ");
+        return `<div class="dashboard-modal-bar-row">
+            <span class="dashboard-modal-bar-name">${label} (${list.length}종목)</span>
+            <span class="dashboard-modal-bar-track"><span class="dashboard-modal-bar-fill" style="width:${percent.toFixed(1)}%;background:${color};"></span></span>
+            <span class="dashboard-modal-bar-percent">${percent.toFixed(1)}%</span>
+        </div>
+        <p class="dashboard-modal-summary">${escapeHtml(names)}</p>`;
+    }
+
+    return group("국내", domestic, domesticTotal, "#93c5fd") + group("해외", foreign, foreignTotal, "#fde68a");
+}
+
+function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str == null ? "" : String(str);
+    return div.innerHTML;
 }
 
 // 고해상도(레티나 등) 화면에서도 흐릿하지 않게, CSS 표시 크기는 그대로 두고 실제 캔버스 해상도만 키운다
@@ -301,41 +473,124 @@ function prepareHiDpiCanvas(canvas, cssWidth, cssHeight) {
     return ctx;
 }
 
-// 도넛 + 자산 추이 두 캔버스를 나란히 합쳐 PNG 한 장으로 내려받는다
+// ==================== 포트폴리오 분석 영역 PNG 저장 ====================
+// 예전엔 도넛/추이 캔버스 두 개만 나란히 합성해서, 종목 이름·범례·통계 텍스트가 전부 빠진 채로
+// 저장됐다. 이제는 #dashboard-analytics-capture DOM 전체를 "스캔"하듯 그대로 이미지로 옮긴다.
+// 외부 라이브러리(html2canvas 등) 없이, DOM을 복제해 계산된 스타일을 인라인으로 박아 넣고
+// SVG foreignObject에 담아 이미지로 그리는 방식(표준 브라우저 API만 사용)을 쓴다.
+
+// <canvas>는 outerHTML로 복제해도 그려진 픽셀이 안 딸려오므로, 복제본에서는 <img>로 바꿔치기한다
+function inlineStylesRecursive(sourceEl, cloneEl) {
+    if (sourceEl.tagName === "CANVAS") {
+        const img = document.createElement("img");
+        img.setAttribute("style", computedStyleText(sourceEl));
+        img.setAttribute("width", sourceEl.clientWidth);
+        img.setAttribute("height", sourceEl.clientHeight);
+        img.src = sourceEl.toDataURL("image/png");
+        cloneEl.replaceWith(img);
+        return;
+    }
+
+    cloneEl.setAttribute("style", computedStyleText(sourceEl));
+
+    const sourceChildren = Array.from(sourceEl.children);
+    const cloneChildren = Array.from(cloneEl.children);
+    sourceChildren.forEach((child, i) => inlineStylesRecursive(child, cloneChildren[i]));
+}
+
+function computedStyleText(el) {
+    const computed = getComputedStyle(el);
+    let text = "";
+    for (let i = 0; i < computed.length; i++) {
+        const prop = computed[i];
+        text += `${prop}:${computed.getPropertyValue(prop)};`;
+    }
+    return text;
+}
+
+// #dashboard-analytics-capture를 통째로 PNG용 <canvas>로 그려 반환한다 (다운로드/공유가 공유해서 쓴다)
+function captureAnalyticsCanvas() {
+    const source = document.getElementById("dashboard-analytics-capture");
+    if (!source) {
+        return Promise.reject(new Error("no capture target"));
+    }
+
+    return new Promise((resolve, reject) => {
+        const rect = source.getBoundingClientRect();
+        const width = Math.ceil(rect.width);
+        const height = Math.ceil(rect.height);
+
+        const clone = source.cloneNode(true);
+        inlineStylesRecursive(source, clone);
+        clone.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
+
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">`
+            + `<foreignObject width="100%" height="100%">${new XMLSerializer().serializeToString(clone)}</foreignObject>`
+            + `</svg>`;
+
+        const img = new Image();
+        img.onload = () => {
+            const dpr = window.devicePixelRatio || 1;
+            const canvas = document.createElement("canvas");
+            const pad = 24;
+            canvas.width = (width + pad * 2) * dpr;
+            canvas.height = (height + pad * 2) * dpr;
+            const ctx = canvas.getContext("2d");
+            ctx.scale(dpr, dpr);
+            ctx.fillStyle = isDarkTheme() ? "#172033" : "#ffffff";
+            ctx.fillRect(0, 0, width + pad * 2, height + pad * 2);
+            ctx.drawImage(img, pad, pad, width, height);
+            resolve(canvas);
+        };
+        img.onerror = () => reject(new Error("svg image load failed"));
+        img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    });
+}
+
 function setupAnalyticsDownload() {
     const btn = document.getElementById("dashboard-analytics-download");
     if (!btn) {
         return;
     }
     btn.addEventListener("click", () => {
-        const donut = document.getElementById("portfolio-donut-canvas");
-        const trend = document.getElementById("asset-trend-canvas");
-        if (!donut || !trend) {
-            return;
-        }
-        const dpr = window.devicePixelRatio || 1;
-        const donutW = donut.width / dpr;
-        const donutH = donut.height / dpr;
-        const trendW = trend.width / dpr;
-        const trendH = trend.height / dpr;
-        const gap = 24;
-        const padding = 24;
-        const width = donutW + trendW + gap + padding * 2;
-        const height = Math.max(donutH, trendH) + padding * 2;
+        captureAnalyticsCanvas().then((canvas) => {
+            const link = document.createElement("a");
+            link.download = "portfolio.png";
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        });
+    });
+}
 
-        const composite = document.createElement("canvas");
-        composite.width = width;
-        composite.height = height;
-        const ctx = composite.getContext("2d");
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, width, height);
-        ctx.drawImage(donut, padding, padding + (height - padding * 2 - donutH) / 2, donutW, donutH);
-        ctx.drawImage(trend, padding + donutW + gap, padding + (height - padding * 2 - trendH) / 2, trendW, trendH);
+// PNG를 저장하면서 동시에, 방금 만든 이미지를 커뮤니티 글쓰기 화면에 자동 첨부한 채로 넘겨준다.
+// 페이지 이동을 거치면 JS 변수(캔버스/Blob)는 그대로 못 들고 가므로, sessionStorage에 base64로
+// 잠깐 담아뒀다가 글쓰기 페이지 쪽 스크립트가 이어받는다(board.js에 최소한의 코드만 추가했다).
+function setupAnalyticsShare() {
+    const btn = document.getElementById("dashboard-analytics-share");
+    if (!btn) {
+        return;
+    }
+    btn.addEventListener("click", () => {
+        btn.disabled = true;
+        captureAnalyticsCanvas().then((canvas) => {
+            const dataUrl = canvas.toDataURL("image/png");
+            const link = document.createElement("a");
+            link.download = "portfolio.png";
+            link.href = dataUrl;
+            link.click();
 
-        const link = document.createElement("a");
-        link.download = "portfolio.png";
-        link.href = composite.toDataURL("image/png");
-        link.click();
+            try {
+                sessionStorage.setItem("stockhub:sharedPortfolioImage", JSON.stringify({
+                    dataUrl,
+                    fileName: `portfolio-${new Date().toISOString().slice(0, 10)}.png`,
+                }));
+            } catch (e) {
+                // sessionStorage 용량 초과 등은 첨부만 못 할 뿐, 위에서 이미 PNG 저장은 끝났으니 조용히 넘어간다
+            }
+            location.href = "/community/write";
+        }).finally(() => {
+            btn.disabled = false;
+        });
     });
 }
 
