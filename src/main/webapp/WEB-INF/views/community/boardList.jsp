@@ -15,7 +15,7 @@
 
 <%-- 커뮤니티 전용 CSS --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css?v=52">
+      href="${pageContext.request.contextPath}/css/board.css?v=53">
 
 <c:if test="${not empty error}">
     <p class="alert alert-error"><c:out value="${error}" /></p>

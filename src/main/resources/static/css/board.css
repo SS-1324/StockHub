@@ -311,6 +311,17 @@ html[data-theme="dark"]{
 
 .search-box input[type="text"]:focus{ border-color: var(--board-primary); }
 
+/* board.js가 검색 input 바로 다음에 만드는 글자수 표시를 검색창 왼쪽 아래에 둔다.
+   검색창 오른쪽엔 이미 검색 아이콘 버튼이 있고, flex 자식으로 그대로 두면 입력창 폭을 밀어내므로
+   flow에서 빼서 검색창 기준으로 절대 위치시킨다. */
+.search-box .char-counter{
+    position: absolute;
+    left: 16px;
+    top: 100%;
+    margin-top: 4px;
+    text-align: left;
+}
+
 .search-icon-btn{
     position: absolute;
     top: 50%;
