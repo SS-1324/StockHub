@@ -120,7 +120,7 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
          * 늦게 실행된 작업이 IME 커서에 개입하면 글자의 입력 순서가 뒤섞일 수 있기 때문이다.
          */
         const scheduledRevision = editRevision;
-        requestAnimationFrame(function(){
+        queueMicrotask(function(){
             if (isComposing || scheduledRevision !== editRevision) return;
 
             const range = editor.getSelection();
@@ -254,10 +254,6 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
     }
 }
 
-if (typeof quill !== "undefined") {
-    preventInlineEditorImages(quill);
-    preserveInlineFormatsAcrossEditingKeys(quill);
-}
 
 /* [AJAX-1: 게시글 등록] 글쓰기 폼 제출 - 일반 폼 네비게이션 대신 fetch로 보내고, 성공하면 location.replace()로 상세 이동.
  * location.href가 아니라 replace()를 쓰는 이유: href는 히스토리에 새 항목을 쌓지만 replace는 현재 항목(글쓰기 폼)을
