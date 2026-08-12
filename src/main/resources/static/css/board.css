@@ -1431,6 +1431,19 @@ html[data-theme="dark"] .btn-bookmark.active{
     box-shadow: 0 2px 8px rgba(30, 64, 175, 0.05);
 }
 
+/* 게시글 상세 좌측 상단 뒤로가기(목록으로) 링크 */
+.board-back-link{
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 12px;
+    color: var(--board-text-subtle);
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.board-back-link:hover{ color: var(--board-primary); text-decoration: underline; }
+
 /*
     게시글 본문 영역.
     바깥 모양은 .board-thread-card가 담당하므로 여기에는 본문 안쪽 여백과 글자색만 둔다.
