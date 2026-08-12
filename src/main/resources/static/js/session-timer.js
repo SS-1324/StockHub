@@ -6,7 +6,7 @@ let timerInterval;  // 전역 변수로 선언 (연장할 때 필요)
 document.addEventListener('DOMContentLoaded', function() {
     const timerElement = document.querySelector('.header-session-timer');
 
-    // ⭐ 디버깅: 콘솔에 자동 출력
+    // 디버깅: 콘솔에 자동 출력
     console.log('=== 세션 타이머 디버깅 ===');
     console.log('타이머 요소:', timerElement);
     if (timerElement) {

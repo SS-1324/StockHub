@@ -1,5 +1,11 @@
+/* 다른 회원 전용 페이지(게시판·내 정보 등)와 화면 너비를 맞춘다 - 이걸 안 하면
+   공통 레이아웃(header.jsp의 <main class="container">) 기본값인 960px에 갇혀서 이 페이지만 유독 좁아 보인다 */
+.container{
+    max-width: 1300px;
+}
+
 .dashboard-page{
-    width: min(100%, 980px);
+    width: 100%;
     margin: 16px auto 48px;
 }
 
@@ -7,6 +13,7 @@
 .dashboard-holdings,
 .dashboard-summary,
 .dashboard-goal,
+.dashboard-analytics,
 .dashboard-timeline{
     border: 1px solid #e1e8f5;
     border-radius: 20px;
@@ -108,6 +115,7 @@
 
 .dashboard-holdings,
 .dashboard-goal,
+.dashboard-analytics,
 .dashboard-timeline{
     padding: 26px 30px;
 }
@@ -154,6 +162,7 @@
 
 .dashboard-profit-label{
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
 }
@@ -179,6 +188,12 @@
     border-color: #0874f7;
     background: #0874f7;
     color: #fff;
+}
+
+/* 증권사 필터가 "전체"가 아닐 때는 기간별 손익이 없어(평가손익 하나뿐) 탭을 잠근다 */
+.dashboard-period-tab:disabled{
+    cursor: not-allowed;
+    opacity: 0.45;
 }
 
 .dashboard-summary-footer{
@@ -241,6 +256,41 @@
     font-size: 11px;
 }
 
+/* 여러 증권사를 연동했을 때만 페이지 맨 위에 뜨는 "전체/증권사별" 필터. 값 하나가 아래 화면
+   전체에 영향을 주는 단일 컨트롤이라 딱 한 곳에만 둔다(소제목마다 반복하지 않는다) */
+.dashboard-brokerage-filter-bar{
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin: 0 0 14px;
+}
+
+.dashboard-brokerage-filter{
+    /* common.css의 전역 select{width:100%}가 이 셀렉트에도 스며들어 바 전체 너비로 늘어나 있었다 -
+       가장 긴 옵션(예: "KH투자증권") 글자 폭만큼만 차지하도록 명시적으로 좁혀서 되돌린다 */
+    width: auto;
+    padding: 9px 30px 9px 14px;
+    border: 1px solid #dce5f3;
+    border-radius: 999px;
+    background-color: #fff;
+    color: #172033;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+    white-space: nowrap;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+
+.dashboard-brokerage-filter:hover{
+    border-color: #0874f7;
+    color: #0874f7;
+}
+
 /* 보유 주식 헤더: 제목 옆엔 주/종목 전환 · 차트 팝업 버튼, 오른쪽엔 정렬만 남긴다 */
 
 .dashboard-holdings-title-group{
@@ -263,24 +313,6 @@
     cursor: pointer;
 }
 
-.dashboard-chart-open-btn{
-    padding: 6px 14px;
-    border: 1px solid #dce5f3;
-    border-radius: 999px;
-    background: #fff;
-    color: #334155;
-    font-size: 13px;
-    font-weight: 700;
-    line-height: 1.4;
-    cursor: pointer;
-    white-space: nowrap;
-}
-
-.dashboard-chart-open-btn:hover{
-    border-color: #0874f7;
-    color: #0874f7;
-}
-
 .dashboard-holdings-sort{
     width: auto;
     padding: 6px 12px;
@@ -294,89 +326,114 @@
     cursor: pointer;
 }
 
-/* 보유 주식 - 원그래프(도넛) 팝업 */
+/* 포트폴리오 분석 (보유 구성 도넛 + 자산 성장 추이 + 매매 통계) */
 
-.dashboard-portfolio-dialog{
-    /* common.css의 전역 * { margin: 0 } 리셋이 dialog 기본 margin:auto 중앙 정렬을 깨뜨려서 명시적으로 복구 */
-    position: fixed;
-    inset: 0;
-    margin: auto;
-    width: min(90vw, 460px);
-    height: fit-content;
-    padding: 24px;
-    border: 1px solid #e1e8f5;
-    border-radius: 20px;
+.dashboard-analytics-download-btn{
+    padding: 6px 14px;
+    border: 1px solid #dce5f3;
+    border-radius: 999px;
     background: #fff;
-    box-shadow: 0 20px 48px rgba(40, 73, 128, 0.18);
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.4;
+    cursor: pointer;
+    white-space: nowrap;
 }
 
-.dashboard-portfolio-dialog::backdrop{
-    background: rgba(15, 23, 42, 0.45);
+.dashboard-analytics-download-btn:hover{
+    border-color: #0874f7;
+    color: #0874f7;
 }
 
-.dashboard-portfolio-dialog-header{
+.dashboard-analytics-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.dashboard-analytics-card{
+    padding: 18px;
+    border: 1px solid #edf1f7;
+    border-radius: 16px;
+    background: #f8faff;
+}
+
+.dashboard-analytics-card h3{
+    margin-bottom: 14px;
+    color: #172033;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.dashboard-analytics-donut-wrap{
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 18px;
+    justify-content: center;
+    gap: 20px;
 }
 
-.dashboard-portfolio-dialog-header h3{
+#asset-trend-canvas{
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+}
+
+.dashboard-analytics-stats{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    grid-column: 1 / -1;
+}
+
+.dashboard-analytics-stat{
+    padding: 14px 16px;
+    border: 1px solid #edf1f7;
+    border-radius: 14px;
+    background: #f8faff;
+}
+
+.dashboard-analytics-stat-label{
+    margin-bottom: 6px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.dashboard-analytics-stat-value{
     color: #172033;
     font-size: 17px;
     font-weight: 800;
 }
 
-.dashboard-portfolio-dialog-close{
-    padding: 2px 8px;
-    border: 0;
-    border-radius: 8px;
-    background: none;
+.dashboard-analytics-stat-sub{
+    margin-top: 3px;
     color: #94a3b8;
-    font-size: 20px;
-    line-height: 1;
-    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
 }
 
-.dashboard-portfolio-dialog-close:hover{
-    background: #f1f5f9;
-    color: #172033;
+/* 매매 손익 내역 페이지 상단 요약(총 매도/매수/손익 + 보유 현황) - 위 .dashboard-analytics-stat 카드를 그대로 쓴다 */
+.dashboard-history-summary{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 22px;
 }
 
-.dashboard-portfolio-chart{
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 24px;
+.dashboard-region-bar{
+    overflow: hidden;
+    width: 100%;
+    height: 8px;
+    margin: 6px 0 2px;
+    border-radius: 999px;
+    background: #f59e0b;
 }
 
-.dashboard-portfolio-donut{
-    position: relative;
-    width: 200px;
-    height: 200px;
-    flex: 0 0 auto;
-    border-radius: 50%;
-}
-
-.dashboard-portfolio-donut::after{
-    content: attr(data-center-label);
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 130px;
-    height: 130px;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    background: #fff;
-    color: #172033;
-    font-size: 15px;
-    font-weight: 800;
-    text-align: center;
-    white-space: pre-line;
+.dashboard-region-bar-domestic{
+    height: 100%;
+    background: #0874f7;
 }
 
 .dashboard-portfolio-legend{
@@ -574,6 +631,17 @@
     background: conic-gradient(#0874f7 calc(var(--progress) * 1%), #eef2f8 0);
 }
 
+/* 목표일이 지나 목표치를 달성한 채로 확정된 목표 - 녹색 링 + 체크마크로만 표시,
+   미달성 쪽은 별도 표시 없이 그냥 마지막 진행률에서 멈춘 파란 링 그대로 둔다 */
+.dashboard-goal-ring.is-success{
+    background: conic-gradient(#16a34a calc(var(--progress) * 1%), #eef2f8 0);
+}
+
+.dashboard-goal-ring.is-success .dashboard-goal-ring-value{
+    color: #16a34a;
+    font-size: 28px;
+}
+
 .dashboard-goal-ring::before{
     content: "";
     position: absolute;
@@ -667,6 +735,12 @@
     font-size: 14px;
 }
 
+/* 위 display:flex가 브라우저 기본 [hidden]{display:none} 규칙보다 우선 적용돼(둘 다 author 스타일이 아니라
+   유저에이전트 vs author 우선순위 문제) 페이지네이션이 JS로 hidden을 켜도 실제로는 안 숨겨지던 버그 수정 */
+.dashboard-timeline-list li[hidden]{
+    display: none;
+}
+
 .dashboard-timeline-list li:last-child{
     border-bottom: 0;
 }
@@ -715,6 +789,7 @@ html[data-theme="dark"] .dashboard-profile,
 html[data-theme="dark"] .dashboard-holdings,
 html[data-theme="dark"] .dashboard-summary,
 html[data-theme="dark"] .dashboard-goal,
+html[data-theme="dark"] .dashboard-analytics,
 html[data-theme="dark"] .dashboard-timeline{
     border-color: #334155;
     background: #172033;
@@ -743,6 +818,23 @@ html[data-theme="dark"] .dashboard-goal-ring-value{
 
 html[data-theme="dark"] .dashboard-table{
     color: #cbd5e1;
+}
+
+html[data-theme="dark"] .dashboard-brokerage-filter{
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23cbd5e1' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    /* common.css의 html[data-theme="dark"] select{background:...} 가 shorthand라 이 셀렉트의
+       background-repeat/position까지 초기값(repeat)으로 되돌려서, 다크모드에서만 화살표 아이콘이
+       타일링되어 지그재그로 보였다 - 여기서 명시적으로 다시 선언해 되돌린다 */
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+
+html[data-theme="dark"] .dashboard-brokerage-filter:hover{
+    border-color: #0874f7;
+    color: #0874f7;
 }
 
 html[data-theme="dark"] .dashboard-table th,
@@ -779,14 +871,14 @@ html[data-theme="dark"] .dashboard-period-tab.is-active{
 }
 
 html[data-theme="dark"] .dashboard-holdings-sort,
-html[data-theme="dark"] .dashboard-chart-open-btn,
+html[data-theme="dark"] .dashboard-analytics-download-btn,
 html[data-theme="dark"] .dashboard-timeline-page-btn{
     background: #1e293b;
     border-color: #334155;
     color: #cbd5e1;
 }
 
-html[data-theme="dark"] .dashboard-chart-open-btn:hover{
+html[data-theme="dark"] .dashboard-analytics-download-btn:hover{
     border-color: #0874f7;
     color: #0874f7;
 }
@@ -797,23 +889,14 @@ html[data-theme="dark"] .dashboard-timeline-page-btn.is-active{
     color: #fff;
 }
 
-html[data-theme="dark"] .dashboard-portfolio-dialog{
+html[data-theme="dark"] .dashboard-analytics-card,
+html[data-theme="dark"] .dashboard-analytics-stat{
     border-color: #334155;
-    background: #172033;
-    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
-}
-
-html[data-theme="dark"] .dashboard-portfolio-dialog-header h3{
-    color: #f8fafc;
-}
-
-html[data-theme="dark"] .dashboard-portfolio-dialog-close:hover{
     background: #1e293b;
-    color: #f8fafc;
 }
 
-html[data-theme="dark"] .dashboard-portfolio-donut::after{
-    background: #172033;
+html[data-theme="dark"] .dashboard-analytics-card h3,
+html[data-theme="dark"] .dashboard-analytics-stat-value{
     color: #f8fafc;
 }
 
@@ -833,9 +916,19 @@ html[data-theme="dark"] .dashboard-portfolio-legend-name{
     .dashboard-profile,
     .dashboard-holdings,
     .dashboard-goal,
+    .dashboard-analytics,
     .dashboard-timeline{
         padding: 22px 18px;
         border-radius: 16px;
+    }
+
+    .dashboard-analytics-grid{
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-analytics-stats,
+    .dashboard-history-summary{
+        grid-template-columns: repeat(2, 1fr);
     }
 
     .dashboard-profile-rank-frame{
@@ -872,6 +965,12 @@ html[data-theme="dark"] .dashboard-portfolio-legend-name{
     .dashboard-table td{
         display: block;
         width: 100%;
+    }
+
+    /* 위 display:block이 [hidden]{display:none} 기본 규칙을 덮어써, 증권사 필터로 숨긴 행이
+       실제로는 안 사라지는 문제를 막는다(최근 활동 페이지네이션에서 겪었던 것과 같은 종류의 버그) */
+    .dashboard-table tr[hidden]{
+        display: none;
     }
 
     .dashboard-table tr{
@@ -929,18 +1028,4 @@ html[data-theme="dark"] .dashboard-portfolio-legend-name{
         flex-wrap: wrap;
     }
 
-    .dashboard-portfolio-dialog{
-        padding: 20px;
-    }
-
-    .dashboard-portfolio-donut{
-        width: 160px;
-        height: 160px;
-    }
-
-    .dashboard-portfolio-donut::after{
-        width: 104px;
-        height: 104px;
-        font-size: 13px;
-    }
 }

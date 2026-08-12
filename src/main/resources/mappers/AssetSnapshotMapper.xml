@@ -26,4 +26,13 @@
         WHERE latest.rn = 1
     </select>
 
+    <select id="selectAssetTrendByMember" parameterType="string" resultType="com.kh.demo.brokerage.dto.AssetSnapshotDto">
+        SELECT asn.snapshot_date, SUM(asn.total_asset) AS total_asset
+        FROM asset_snapshot asn
+        JOIN account_link al ON al.account_id = asn.account_id
+        WHERE al.member_id = #{memberId}
+        GROUP BY asn.snapshot_date
+        ORDER BY asn.snapshot_date
+    </select>
+
 </mapper>

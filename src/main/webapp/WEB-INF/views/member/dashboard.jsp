@@ -4,11 +4,13 @@
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <c:url var="dashboardCssUrl" value="/css/dashboard.css">
-    <c:param name="v" value="2" />
+    <c:param name="v" value="6" />
 </c:url>
 <c:set var="pageCssUrl" value="${dashboardCssUrl}" scope="request" />
 <c:url var="defaultProfileUrl" value="/images/common_member.png" />
-<c:url var="dashboardJsUrl" value="/js/dashboard.js" />
+<c:url var="dashboardJsUrl" value="/js/dashboard.js">
+    <c:param name="v" value="5" />
+</c:url>
 
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 
@@ -81,11 +83,25 @@
         </div>
     </header>
 
+    <%-- 여러 증권사를 연동했을 때만 나오는 "전체/증권사별 보기" 필터. 하나 바꾸면 아래 화면
+         전체(총자산~최근활동)가 그 기준으로 다시 그려지는 하나의 값이라, 통 하나로만 둔다 --%>
+    <c:if test="${fn:length(myBrokerageNames) > 1}">
+        <script id="dashboard-brokerage-data" type="application/json">${brokerageFilterDataJson}</script>
+        <div class="dashboard-brokerage-filter-bar">
+            <select id="dashboard-brokerage-filter" class="dashboard-brokerage-filter" aria-label="증권사 필터">
+                <option value="__ALL__">전체</option>
+                <c:forEach var="name" items="${myBrokerageNames}">
+                    <option value="<c:out value='${name}'/>"><c:out value="${name}"/></option>
+                </c:forEach>
+            </select>
+        </div>
+    </c:if>
+
     <%-- 총 자산 요약 카드: 증권사가 여러 곳이어도 여기 하나로 합산해서 보여주는 게 핵심 --%>
     <dl class="dashboard-summary dashboard-summary-total">
         <div class="dashboard-summary-row">
             <dt>총 자산</dt>
-            <dd><fmt:formatNumber value="${totalAsset}" pattern="#,##0"/>원</dd>
+            <dd id="dashboard-total-asset" data-all="${totalAsset}"><fmt:formatNumber value="${totalAsset}" pattern="#,##0"/>원</dd>
         </div>
         <div class="dashboard-summary-row">
             <dt class="dashboard-profit-label">
@@ -101,7 +117,8 @@
                 class="${totalProfit gt 0 ? 'value-positive' : (totalProfit lt 0 ? 'value-negative' : '')}"
                 data-week="${periodProfit.week}" data-month="${periodProfit.month}"
                 data-year="${periodProfit.year}" data-all="${periodProfit.all}"
-                data-rate="${totalReturnRate}">
+                data-week-rate="${periodProfit.weekRate}" data-month-rate="${periodProfit.monthRate}"
+                data-year-rate="${periodProfit.yearRate}" data-all-rate="${periodProfit.allRate}">
                 <span id="dashboard-period-profit-amount">
                     <c:if test="${totalProfit gt 0}">+</c:if><fmt:formatNumber value="${totalProfit}" pattern="#,##0"/>원
                 </span>
@@ -112,7 +129,7 @@
         </div>
         <div class="dashboard-summary-row">
             <dt>현금 잔고</dt>
-            <dd><fmt:formatNumber value="${stockSummary.currentBalance}" pattern="#,##0"/>원</dd>
+            <dd id="dashboard-cash-balance" data-all="${stockSummary.currentBalance}"><fmt:formatNumber value="${stockSummary.currentBalance}" pattern="#,##0"/>원</dd>
         </div>
         <div class="dashboard-summary-footer">
             <a class="dashboard-section-link"
@@ -139,8 +156,14 @@
                 <div class="dashboard-goal-list">
                     <c:forEach var="goal" items="${activeGoals}">
                         <div class="dashboard-goal-card">
-                            <div class="dashboard-goal-ring" style="--progress: ${goalProgress[goal.goalId]};">
-                                <span class="dashboard-goal-ring-value"><c:out value="${goalProgress[goal.goalId]}"/>%</span>
+                            <div class="dashboard-goal-ring ${goalSuccess[goal.goalId] ? 'is-success' : ''}"
+                                 style="--progress: ${goalProgress[goal.goalId]};">
+                                <span class="dashboard-goal-ring-value">
+                                    <c:choose>
+                                        <c:when test="${goalSuccess[goal.goalId]}">&#10003;</c:when>
+                                        <c:otherwise><c:out value="${goalProgress[goal.goalId]}"/>%</c:otherwise>
+                                    </c:choose>
+                                </span>
                             </div>
                             <div class="dashboard-goal-info">
                                 <p class="dashboard-goal-target">
@@ -205,7 +228,6 @@
                             data-stock-text="<c:out value='${fn:length(stockSummary.holdings)}'/>종목">
                         <fmt:formatNumber value="${stockSummary.totalStockQuantity}" pattern="#,##0"/>주
                     </button>
-                    <button type="button" id="stock-holdings-chart-open" class="dashboard-chart-open-btn">차트로 보기</button>
                 </c:if>
             </div>
             <c:if test="${not empty stockSummary.holdings}">
@@ -215,6 +237,7 @@
                     <option value="quantity">수량순</option>
                     <option value="name">가나다순</option>
                     <option value="price">현재가순</option>
+                    <option value="value">평가금액순</option>
                 </select>
             </c:if>
         </div>
@@ -235,11 +258,17 @@
                         </thead>
                         <tbody id="stock-holdings-tbody">
                         <c:forEach var="holding" items="${stockSummary.holdings}">
+                            <%-- 증권사 필터가 이 값들을 읽어서, 특정 증권사를 고르면 그 증권사 몫으로 셀 내용을
+                                 바꿔치고, 그 증권사에 없는 종목은 행 자체를 숨긴다(브로커리지 이름은 우리
+                                 brokerage 테이블에서 나오는 값이라 JSON 이스케이프 없이 그대로 써도 안전하다) --%>
+                            <c:set var="accountsJson">[<c:forEach var="acc" items="${holding.accountBreakdown}" varStatus="st">{"brokerage":"${acc.brokerageName}","quantity":${acc.quantity},"avgPrice":${acc.avgPrice},"currentValue":${acc.currentValue},"returnRate":${acc.returnRate}}<c:if test="${!st.last}">,</c:if></c:forEach>]</c:set>
                             <tr data-name="<c:out value='${holding.stockName}'/>"
                                 data-quantity="${holding.quantity}"
+                                data-avg-price="${holding.avgPrice}"
                                 data-price="${holding.currentPrice}"
                                 data-value="${holding.currentValue}"
-                                data-return-rate="${holding.returnRate}">
+                                data-return-rate="${holding.returnRate}"
+                                data-accounts="${fn:escapeXml(accountsJson)}">
                                 <td data-label="종목">
                                     <strong><c:out value="${holding.stockName}"/></strong>
                                     <span class="dashboard-code"><c:out value="${holding.stockCode}"/></span>
@@ -257,17 +286,6 @@
                         </tbody>
                     </table>
                 </div>
-                <dialog id="stock-portfolio-dialog" class="dashboard-portfolio-dialog">
-                    <div class="dashboard-portfolio-dialog-header">
-                        <h3>보유 주식 구성</h3>
-                        <button type="button" id="stock-portfolio-dialog-close"
-                                class="dashboard-portfolio-dialog-close" aria-label="닫기">&times;</button>
-                    </div>
-                    <div class="dashboard-portfolio-chart">
-                        <div class="dashboard-portfolio-donut" id="stock-portfolio-donut"></div>
-                        <ul class="dashboard-portfolio-legend" id="stock-portfolio-legend"></ul>
-                    </div>
-                </dialog>
             </c:when>
             <c:otherwise>
                 <div class="dashboard-empty">
@@ -281,8 +299,10 @@
     <%-- 보유 상품(펀드/채권/ELS) --%>
     <section class="dashboard-holdings" aria-labelledby="product-holdings-title">
         <div class="dashboard-section-heading">
-            <h2 id="product-holdings-title">보유 상품</h2>
-            <span><c:out value="${fn:length(productSummary.holdings)}"/>개</span>
+            <div class="dashboard-holdings-title-group">
+                <h2 id="product-holdings-title">보유 상품</h2>
+                <span id="product-holdings-count"><c:out value="${fn:length(productSummary.holdings)}"/>개</span>
+            </div>
         </div>
 
         <c:choose>
@@ -299,9 +319,15 @@
                             <th scope="col">수익률</th>
                         </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="product-holdings-tbody">
                         <c:forEach var="holding" items="${productSummary.holdings}">
-                            <tr>
+                            <c:set var="accountsJson">[<c:forEach var="acc" items="${holding.accountBreakdown}" varStatus="st">{"brokerage":"${acc.brokerageName}","quantity":${acc.quantity},"avgNav":${acc.avgNav},"currentValue":${acc.currentValue},"returnRate":${acc.returnRate}}<c:if test="${!st.last}">,</c:if></c:forEach>]</c:set>
+                            <tr data-quantity="${holding.quantity}"
+                                data-avg-nav="${holding.avgNav}"
+                                data-current-nav="${holding.currentNav}"
+                                data-value="${holding.currentValue}"
+                                data-return-rate="${holding.returnRate}"
+                                data-accounts="${fn:escapeXml(accountsJson)}">
                                 <td data-label="상품">
                                     <strong><c:out value="${holding.productName}"/></strong>
                                     <span class="dashboard-code"><c:out value="${holding.productType}"/></span>
@@ -328,6 +354,109 @@
         </c:choose>
     </section>
 
+    <%-- 포트폴리오 분석 (보유 구성 + 자산 성장 추이 + 매매 통계) --%>
+    <section class="dashboard-analytics" aria-labelledby="analytics-title">
+        <div class="dashboard-section-heading">
+            <h2 id="analytics-title">포트폴리오 분석</h2>
+            <c:if test="${not empty stockSummary.holdings}">
+                <button type="button" id="dashboard-analytics-download" class="dashboard-analytics-download-btn">PNG로 저장</button>
+            </c:if>
+        </div>
+
+        <c:choose>
+            <c:when test="${not empty stockSummary.holdings}">
+                <div class="dashboard-analytics-grid" id="dashboard-analytics-capture">
+                    <div class="dashboard-analytics-card">
+                        <h3>보유 종목 구성</h3>
+                        <div class="dashboard-analytics-donut-wrap">
+                            <canvas id="portfolio-donut-canvas" width="220" height="220"></canvas>
+                            <ul class="dashboard-portfolio-legend" id="stock-portfolio-legend"></ul>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-analytics-card">
+                        <h3>자산 성장 추이</h3>
+                        <canvas id="asset-trend-canvas"
+                                width="520" height="220"
+                                data-trend="<c:forEach var="p" items="${portfolioAnalytics.assetTrend}" varStatus="st"><c:out value='${p.snapshotDate}'/>:<c:out value='${p.totalAsset}'/><c:if test="${!st.last}">,</c:if></c:forEach>"></canvas>
+                    </div>
+
+                    <div class="dashboard-analytics-stats">
+                        <div class="dashboard-analytics-stat">
+                            <p class="dashboard-analytics-stat-label">매매 승률</p>
+                            <c:choose>
+                                <c:when test="${portfolioAnalytics.closedTradeCount > 0}">
+                                    <p class="dashboard-analytics-stat-value"><fmt:formatNumber value="${portfolioAnalytics.winRate}" pattern="#,##0.0"/>%</p>
+                                    <p class="dashboard-analytics-stat-sub"><c:out value="${portfolioAnalytics.closedTradeCount}"/>건 중</p>
+                                </c:when>
+                                <c:otherwise><p class="dashboard-analytics-stat-value">-</p></c:otherwise>
+                            </c:choose>
+                        </div>
+                        <div class="dashboard-analytics-stat">
+                            <p class="dashboard-analytics-stat-label">평균 보유기간</p>
+                            <c:choose>
+                                <c:when test="${portfolioAnalytics.closedTradeCount > 0}">
+                                    <p class="dashboard-analytics-stat-value"><c:out value="${portfolioAnalytics.avgHoldingDays}"/>일</p>
+                                </c:when>
+                                <c:otherwise><p class="dashboard-analytics-stat-value">-</p></c:otherwise>
+                            </c:choose>
+                        </div>
+                        <div class="dashboard-analytics-stat">
+                            <p class="dashboard-analytics-stat-label">최고의 매매</p>
+                            <c:choose>
+                                <c:when test="${not empty portfolioAnalytics.bestTrade}">
+                                    <p class="dashboard-analytics-stat-value value-positive">
+                                        <c:if test="${portfolioAnalytics.bestTrade.profitAmount gt 0}">+</c:if><fmt:formatNumber value="${portfolioAnalytics.bestTrade.profitAmount}" pattern="#,##0"/>원
+                                    </p>
+                                    <p class="dashboard-analytics-stat-sub"><c:out value="${portfolioAnalytics.bestTrade.itemName}"/></p>
+                                </c:when>
+                                <c:otherwise><p class="dashboard-analytics-stat-value">-</p></c:otherwise>
+                            </c:choose>
+                        </div>
+                        <div class="dashboard-analytics-stat">
+                            <p class="dashboard-analytics-stat-label">최악의 매매</p>
+                            <c:choose>
+                                <c:when test="${not empty portfolioAnalytics.worstTrade}">
+                                    <p class="dashboard-analytics-stat-value ${portfolioAnalytics.worstTrade.profitAmount lt 0 ? 'value-negative' : 'value-positive'}">
+                                        <c:if test="${portfolioAnalytics.worstTrade.profitAmount gt 0}">+</c:if><fmt:formatNumber value="${portfolioAnalytics.worstTrade.profitAmount}" pattern="#,##0"/>원
+                                    </p>
+                                    <p class="dashboard-analytics-stat-sub"><c:out value="${portfolioAnalytics.worstTrade.itemName}"/></p>
+                                </c:when>
+                                <c:otherwise><p class="dashboard-analytics-stat-value">-</p></c:otherwise>
+                            </c:choose>
+                        </div>
+                        <div class="dashboard-analytics-stat">
+                            <p class="dashboard-analytics-stat-label">집중도</p>
+                            <p class="dashboard-analytics-stat-value"><fmt:formatNumber value="${portfolioAnalytics.concentrationRate}" pattern="#,##0.0"/>%</p>
+                            <p class="dashboard-analytics-stat-sub"><c:out value="${portfolioAnalytics.topHoldingName}"/></p>
+                        </div>
+                        <div class="dashboard-analytics-stat">
+                            <p class="dashboard-analytics-stat-label">국내 · 해외 비중</p>
+                            <c:set var="regionTotal" value="${portfolioAnalytics.domesticStockValue + portfolioAnalytics.foreignStockValue}" />
+                            <c:choose>
+                                <c:when test="${regionTotal > 0}">
+                                    <c:set var="domesticPct" value="${portfolioAnalytics.domesticStockValue * 100.0 / regionTotal}" />
+                                    <div class="dashboard-region-bar">
+                                        <div class="dashboard-region-bar-domestic" style="width: ${domesticPct}%;"></div>
+                                    </div>
+                                    <p class="dashboard-analytics-stat-sub">
+                                        국내 <fmt:formatNumber value="${domesticPct}" pattern="#,##0.0"/>% · 해외 <fmt:formatNumber value="${100 - domesticPct}" pattern="#,##0.0"/>%
+                                    </p>
+                                </c:when>
+                                <c:otherwise><p class="dashboard-analytics-stat-value">-</p></c:otherwise>
+                            </c:choose>
+                        </div>
+                    </div>
+                </div>
+            </c:when>
+            <c:otherwise>
+                <div class="dashboard-empty">
+                    <p>보유 중인 주식이 생기면 포트폴리오 분석을 볼 수 있습니다.</p>
+                </div>
+            </c:otherwise>
+        </c:choose>
+    </section>
+
     <%-- 최근 활동(매매/가입환매/입출금 통합 타임라인) --%>
     <section class="dashboard-timeline" aria-labelledby="timeline-title">
         <div class="dashboard-section-heading">
@@ -338,7 +467,7 @@
             <c:when test="${not empty timeline}">
                 <ul class="dashboard-timeline-list" id="dashboard-timeline-list">
                     <c:forEach var="event" items="${timeline}">
-                        <li>
+                        <li data-brokerage="<c:out value='${event.brokerageName}'/>">
                             <span class="dashboard-timeline-badge dashboard-timeline-badge-${event.category}"><c:out value="${event.badge}"/></span>
                             <span class="dashboard-timeline-desc"><c:out value="${event.description}"/></span>
                             <span class="dashboard-timeline-amount"><fmt:formatNumber value="${event.amount}" pattern="#,##0"/>원</span>

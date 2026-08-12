@@ -5,9 +5,9 @@ import java.util.Random;
 /*
 *   PriceWalk : 데모 데이터 생성기 전용 - "그럴듯한 과거 시세"를 근사하는 유틸.
 *
-*   실제 과거 시세(stock_price_history)는 비어있어 채우지 않기로 했으므로(범위 초과),
-*   대신 현재가/현재 기준가에서 거꾸로 랜덤워크를 만들어 "1년 전부터 지금까지 이렇게 움직여왔다"를 흉내낸다.
+*   현재가/현재 기준가에서 거꾸로 랜덤워크를 만들어 "1년 전부터 지금까지 이렇게 움직여왔다"를 흉내낸다.
 *   마지막 지점이 항상 지금의 실제 값과 정확히 일치하도록 전체 경로를 비례 스케일한다.
+*   종목 하나당 이 경로를 딱 한 번만 만들어 stock_price_history에 남기고 모든 계좌가 공유한다(DemoDataService 참고).
 * */
 public final class PriceWalk {
 
@@ -46,5 +46,17 @@ public final class PriceWalk {
         } else {
             return aIsCheaper ? b : a;
         }
+    }
+
+    // [from, to] 구간 안에서 가장 싸거나(findMax=false) 가장 비싼(findMax=true) 주를 찾는다
+    // - "메가 계좌"의 구간별 왕복매매(저점 매수/고점 매도)에 사용
+    public static int argExtreme(double[] path, int from, int to, boolean findMax) {
+        int best = from;
+        for (int w = from; w <= to; w++) {
+            if (findMax ? path[w] > path[best] : path[w] < path[best]) {
+                best = w;
+            }
+        }
+        return best;
     }
 }

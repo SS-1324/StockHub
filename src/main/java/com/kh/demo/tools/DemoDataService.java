@@ -35,11 +35,16 @@ public class DemoDataService {
     @Autowired private CashTransactionMapper cashTransactionMapper;
     @Autowired private AssetSnapshotMapper assetSnapshotMapper;
     @Autowired private MemberMapper memberMapper;
+    @Autowired private StockPriceHistoryMapper stockPriceHistoryMapper;
 
     // 시드 고정 -> 재실행해도 같은 결과가 나와서 "손보면서 반복"하기 편함
     private final Random random = new Random(20260805L);
 
-    private enum Activity { QUIET, MODERATE, ACTIVE }
+    // 포트폴리오 완성본 데모용 - 이 회원에게는 아주 많은 거래/보유 이력을 가진 고수익 "메가 계좌"를 만든다
+    private static final String MEGA_ACCOUNT_MEMBER_ID = "ghdrlfehd";
+    private static final long MEGA_ACCOUNT_PRINCIPAL = 500_000_000L;
+
+    private enum Activity { QUIET, MODERATE, ACTIVE, MEGA }
     private enum Performance { GOOD, NEUTRAL, BAD }
 
     private static final String[] DEPOSIT_MEMOS = {"급여 이체", "용돈 입금", "이체 입금"};
@@ -55,13 +60,31 @@ public class DemoDataService {
         List<StockDto> stocks = stockMapper.selectAllStocks();
         List<FinancialProductDto> products = financialProductMapper.selectProducts(null, null);
 
+        LocalDateTime historyStart = LocalDateTime.now().minusYears(1);
+        Map<String, double[]> globalStockPaths = buildAndPersistStockPriceHistory(stocks, historyStart);
+        // 시세가 없는(0원) 종목은 거래가 애초에 성립하지 않으므로 계좌 배정 대상에서도 제외한다
+        List<StockDto> pricedStocks = stocks.stream()
+                .filter(s -> globalStockPaths.containsKey(s.getStockCode()))
+                .toList();
+
         List<Activity> activityPool = pool(Activity.values(), targets.size());
         List<Performance> performancePool = pool(Performance.values(), targets.size());
+        // Activity.MEGA는 무작위 풀이 아니라 특정 회원 전용이므로 풀에서는 제외한다
+        activityPool.replaceAll(a -> a == Activity.MEGA ? Activity.ACTIVE : a);
         Collections.shuffle(activityPool, random);
         Collections.shuffle(performancePool, random);
 
         for (int i = 0; i < targets.size(); i++) {
-            regenerateHistory(targets.get(i), activityPool.get(i), performancePool.get(i), stocks, products);
+            AccountDto account = targets.get(i);
+            Activity activity = activityPool.get(i);
+            Performance performance = performancePool.get(i);
+            if (MEGA_ACCOUNT_MEMBER_ID.equals(account.getMemberId())) {
+                // 매수 시점을 pickCheapWeek로 강제 지정하므로(아래 guaranteedCheapBuys) performance/bias는 관여하지 않는다
+                activity = Activity.MEGA;
+                accountMapper.updateBalance(account.getAccountId(), MEGA_ACCOUNT_PRINCIPAL);
+                account.setBalance(MEGA_ACCOUNT_PRINCIPAL);
+            }
+            regenerateHistory(account, activity, performance, pricedStocks, products, globalStockPaths, historyStart);
         }
 
         printSummary(targets.size(), newDemoAccounts);
@@ -73,6 +96,28 @@ public class DemoDataService {
             list.add(values[i % values.length]);
         }
         return list;
+    }
+
+    // 종목별 시세 흐름을 전체에서 딱 한 번만 만들어 stock_price_history에 남기고, 모든 계좌가 이 흐름을 공유한다
+    private Map<String, double[]> buildAndPersistStockPriceHistory(List<StockDto> allStocks, LocalDateTime historyStart) {
+        Map<String, double[]> paths = new LinkedHashMap<>();
+        List<StockPriceHistoryDto> rows = new ArrayList<>();
+        for (StockDto s : allStocks) {
+            if (s.getCurrentPrice() == null || s.getCurrentPrice() <= 0) {
+                continue; // 아직 시세가 없는 종목 - 상장 전 취급으로 건너뜀
+            }
+            double[] path = PriceWalk.generate(s.getCurrentPrice(), random, 0.06);
+            paths.put(s.getStockCode(), path);
+            for (int week = 0; week <= PriceWalk.WEEKS; week++) {
+                rows.add(new StockPriceHistoryDto(null, s.getStockCode(),
+                        Math.round(path[week]), historyStart.plusWeeks(week)));
+            }
+        }
+        stockPriceHistoryMapper.deleteAll();
+        if (!rows.isEmpty()) {
+            stockPriceHistoryMapper.insertBatch(rows);
+        }
+        return paths;
     }
 
     // ==================== 1. 금융상품 카탈로그 ====================
@@ -207,7 +252,8 @@ public class DemoDataService {
     // ==================== 3. 계좌별 1년 이력 재생성 ====================
 
     private void regenerateHistory(AccountDto account, Activity activity, Performance performance,
-                                    List<StockDto> allStocks, List<FinancialProductDto> allProducts) {
+                                    List<StockDto> allStocks, List<FinancialProductDto> allProducts,
+                                    Map<String, double[]> globalStockPaths, LocalDateTime start) {
         Long accountId = account.getAccountId();
 
         // 재실행 안전을 위해 이 계좌의 생성기 대상 데이터를 전부 비우고 다시 채운다
@@ -218,22 +264,30 @@ public class DemoDataService {
         cashTransactionMapper.deleteTransactionsByAccount(accountId);
 
         BrokerageDto brokerage = brokerageMapper.selectBrokerageById(account.getBrokerageId());
-        LocalDateTime start = LocalDateTime.now().minusYears(1);
 
         long principal = Math.max(account.getBalance() == null ? 0L : account.getBalance(), 100_000L);
         long[] cash = {principal};
         cashTransactionMapper.insertTransaction(
                 cashTx(accountId, "DEPOSIT", principal, cash[0], "초기 입금", start));
 
+        // 메가 계좌는 원금의 일부를 왕복매매 루프가 손대지 못하게 미리 떼어 둔다
+        // (그렇지 않으면 연말께 여러 종목의 마지막 보유분 매수가 몰리면서 잔고가 항상 0에 가깝게 소진돼,
+        //  연말 목표 수익률 보정(topUpMegaReturn)에 쓸 실탄이 하나도 안 남는 문제가 생긴다)
+        boolean roundTripMode = activity == Activity.MEGA;
+        long megaReserve = roundTripMode ? principal / 10 : 0;
+        cash[0] -= megaReserve;
+
         int stockCount = switch (activity) {
             case QUIET -> 2 + random.nextInt(2);
             case MODERATE -> 3 + random.nextInt(2);
             case ACTIVE -> 4 + random.nextInt(2);
+            case MEGA -> allStocks.size(); // 시세가 있는 종목을 전부 담아 포트폴리오 완성본을 만든다
         };
         int tradesPerStock = switch (activity) {
             case QUIET -> 5 + random.nextInt(3);
             case MODERATE -> 7 + random.nextInt(3);
             case ACTIVE -> 9 + random.nextInt(4);
+            case MEGA -> 7 + random.nextInt(3); // 구간을 크게 잡아야(왕복 횟수는 적더라도) 사이클당 낙폭/등락폭을 제대로 포착한다
         };
         int bias = switch (performance) {
             case GOOD -> -1;
@@ -242,10 +296,7 @@ public class DemoDataService {
         };
 
         List<StockDto> myStocks = pickRandom(allStocks, Math.min(stockCount, allStocks.size()));
-        Map<String, double[]> stockPaths = new HashMap<>();
-        for (StockDto s : myStocks) {
-            stockPaths.put(s.getStockCode(), PriceWalk.generate(s.getCurrentPrice(), random, 0.06));
-        }
+        Map<String, double[]> stockPaths = globalStockPaths;
 
         int productCount = Math.min(random.nextInt(3), allProducts.size()); // 0~2
         List<FinancialProductDto> myProducts = pickRandom(allProducts, productCount);
@@ -254,8 +305,15 @@ public class DemoDataService {
             productPaths.put(p.getProductId(), PriceWalk.generate(p.getNav().doubleValue(), random, 0.015));
         }
 
-        List<SimEvent> events = buildEvents(start, myStocks, tradesPerStock, stockPaths, bias, myProducts);
+        List<SimEvent> events = buildEvents(start, myStocks, tradesPerStock, stockPaths, bias, myProducts, roundTripMode);
         events.sort(Comparator.comparing(e -> e.at));
+
+        // 왕복매매(메가 계좌)는 매매 한 번마다 잔고 대부분을 태우고 전량 청산해야 실현손익이 복리로 쌓인다.
+        // 일반 계좌는 기존처럼 잔고 일부만 담고 일부만 덜어내는 보수적인 비중을 유지한다.
+        double buyFractionMin = roundTripMode ? 0.70 : 0.05;
+        double buyFractionMax = roundTripMode ? 0.70 : 0.20;
+        double sellFractionMin = roundTripMode ? 1.0 : 0.3;
+        double sellFractionMax = roundTripMode ? 1.0 : 0.8;
 
         Map<String, RunningStockPosition> stockPositions = new HashMap<>();
         Map<Long, RunningProductPosition> productPositions = new HashMap<>();
@@ -268,14 +326,21 @@ public class DemoDataService {
             while (eventIndex < events.size() && weekOf(start, events.get(eventIndex).at) == week) {
                 SimEvent e = events.get(eventIndex);
                 switch (e.type) {
-                    case STOCK_BUY -> handleStockBuy(accountId, e, stockPaths, start, brokerage, cash, stockPositions);
-                    case STOCK_SELL -> handleStockSell(accountId, e, stockPaths, start, brokerage, cash, stockPositions);
+                    case STOCK_BUY -> handleStockBuy(accountId, e, stockPaths, start, brokerage, cash, stockPositions, buyFractionMin, buyFractionMax);
+                    case STOCK_SELL -> handleStockSell(accountId, e, stockPaths, start, brokerage, cash, stockPositions, sellFractionMin, sellFractionMax);
                     case PRODUCT_SUBSCRIBE -> handleSubscribe(accountId, e, myProducts, productPaths, start, cash, productPositions);
                     case PRODUCT_REDEEM -> handleRedeem(accountId, e, productPaths, start, cash, productPositions);
                     case CASH_DEPOSIT -> handleDeposit(accountId, e, cash);
                     case CASH_WITHDRAWAL -> handleWithdrawal(accountId, e, cash);
                 }
                 eventIndex++;
+            }
+
+            // 왕복매매만으로는 시세 변동폭 한계상 100%를 못 넘길 수 있어, 연말에 남은 잔고를
+            // 그 해 가장 많이 오른 종목의 연중 최저가에 추가로 태워 목표 수익률을 확실히 채운다
+            if (roundTripMode && week == PriceWalk.WEEKS) {
+                cash[0] += megaReserve;
+                topUpMegaReturn(accountId, principal, cash, stockPositions, myStocks, stockPaths, start, brokerage);
             }
 
             long totalAssetAtWeek = computeTotalAssetAtWeek(cash[0], stockPositions, stockPaths, productPositions, productPaths, week);
@@ -285,12 +350,104 @@ public class DemoDataService {
         finalizeAccount(accountId, myStocks, cash, stockPositions, productPositions);
     }
 
+    // 포트폴리오 완성본을 보여주려면 보유 종목이 여러 개 남아 있어야 하므로, 상위 몇 종목만 남긴다
+    private static final int MEGA_TOP_STOCK_COUNT = 5;
+
+    // "메가 계좌" 전용 - 목표 수익률(원금의 120%)에 못 미치면, 상대적으로 덜 오른 보유 종목은 현재가에 정리하고
+    // 그 해 가장 많이 오른 상위 몇 종목의 연중 최저가(이미 stock_price_history에 남긴 실제 값)에 나눠 태워 확실하게 채운다.
+    // (한 종목에 전부 몰지 않는 이유: 보유 종목이 하나만 남으면 포트폴리오 분석 화면에서 보여줄 게 없어진다)
+    private void topUpMegaReturn(Long accountId, long principal, long[] cash,
+                                  Map<String, RunningStockPosition> stockPositions,
+                                  List<StockDto> myStocks, Map<String, double[]> stockPaths,
+                                  LocalDateTime start, BrokerageDto brokerage) {
+        long targetAsset = principal * 22 / 10; // 120% 수익 - 매수수수료 등을 감안해 여유를 둔다
+        long currentAsset = cash[0];
+        for (StockDto s : myStocks) {
+            RunningStockPosition pos = stockPositions.get(s.getStockCode());
+            if (pos != null && pos.quantity > 0) {
+                currentAsset += (long) s.getCurrentPrice() * pos.quantity;
+            }
+        }
+        if (currentAsset >= targetAsset) {
+            return;
+        }
+
+        // 종목별 "연중 최저가 대비 현재가" 상승폭 순으로 정렬해 상위 몇 개만 남긴다
+        record Candidate(StockDto stock, int minWeek, double upside) {}
+        List<Candidate> ranked = new ArrayList<>();
+        for (StockDto s : myStocks) {
+            double[] path = stockPaths.get(s.getStockCode());
+            int minWeek = PriceWalk.argExtreme(path, 0, PriceWalk.WEEKS - 1, false);
+            double upside = (s.getCurrentPrice() - path[minWeek]) / path[minWeek];
+            ranked.add(new Candidate(s, minWeek, upside));
+        }
+        ranked.sort(Comparator.comparingDouble(Candidate::upside).reversed());
+        List<Candidate> keep = ranked.subList(0, Math.min(MEGA_TOP_STOCK_COUNT, ranked.size()));
+        Set<String> keepCodes = new HashSet<>();
+        for (Candidate c : keep) {
+            keepCodes.add(c.stock().getStockCode());
+        }
+
+        // 상위권에 들지 못한 종목은 현재가에 정리해 현금으로 바꾼다
+        LocalDateTime sellAt = start.plusWeeks(PriceWalk.WEEKS).minusDays(1);
+        for (StockDto s : myStocks) {
+            if (keepCodes.contains(s.getStockCode())) {
+                continue;
+            }
+            RunningStockPosition pos = stockPositions.get(s.getStockCode());
+            if (pos == null || pos.quantity <= 0) {
+                continue;
+            }
+            long qty = pos.quantity;
+            int sellPrice = s.getCurrentPrice();
+            long amount = (long) sellPrice * qty;
+            int fee = feeOf(brokerage, amount);
+            cash[0] += amount - fee;
+            pos.reduce(qty);
+            tradeMapper.insertHistoricalTrade(tradeOf(accountId, s.getStockCode(), "SELL", qty, sellPrice, fee, sellAt));
+        }
+
+        // 정리해서 모은 현금을 상승폭이 큰 순서에 가중치를 둬 상위 종목들의 연중 최저가에 나눠 태운다
+        double weightSum = keep.stream().mapToDouble(Candidate::upside).sum();
+        long budgetPool = cash[0];
+        for (Candidate c : keep) {
+            if (cash[0] <= 0 || weightSum <= 0) {
+                break;
+            }
+            long share = (long) (budgetPool * (c.upside() / weightSum));
+            share = Math.min(share, cash[0]);
+            double[] path = stockPaths.get(c.stock().getStockCode());
+            int price = (int) Math.round(path[c.minWeek()]);
+            if (price <= 0 || share <= 0) {
+                continue;
+            }
+            long quantity = share / price;
+            if (quantity <= 0) {
+                continue;
+            }
+            long amount = (long) price * quantity;
+            int fee = feeOf(brokerage, amount);
+            long totalCost = amount + fee;
+            if (totalCost > cash[0]) {
+                continue;
+            }
+            cash[0] -= totalCost;
+            stockPositions.computeIfAbsent(c.stock().getStockCode(), k -> new RunningStockPosition()).addBuy(quantity, price, fee);
+            LocalDateTime at = start.plusWeeks(c.minWeek()).plusDays(random.nextInt(7));
+            tradeMapper.insertHistoricalTrade(tradeOf(accountId, c.stock().getStockCode(), "BUY", quantity, price, fee, at));
+        }
+    }
+
     private List<SimEvent> buildEvents(LocalDateTime start, List<StockDto> myStocks, int tradesPerStock,
                                         Map<String, double[]> stockPaths, int bias,
-                                        List<FinancialProductDto> myProducts) {
+                                        List<FinancialProductDto> myProducts, boolean roundTripMode) {
         List<SimEvent> events = new ArrayList<>();
         for (StockDto s : myStocks) {
             double[] path = stockPaths.get(s.getStockCode());
+            if (roundTripMode) {
+                events.addAll(buildRoundTripEvents(start, s.getStockCode(), path, tradesPerStock));
+                continue;
+            }
             for (int t = 0; t < tradesPerStock; t++) {
                 boolean isBuy = (t == 0) || random.nextDouble() < 0.55;
                 int week = isBuy
@@ -323,14 +480,45 @@ public class DemoDataService {
         return events;
     }
 
+    // "메가 계좌" 전용 - 52주를 여러 구간으로 쪼개 구간마다 저점 매수 -> 고점 매도를 반복한다.
+    // 한 방에 사서 묻어두는 것과 달리, 왕복매매로 실현손익이 계속 재투자되며 복리로 불어나
+    // 종목 자체의 연중 등락폭보다 훨씬 큰 최종 수익률을 만들어낸다. 마지막 구간은 팔지 않고 그대로 보유해
+    // 최종 보유 종목으로 남긴다.
+    private List<SimEvent> buildRoundTripEvents(LocalDateTime start, String stockCode, double[] path, int tradesPerStock) {
+        List<SimEvent> events = new ArrayList<>();
+        int roundTrips = Math.max(1, (tradesPerStock - 1) / 2);
+        int segmentSize = Math.max(1, PriceWalk.WEEKS / (roundTrips + 1));
+        int week = 0;
+        for (int r = 0; r < roundTrips && week < PriceWalk.WEEKS; r++) {
+            int segEnd = Math.min(week + segmentSize, PriceWalk.WEEKS - 1);
+            int buyWeek = PriceWalk.argExtreme(path, week, segEnd, false);
+            int sellWeek = PriceWalk.argExtreme(path, buyWeek, segEnd, true);
+            events.add(stockEvent(start, buyWeek, SimEvent.Type.STOCK_BUY, stockCode));
+            if (sellWeek > buyWeek) {
+                events.add(stockEvent(start, sellWeek, SimEvent.Type.STOCK_SELL, stockCode));
+            }
+            week = segEnd + 1;
+        }
+        week = Math.min(week, PriceWalk.WEEKS - 1);
+        int finalBuyWeek = PriceWalk.argExtreme(path, week, PriceWalk.WEEKS - 1, false);
+        events.add(stockEvent(start, finalBuyWeek, SimEvent.Type.STOCK_BUY, stockCode));
+        return events;
+    }
+
+    private SimEvent stockEvent(LocalDateTime start, int week, SimEvent.Type type, String stockCode) {
+        LocalDateTime at = start.plusWeeks(week).plusDays(random.nextInt(7));
+        return new SimEvent(at, type, stockCode, null);
+    }
+
     private void handleStockBuy(Long accountId, SimEvent e, Map<String, double[]> stockPaths, LocalDateTime start,
-                                 BrokerageDto brokerage, long[] cash, Map<String, RunningStockPosition> positions) {
+                                 BrokerageDto brokerage, long[] cash, Map<String, RunningStockPosition> positions,
+                                 double fractionMin, double fractionMax) {
         double[] path = stockPaths.get(e.stockCode);
         int price = (int) Math.round(path[weekOf(start, e.at)]);
         if (price <= 0 || cash[0] <= 0) {
             return;
         }
-        double positionFraction = 0.05 + random.nextDouble() * 0.15; // 잔고의 5~20%
+        double positionFraction = fractionMin + random.nextDouble() * (fractionMax - fractionMin);
         long budget = (long) (cash[0] * positionFraction);
         long quantity = budget / price;
         if (quantity <= 0) {
@@ -354,14 +542,16 @@ public class DemoDataService {
     }
 
     private void handleStockSell(Long accountId, SimEvent e, Map<String, double[]> stockPaths, LocalDateTime start,
-                                  BrokerageDto brokerage, long[] cash, Map<String, RunningStockPosition> positions) {
+                                  BrokerageDto brokerage, long[] cash, Map<String, RunningStockPosition> positions,
+                                  double fractionMin, double fractionMax) {
         RunningStockPosition pos = positions.get(e.stockCode);
         if (pos == null || pos.quantity <= 0) {
             return;
         }
         double[] path = stockPaths.get(e.stockCode);
         int price = (int) Math.round(path[weekOf(start, e.at)]);
-        long sellQty = Math.max(1, (long) (pos.quantity * (0.3 + random.nextDouble() * 0.5)));
+        double sellFraction = fractionMin + random.nextDouble() * (fractionMax - fractionMin);
+        long sellQty = Math.max(1, (long) (pos.quantity * sellFraction));
         sellQty = Math.min(sellQty, pos.quantity);
         long amount = (long) price * sellQty;
         int fee = feeOf(brokerage, amount);
