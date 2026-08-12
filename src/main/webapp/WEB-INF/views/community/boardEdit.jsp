@@ -108,7 +108,7 @@
     // [하이퍼링크-2] 수정된 링크를 포함한 Quill HTML을 일반 POST 폼의 content로 옮긴다.
     // 글 수정은 board.js의 AJAX가 아니라 이 폼의 기존 POST 제출 방식을 사용한다.
     document.getElementById('board-edit-form').addEventListener('submit', function () {
-        document.getElementById('content').value = quill.getSemanticHTML();
+        document.getElementById('content').value = quill.root.innerHTML
     });
 </script>
 <script src="${pageContext.request.contextPath}/js/board.js?v=14"></script>
