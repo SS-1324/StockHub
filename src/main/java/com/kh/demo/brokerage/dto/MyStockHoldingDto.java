@@ -12,6 +12,7 @@ public class MyStockHoldingDto {
 
     private String stockCode;
     private String stockName;
+    private String exchange;   // 거래소 코드(NASDAQ/NYSE 등). 국내 종목은 null
     private Long quantity;
     private BigDecimal avgPrice;
     private Long currentPrice;

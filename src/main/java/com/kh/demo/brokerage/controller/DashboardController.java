@@ -46,6 +46,7 @@ public class DashboardController {
     private final BrokerageService brokerageService;
     private final GoalService goalService;
     private final MemberService memberService;
+    private final PortfolioAnalyticsService portfolioAnalyticsService;
 
     public DashboardController(MyStockService myStockService,
                                 MyProductService myProductService,
@@ -56,7 +57,8 @@ public class DashboardController {
                                 AccountService accountService,
                                 BrokerageService brokerageService,
                                 GoalService goalService,
-                                MemberService memberService) {
+                                MemberService memberService,
+                                PortfolioAnalyticsService portfolioAnalyticsService) {
         this.myStockService = myStockService;
         this.myProductService = myProductService;
         this.tradeService = tradeService;
@@ -67,6 +69,7 @@ public class DashboardController {
         this.brokerageService = brokerageService;
         this.goalService = goalService;
         this.memberService = memberService;
+        this.portfolioAnalyticsService = portfolioAnalyticsService;
     }
 
     @GetMapping("/member/dashboard")
@@ -88,10 +91,7 @@ public class DashboardController {
         // 총손익 = 총자산 - 총투자원금 (실현손익까지 자동으로 포함되는, 실제 증권사와 동일한 정의)
         PeriodProfitDto periodProfit = realizedProfitService.getMyPeriodProfit(memberId, totalAsset);
         long totalProfit = periodProfit.getAll();
-        BigDecimal totalReturnRate = periodProfit.getTotalPrincipal() <= 0
-                ? BigDecimal.ZERO
-                : BigDecimal.valueOf(totalProfit * 100)
-                        .divide(BigDecimal.valueOf(periodProfit.getTotalPrincipal()), 2, RoundingMode.HALF_UP);
+        BigDecimal totalReturnRate = periodProfit.getAllRate();
 
         model.addAttribute("member", memberService.getMemberProfile(memberId));
         model.addAttribute("myAccounts", accountService.getMyAccounts(memberId));
@@ -111,6 +111,7 @@ public class DashboardController {
         model.addAttribute("totalAsset", totalAsset);
         model.addAttribute("totalProfit", totalProfit);
         model.addAttribute("totalReturnRate", totalReturnRate);
+        model.addAttribute("portfolioAnalytics", portfolioAnalyticsService.getMyPortfolioAnalytics(memberId, stockSummary));
 
         return "member/dashboard";
     }
