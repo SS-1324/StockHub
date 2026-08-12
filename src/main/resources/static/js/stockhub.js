@@ -238,6 +238,12 @@ function setupChatPanel(initialStockCode) {
         panel.classList.toggle('open', isOpen);
         panel.setAttribute('aria-hidden', String(!isOpen));
         toggleBtn.setAttribute('aria-label', isOpen ? '채팅 닫기' : '채팅 열기');
+        if (isOpen) {
+            // 패널이 display:none인 동안에는 scrollHeight가 0이라 최초 메시지 로드 때
+            // 맨 아래로 스크롤한 게 반영되지 않으므로, 열리는 시점에 다시 맞춰줌
+            // (그래야 패널을 열었을 때 가장 오래된 메시지가 아니라 최신 메시지부터 보임)
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
     }
 
     // 메시지 목록을 안내 문구 한 줄로 교체 (연결 중/빈 채팅방/에러 상태 표시용)
