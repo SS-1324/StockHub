@@ -1713,7 +1713,8 @@ html[data-theme="dark"] .login-member-links{
         padding: 9px 12px;
     }
 
-    .main-nav-community{
+    .main-nav-community,
+    .main-nav-dictionary{
         width: 100%;
     }
 
@@ -1733,7 +1734,9 @@ html[data-theme="dark"] .login-member-links{
 
     /* 모바일 메뉴에서는 데스크톱의 가운데 정렬 이동값을 없애고 전체 폭으로 표시 */
     .main-nav-community:hover .community-dropdown,
-    .main-nav-community:focus-within .community-dropdown{
+    .main-nav-community:focus-within .community-dropdown,
+    .main-nav-dictionary:hover .dictionary-dropdown,
+    .main-nav-dictionary:focus-within .dictionary-dropdown{
         display: grid;
         opacity: 1;
         pointer-events: auto;
