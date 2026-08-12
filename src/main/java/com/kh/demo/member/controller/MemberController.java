@@ -247,6 +247,10 @@ public class MemberController {
             MemberDto member = memberService.login(memberId, memberPwd);
             // 로그인 회원 정보를 세션에 저장
             session.setAttribute(SessionConst.LOGIN_MEMBER, member);
+            // ADMIN 권한이면 세션 만료 시간을 무제한(-1)으로 설정
+            if (isAdmin(member)) {
+                session.setMaxInactiveInterval(-1); // 세션 만료 없음
+            }
             clearProfileEditVerification(session);
         } catch (IllegalStateException e) {
             // 로그인 실패 메시지를 전달

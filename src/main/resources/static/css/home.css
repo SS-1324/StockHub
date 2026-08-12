@@ -868,3 +868,58 @@ html[data-theme="dark"] .home-ranking-avatar{
         display: none;
     }
 }
+
+/* ========================================
+   세션 타이머 위치 보정 (프로필 링 높이 대응)
+   ======================================== */
+
+.header-session-timer {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px;
+    margin-left: 20px;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    position: relative !important;
+    top: -11px !important;
+}
+
+#header-session-remaining-time {
+    color: #1565C0;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.5px;
+    margin: 0 !important;
+    line-height: 1 !important;
+}
+
+.session-extend-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    color: #2196F3 !important;
+    border: none !important;
+    padding: 2px !important;
+    font-size: 13px !important; /* 아이콘 크기 */
+    cursor: pointer;
+    line-height: 1 !important;
+    margin: 0 !important;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+/* 마우스 올렸을 때 아이콘이 살짝 돌아가는 효과 */
+.session-extend-btn:hover {
+    color: #1565C0 !important;
+    transform: rotate(90deg);
+}
+
+/* 경고 / 긴급 상태 */
+.header-session-timer.warning #header-session-remaining-time { color: #ff9800; }
+.header-session-timer.critical #header-session-remaining-time { color: #dc3545; animation: session-pulse 0.8s infinite; }
+
+@keyframes session-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
