@@ -20,6 +20,13 @@ public interface StockChatMapper {
             @Param("limit") int limit
     );
 
+    // chat_id 기준 이전(과거) 채팅을 최신순으로 조회 (무한스크롤 페이지네이션용)
+    List<ChatMessageDto> selectOlderChats(
+            @Param("stockCode") String stockCode,
+            @Param("beforeChatId") Long beforeChatId,
+            @Param("limit") int limit
+    );
+
     // 기준 시각(before)보다 오래된 채팅을 모두 삭제하고 삭제된 건수를 반환
     int deleteChatsBefore(@Param("before") LocalDateTime before);
 }
