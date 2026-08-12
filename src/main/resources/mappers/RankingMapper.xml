@@ -5,6 +5,27 @@
 
 <mapper namespace="com.kh.demo.ranking.mapper.RankingMapper">
 
+    <!--
+        account 통계 컬럼은 거래마다 갱신된다는 보장이 없으므로 랭킹에서 사용하지 않는다.
+        보유 수량/평균 매입가와 종목 현재가를 조인해 회원별 평가손익을 조회 시점에 계산한다.
+    -->
+    <sql id="livePortfolioByMember">
+        SELECT al.member_id,
+               CAST(SUM(CAST(h.quantity AS SIGNED)) AS SIGNED) AS holding_quantity,
+               CAST(SUM(
+                   (CAST(s.current_price AS SIGNED) - CAST(h.avg_price AS SIGNED))
+                   * CAST(h.quantity AS SIGNED)
+               ) AS SIGNED) AS profit_amount,
+               SUM(CAST(h.avg_price AS DECIMAL(38, 0)) * h.quantity) AS purchase_amount
+        FROM account_link al
+        JOIN holding h
+          ON h.account_id = al.account_id
+         AND h.quantity > 0
+        JOIN stock s
+          ON s.stock_code = h.stock_code
+        GROUP BY al.member_id
+    </sql>
+
     <select id="selectRankingBoard"
             resultType="com.kh.demo.ranking.dto.RankingDto">
 
@@ -15,12 +36,15 @@
         <choose>
             <!-- true면 수익금순 -->
             <when test="sortByProfit">
-                COALESCE(SUM(a.profit_amount), 0) DESC,
+                COALESCE(p.profit_amount, 0) DESC,
             </when>
 
             <!-- false면 수익률순 -->
             <otherwise>
-                COALESCE(SUM(a.return_rate), 0) DESC,
+                CASE
+                    WHEN COALESCE(p.purchase_amount, 0) = 0 THEN 0
+                    ELSE p.profit_amount * 100.0 / p.purchase_amount
+                END DESC,
             </otherwise>
         </choose>
 
@@ -38,20 +62,22 @@
         ELSE 'N'
         END AS tradeHistoryPublicYn,
 
-        COALESCE(SUM(a.return_rate), 0) AS returnRate,
-        COALESCE(SUM(a.holding_stock_quantity), 0) AS holdingQuantity,
-        COALESCE(SUM(a.profit_amount), 0) AS profit
+        CASE
+            WHEN COALESCE(p.purchase_amount, 0) = 0 THEN 0
+            ELSE p.profit_amount * 100.0 / p.purchase_amount
+        END AS returnRate,
+        COALESCE(p.holding_quantity, 0) AS holdingQuantity,
+        COALESCE(p.profit_amount, 0) AS profit
 
         FROM member m
 
         LEFT JOIN settings s
         ON s.member_id = m.member_id
 
-        LEFT JOIN account_link al
-        ON al.member_id = m.member_id
-
-        LEFT JOIN account a
-        ON a.account_id = al.account_id
+        LEFT JOIN (
+            <include refid="livePortfolioByMember" />
+        ) p
+        ON p.member_id = m.member_id
 
         WHERE m.member_role = 'USER'
         <!--
@@ -61,12 +87,6 @@
             settings 행이 없는 회원은 기본값 FALSE로 처리하여 비공개로 간주한다.
         -->
         AND COALESCE(s.is_stock_public, FALSE) = TRUE
-
-        GROUP BY
-        m.member_id,
-        m.nickname,
-        m.profile,
-        s.is_stock_public
 
         ORDER BY rankPosition ASC
 
@@ -81,19 +101,21 @@
         FROM (
             SELECT m.member_id,
                    ROW_NUMBER() OVER (
-                       ORDER BY COALESCE(SUM(a.return_rate), 0) DESC,
+                       ORDER BY CASE
+                                    WHEN COALESCE(p.purchase_amount, 0) = 0 THEN 0
+                                    ELSE p.profit_amount * 100.0 / p.purchase_amount
+                                END DESC,
                                 m.member_id ASC
                    ) AS rank_position
             FROM member m
             LEFT JOIN settings s
                    ON s.member_id = m.member_id
-            LEFT JOIN account_link al
-                   ON al.member_id = m.member_id
-            LEFT JOIN account a
-                   ON a.account_id = al.account_id
+            LEFT JOIN (
+                <include refid="livePortfolioByMember" />
+            ) p
+                   ON p.member_id = m.member_id
             WHERE m.member_role = 'USER'
               AND COALESCE(s.is_stock_public, FALSE) = TRUE
-            GROUP BY m.member_id
         ) ranked
         WHERE ranked.member_id = #{memberId}
           AND ranked.rank_position &lt;= 3
@@ -112,10 +134,13 @@
                        ORDER BY
                        <choose>
                            <when test="sortByProfit">
-                               COALESCE(SUM(a.profit_amount), 0) DESC,
+                               COALESCE(p.profit_amount, 0) DESC,
                            </when>
                            <otherwise>
-                               COALESCE(SUM(a.return_rate), 0) DESC,
+                               CASE
+                                   WHEN COALESCE(p.purchase_amount, 0) = 0 THEN 0
+                                   ELSE p.profit_amount * 100.0 / p.purchase_amount
+                               END DESC,
                            </otherwise>
                        </choose>
                        m.member_id ASC
@@ -123,13 +148,12 @@
             FROM member m
             LEFT JOIN settings s
                    ON s.member_id = m.member_id
-            LEFT JOIN account_link al
-                   ON al.member_id = m.member_id
-            LEFT JOIN account a
-                   ON a.account_id = al.account_id
+            LEFT JOIN (
+                <include refid="livePortfolioByMember" />
+            ) p
+                   ON p.member_id = m.member_id
             WHERE m.member_role = 'USER'
               AND COALESCE(s.is_stock_public, FALSE) = TRUE
-            GROUP BY m.member_id
         ) ranked
         WHERE ranked.member_id = #{memberId}
           AND ranked.rank_position &lt;= 3
@@ -139,18 +163,20 @@
     <select id="selectProfileInvestmentSummary"
             resultType="com.kh.demo.ranking.dto.RankingDto">
         SELECT m.member_id AS memberId,
-               COALESCE(SUM(a.return_rate), 0) AS returnRate,
-               COALESCE(SUM(a.profit_amount), 0) AS profit
+               CASE
+                   WHEN COALESCE(p.purchase_amount, 0) = 0 THEN 0
+                   ELSE p.profit_amount * 100.0 / p.purchase_amount
+               END AS returnRate,
+               COALESCE(p.profit_amount, 0) AS profit
         FROM member m
         JOIN settings s
           ON s.member_id = m.member_id
          AND COALESCE(s.is_stock_public, FALSE) = TRUE
-        LEFT JOIN account_link al
-          ON al.member_id = m.member_id
-        LEFT JOIN account a
-          ON a.account_id = al.account_id
+        LEFT JOIN (
+            <include refid="livePortfolioByMember" />
+        ) p
+          ON p.member_id = m.member_id
         WHERE m.member_id = #{memberId}
-        GROUP BY m.member_id
     </select>
 
 </mapper>

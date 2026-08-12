@@ -94,21 +94,21 @@
         LIMIT #{size}
     </select>
 
-    <!-- 인기글은 최근 24시간에 작성된 공개 게시글을 누적 조회수로 정렬한다. -->
+    <!-- 주간 인기글: 최근 7일간 공개 게시글을 누적 조회수로 정렬한다. -->
     <select id="selectPopularBoards" resultType="com.kh.demo.community.dto.BoardDto">
         SELECT b.board_id,
-               b.category,
-               b.title,
-               b.content,
-               b.count,
-               b.like_count,
-               (SELECT COUNT(*) FROM board_comment bc WHERE bc.board_id = b.board_id) AS comment_count,
-               b.create_at,
-               DATE_FORMAT(b.create_at, '%Y-%m-%d %H:%i') AS create_at_str
+        b.category,
+        b.title,
+        b.content,
+        b.count,
+        b.like_count,
+        (SELECT COUNT(*) FROM board_comment bc WHERE bc.board_id = b.board_id) AS comment_count,
+        b.create_at,
+        DATE_FORMAT(b.create_at, '%Y-%m-%d %H:%i') AS create_at_str
         FROM board b
         WHERE b.is_hidden = FALSE
-          AND b.category &lt;&gt; 'trade'
-          AND b.create_at &gt;= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+        AND b.category &lt;&gt; 'trade'
+        AND b.create_at &gt;= DATE_SUB(NOW(), INTERVAL 7 DAY)
         ORDER BY b.count DESC, b.create_at DESC
         LIMIT #{size}
     </select>

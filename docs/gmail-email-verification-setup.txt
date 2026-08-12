@@ -1,0 +1,145 @@
+StockHub Gmail 이메일 인증 설정 방법
+=====================================
+
+중요
+----
+- Gmail의 일반 로그인 비밀번호를 프로젝트에 입력하지 않습니다.
+- Google에서 발급한 16자리 앱 비밀번호를 사용합니다.
+- Gmail 주소나 앱 비밀번호를 application.properties, Java 코드, Git 커밋에 직접 적지 않습니다.
+- 앱 비밀번호는 다른 사람에게 보내거나 화면을 공유하지 않습니다.
+
+1. 메일 발송용 Gmail 계정 준비
+-----------------------------
+1) https://myaccount.google.com/ 에 접속합니다.
+2) StockHub 인증메일을 보낼 Gmail 계정으로 로그인합니다.
+3) 개인 Gmail 계정을 권장합니다. 학교·회사 계정은 관리자가 앱 비밀번호를 막았을 수 있습니다.
+
+2. Google 2단계 인증 켜기
+------------------------
+1) Google 계정 화면에서 왼쪽의 '보안'을 누릅니다.
+2) 'Google에 로그인하는 방법'에서 '2단계 인증'을 누릅니다.
+3) 휴대전화 또는 Google 메시지 등을 이용해 2단계 인증을 완료합니다.
+4) 2단계 인증이 '사용' 상태인지 확인합니다.
+
+3. StockHub용 앱 비밀번호 발급
+-----------------------------
+1) https://myaccount.google.com/apppasswords 로 이동합니다.
+2) Google 계정 비밀번호로 본인 확인을 합니다.
+3) 앱 이름에 StockHub를 입력합니다.
+4) '만들기'를 누릅니다.
+5) 화면에 한 번 표시되는 16자리 앱 비밀번호를 안전한 곳에 복사합니다.
+6) 환경변수에 입력할 때는 화면에 보이는 공백을 제외한 16자리 값만 사용합니다.
+
+앱 비밀번호 메뉴가 보이지 않는 경우
+-----------------------------------
+- Google 계정의 2단계 인증이 아직 켜지지 않았는지 확인합니다.
+- 학교·회사 등 조직 계정이면 관리자가 앱 비밀번호를 막았을 수 있습니다.
+- 고급 보호 프로그램을 사용하거나 보안 키만으로 2단계 인증을 설정한 계정은 앱 비밀번호를 만들 수 없을 수 있습니다.
+
+4. IntelliJ에 환경변수 입력
+---------------------------
+1) IntelliJ에서 StockHub 프로젝트를 엽니다.
+2) 상단 메뉴에서 Run > Edit Configurations...를 누릅니다.
+3) 왼쪽에서 DemoApplication 실행 구성을 선택합니다.
+4) Environment variables 항목을 찾습니다.
+   - 항목이 안 보이면 Modify options를 눌러 Environment variables를 켭니다.
+5) 오른쪽의 편집 버튼을 누르고 아래 두 변수를 각각 추가합니다.
+
+   이름: STOCKHUB_MAIL_USERNAME
+   값: 메일을 발송할 전체 Gmail 주소
+
+   이름: STOCKHUB_MAIL_APP_PASSWORD
+   값: Google에서 발급받은 앱 비밀번호 16자리(공백 제외)
+
+6) Apply > OK를 누릅니다.
+7) 실행 중인 StockHub 서버를 완전히 중지한 뒤 다시 실행합니다.
+
+예시 이름만 확인하세요. 실제 값은 프로젝트 파일에 적지 않습니다.
+
+STOCKHUB_MAIL_USERNAME=stockhub.example@gmail.com
+STOCKHUB_MAIL_APP_PASSWORD=Google에서_발급받은_앱_비밀번호
+
+5. PowerShell에서 임시로 실행하는 방법
+------------------------------------
+IntelliJ 대신 PowerShell에서 실행하려면 프로젝트 폴더에서 아래 형식으로 입력합니다.
+이 값은 현재 PowerShell 창에서만 유지됩니다.
+
+$env:STOCKHUB_MAIL_USERNAME="메일을_발송할_Gmail_주소"
+$env:STOCKHUB_MAIL_APP_PASSWORD="공백을_제외한_16자리_앱_비밀번호"
+.\mvnw.cmd spring-boot:run
+
+6. 프로젝트에 적용된 Gmail SMTP 설정
+-----------------------------------
+application.properties에는 다음과 같이 환경변수 이름만 연결되어 있습니다.
+
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=${STOCKHUB_MAIL_USERNAME:}
+spring.mail.password=${STOCKHUB_MAIL_APP_PASSWORD:}
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.starttls.required=true
+
+환경변수를 등록하지 않으면 서버는 실행할 수 있지만 인증 버튼을 눌렀을 때
+'메일 발송 계정이 설정되지 않았습니다.'라는 오류가 표시됩니다.
+
+7. 이메일 인증 테스트 순서
+-------------------------
+1) IntelliJ의 Maven 창에서 '모든 Maven 프로젝트 다시 로드'를 누릅니다.
+2) 실행 중인 StockHub 서버를 중지합니다.
+3) 상단 메뉴의 '빌드 > 프로젝트 다시 빌드'를 누른 뒤 서버를 다시 실행합니다.
+4) 브라우저에서 Ctrl+F5를 눌러 CSS와 JavaScript 캐시를 새로 받습니다.
+5) StockHub 서버와 MySQL이 모두 실행 중인지 확인합니다.
+6) 회원가입 화면으로 이동합니다.
+7) member 테이블에 아직 없는 이메일을 입력합니다.
+8) '인증'을 누릅니다.
+9) '인증번호가 발송되었습니다.'가 초록색으로 표시되는지 확인합니다.
+10) 인증코드 입력란 → 파란색 3:00 타이머 → 확인 버튼 순서로 나타나는지 확인합니다.
+11) 타이머가 3:00, 2:59, 2:58 순서로 감소하는지 확인합니다.
+12) 받은편지함에서 '[StockHub] 이메일 인증번호 안내' 메일을 확인합니다.
+13) 메일이 없다면 스팸함과 프로모션함도 확인합니다.
+14) 틀린 번호를 입력하면 '잘못된 코드입니다.'가 빨간색으로 표시되는지 확인합니다.
+15) 올바른 번호를 입력하면 '사용가능한 이메일입니다.'가 초록색으로 표시되는지 확인합니다.
+16) 3분이 지나면 '인증 시간이 지났습니다. 코드를 재발급받으세요.'가 빨간색으로 표시되는지 확인합니다.
+17) 이미 가입된 이메일로 인증을 요청하면 '사용불가한 이메일입니다.'가 빨간색으로 표시되는지 확인합니다.
+
+화면에 '개발모드 인증코드'가 계속 보이는 경우
+--------------------------------------------
+이 문구는 Gmail 설정 문제가 아니라 예전 서버 코드 또는 예전 화면 파일이 실행 중이라는 뜻입니다.
+서버를 중지하고 이메일 수정 ZIP의 폴더 구조를 그대로 덮어쓴 뒤 Maven 다시 로드,
+'빌드 > 프로젝트 다시 빌드', 서버 재실행, 브라우저 Ctrl+F5를 순서대로 진행합니다.
+
+8. 자주 발생하는 오류
+---------------------
+- '메일 발송 계정이 설정되지 않았습니다.'
+  IntelliJ 실행 구성에 두 환경변수가 없거나 서버를 재시작하지 않은 상태입니다.
+
+- 'Username and Password not accepted' 또는 AuthenticationFailedException
+  일반 Gmail 비밀번호를 입력했거나, 앱 비밀번호의 공백을 제거하지 않았거나,
+  Gmail 주소와 앱 비밀번호를 서로 다른 계정에서 가져온 경우입니다.
+
+- 앱 비밀번호를 발급한 뒤 Google 계정 비밀번호를 변경함
+  Google은 기존 앱 비밀번호를 취소할 수 있으므로 새 앱 비밀번호를 발급해 환경변수를 바꿉니다.
+
+- SMTP 연결 시간 초과
+  현재 네트워크 또는 방화벽에서 smtp.gmail.com의 587 포트를 막는지 확인합니다.
+  Windows PowerShell에서 다음 명령을 실행할 수 있습니다.
+
+  Test-NetConnection smtp.gmail.com -Port 587
+
+  TcpTestSucceeded가 True면 포트 연결이 가능하고, False면 네트워크나 방화벽을 확인합니다.
+
+- 인증 버튼을 눌렀는데 화면에 실패 문구만 표시됨
+  IntelliJ 실행 창에서 'Gmail SMTP 인증번호 발송 실패' 바로 아래의 예외 이름을 확인합니다.
+  AuthenticationFailedException이면 Gmail 주소 또는 앱 비밀번호 문제이고,
+  MailConnectException이나 timeout이면 네트워크·방화벽 문제일 가능성이 큽니다.
+
+- Gmail 주소와 앱 비밀번호 확인
+  STOCKHUB_MAIL_USERNAME은 @gmail.com까지 포함한 전체 주소여야 합니다.
+  STOCKHUB_MAIL_APP_PASSWORD는 같은 Gmail 계정에서 발급한 16자리 값이어야 하며 공백은 제외합니다.
+  비밀번호를 콘솔에 출력하거나 채팅·Git으로 공유하지 않습니다.
+
+공식 안내
+--------
+- Google 앱 비밀번호: https://support.google.com/mail/answer/185833?hl=ko
+- Spring Boot 이메일 발송: https://docs.spring.io/spring-boot/reference/io/email.html
