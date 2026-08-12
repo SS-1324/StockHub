@@ -49,6 +49,8 @@
         // board 테이블 컬럼 크기에 맞춘 길이 제한
         private static final int MAX_TITLE_LENGTH = 200;
         private static final int MAX_CONTENT_LENGTH = 3000;
+        // 검색어가 너무 길면 공백 기준으로 쪼갠 단어 수만큼 LIKE 조건이 늘어나므로 상한을 둔다
+        private static final int MAX_KEYWORD_LENGTH = 100;
         /*
          * HOT·인기글은 제목이 없을 때 본문 일부를 대신 표시한다.
          * 서버에서 최대 길이와 최소 단어 경계를 함께 관리해 JSP와 CSS가 임의로 문자열을 자르지 않게 한다.
@@ -185,17 +187,9 @@
         ) {
             int safePage = Math.max(page, 1);
             int offset = (safePage - 1) * size;
-    
-            List<String> keywords;
-    
-            if (keyword == null || keyword.isBlank()) {
-                keywords = List.of();
-            } else {
-                keywords = Arrays.asList(
-                        keyword.trim().split("\\s+")
-                );
-            }
-    
+
+            List<String> keywords = splitKeywords(keyword);
+
             List<BoardDto> boardList
                     = boardMapper.selectBoardList(
                     category,
@@ -233,20 +227,26 @@
                 String category,
                 String keyword
         ) {
-            List<String> keywords;
-    
-            if (keyword == null || keyword.isBlank()) {
-                keywords = List.of();
-            } else {
-                keywords = Arrays.asList(
-                        keyword.trim().split("\\s+")
-                );
-            }
-    
+            List<String> keywords = splitKeywords(keyword);
+
             return boardMapper.selectBoardCount(
                     category,
                     keywords
             );
+        }
+
+        // 검색어를 공백 기준으로 쪼개기 전에 길이를 잘라, 지나치게 긴 입력이 AND 조건을 과도하게 늘리는 것을 막는다
+        private List<String> splitKeywords(String keyword) {
+            if (keyword == null || keyword.isBlank()) {
+                return List.of();
+            }
+
+            String trimmed = keyword.trim();
+            if (trimmed.length() > MAX_KEYWORD_LENGTH) {
+                trimmed = trimmed.substring(0, MAX_KEYWORD_LENGTH);
+            }
+
+            return Arrays.asList(trimmed.split("\\s+"));
         }
     
         /* [커뮤니티위젯-1]
@@ -728,8 +728,7 @@
     
             if (!CATEGORY_LABELS.containsKey(category)) {
                 throw new IllegalArgumentException(
-                        "허용되지 않는 카테고리입니다: "
-                                + category
+                        "허용되지 않는 카테고리입니다."
                 );
             }
     

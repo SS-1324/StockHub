@@ -18,9 +18,14 @@
         c.comment_id, c.board_id, c.member_id, c.parent_comment_id, c.content,
         COALESCE(lc.like_count, 0) AS like_count,
         c.create_at, DATE_FORMAT(c.create_at, '%Y-%m-%d %H:%i') AS create_at_str,
-        m.nickname,
+        COALESCE(m.nickname, '탈퇴한 회원') AS nickname,
         COALESCE(NULLIF(m.profile, ''), '/images/common_member.png') AS profile,
-        pm.nickname AS parent_nickname
+        <!-- parent_comment_id가 없는(=답글이 아닌) 일반 댓글까지 '탈퇴한 회원'으로 채우면 안 되므로,
+             부모가 실제로 있을 때만 그 작성자의 탈퇴 여부에 따라 값을 채운다. -->
+        CASE
+            WHEN c.parent_comment_id IS NOT NULL THEN COALESCE(pm.nickname, '탈퇴한 회원')
+            ELSE NULL
+        END AS parent_nickname
     </sql>
 
     <sql id="commentJoins">

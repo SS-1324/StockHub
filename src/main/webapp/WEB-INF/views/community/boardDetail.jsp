@@ -13,10 +13,10 @@
     v 값은 CSS 내용을 바꾼 뒤 브라우저가 예전 파일을 재사용하지 않고 새로 받게 하는 캐시 갱신 번호다.
 --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css?v=51">
+      href="${pageContext.request.contextPath}/css/board.css?v=52">
 
 <c:if test="${not empty error}">
-    <p class="alert alert-error">${error}</p>
+    <p class="alert alert-error"><c:out value="${error}" /></p>
 </c:if>
 
 <%--
@@ -25,6 +25,8 @@
     본인 소유이거나(loginMemberId가 비어있지 않고 일치), ADMIN 권한이 있는 경우에만 노출.
 --%>
 <c:set var="isAdmin" value="${not empty sessionScope.loginMember and fn:toUpperCase(sessionScope.loginMember.memberRole) eq 'ADMIN'}" />
+
+<a class="board-back-link" href="${communityUrl}">&larr; 목록으로</a>
 
 <%--
     게시글 본문과 댓글은 서로 별개의 글이 아니라 하나의 대화 흐름이다.
