@@ -159,7 +159,7 @@
         <%-- [커뮤니티사이드바-2] 최근 24시간 게시글의 좋아요·댓글·조회수를 합산한 참여도 순위 --%>
         <section class="board-widget" aria-labelledby="hot-board-title">
             <div class="board-widget-heading">
-                <h3 id="hot-board-title">HOT 글</h3>
+                <h3 id="hot-board-title">오늘 HOT 글</h3>
                 <span class="board-widget-label is-hot">24H</span>
             </div>
             <ol class="board-widget-list">
@@ -188,15 +188,15 @@
             </ol>
         </section>
 
-        <%-- [커뮤니티사이드바-3] 최근 24시간 게시글의 누적 조회수 기준 인기글 --%>
+        <%-- [커뮤니티사이드바-3] 최근 7일 게시글의 누적 조회수 기준 인기글 --%>
         <section class="board-widget" aria-labelledby="popular-board-title">
             <div class="board-widget-heading">
-                <h3 id="popular-board-title">인기글</h3>
-                <span class="board-widget-label">24시간</span>
+                <h3 id="popular-board-title">주간 인기글</h3>
+                <span class="board-widget-label">7일</span>
             </div>
             <ol class="board-widget-list">
                 <c:if test="${empty popularBoards}">
-                    <li class="board-widget-empty">최근 24시간 인기글이 없습니다.</li>
+                    <li class="board-widget-empty">최근 일주일동안 인기글이 없습니다.</li>
                 </c:if>
                 <c:forEach var="popularBoard" items="${popularBoards}" end="2" varStatus="status">
                     <li>

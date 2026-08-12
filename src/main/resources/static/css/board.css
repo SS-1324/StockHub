@@ -636,6 +636,7 @@ html[data-theme="dark"] .board-widget-label.is-hot{
 .board-card-nickname{
     font-size: 12px;
     font-weight: 700;
+    color: var(--board-text);
 }
 
 .board-card-date{
