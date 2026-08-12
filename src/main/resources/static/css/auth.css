@@ -600,6 +600,44 @@ html[data-theme="dark"] .auth-visual-image-dark{
     font-weight: 700;
 }
 
+/* 인증코드 입력란 → 파란색 타이머 → 확인 버튼 순서로 한 줄에 배치 */
+.auth-page .email-code-controls{
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.auth-page .email-code-controls input{
+    width: 100%;
+    min-width: 0;
+}
+
+.auth-page .email-code-controls .btn{
+    width: auto;
+    min-width: 64px;
+    align-self: center;
+    padding-right: 14px;
+    padding-left: 14px;
+}
+
+.auth-page .email-verification-timer{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    color: #0874f7;
+    font-size: 13px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+}
+
+.auth-page .email-verification-timer.is-expired{
+    color: #dc2626;
+}
+
 .auth-reset-form{
     gap: 18px;
 }
@@ -869,6 +907,12 @@ html[data-theme="dark"] .auth-page .form-tip{
     color: #94a3b8;
 }
 
+/* 다크 모드에서도 인증 성공·실패 문구가 각각 초록색·빨간색으로 보이게 유지 */
+html[data-theme="dark"] .auth-page .form-tip-ok{ color: #4ade80; }
+html[data-theme="dark"] .auth-page .form-tip-error{ color: #f87171; }
+html[data-theme="dark"] .auth-page .email-verification-timer{ color: #93c5fd; }
+html[data-theme="dark"] .auth-page .email-verification-timer.is-expired{ color: #f87171; }
+
 html[data-theme="dark"] .auth-page input[type="text"],
 html[data-theme="dark"] .auth-page input[type="password"],
 html[data-theme="dark"] .auth-page select,
@@ -956,5 +1000,17 @@ html[data-theme="dark"] .auth-page .login-form input:-webkit-autofill:focus{
 
     .auth-page .input-with-button .btn{
         width: 100%;
+    }
+
+    .auth-page .email-code-controls{
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        gap: 6px;
+    }
+
+    .auth-page .email-code-controls .btn{
+        width: auto;
+        min-width: 58px;
+        padding-right: 12px;
+        padding-left: 12px;
     }
 }

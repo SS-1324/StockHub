@@ -69,7 +69,7 @@
           AND member_id IS NULL
     </update>
 
-    <!-- 6자리 이메일 인증 코드를 5분 동안 유효하게 저장 -->
+    <!-- 6자리 이메일 인증 코드를 3분 동안 유효하게 저장 -->
     <insert id="insertEmailVerification">
         INSERT INTO email_verification (
             email,
@@ -78,9 +78,24 @@
         ) VALUES (
             #{email},
             #{code},
-            DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 5 MINUTE)
+            DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 3 MINUTE)
         )
     </insert>
+
+    <!-- 가장 최근 인증번호의 일치·만료·인증 완료 상태를 구분 -->
+    <select id="selectLatestEmailVerificationStatus" resultType="string">
+        SELECT CASE
+                   WHEN expired_at &lt;= CURRENT_TIMESTAMP THEN 'EXPIRED'
+                   WHEN code != #{code} THEN 'INVALID'
+                   WHEN is_verified = TRUE THEN 'VERIFIED'
+                   ELSE 'MATCHED'
+               END
+        FROM email_verification
+        WHERE email = #{email}
+          AND member_id IS NULL
+        ORDER BY verification_id DESC
+        LIMIT 1
+    </select>
 
     <!-- 유효한 이메일 인증 코드와 일치하면 인증 완료로 변경 -->
     <update id="verifyEmailCode">

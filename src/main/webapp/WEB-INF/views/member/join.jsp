@@ -33,7 +33,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap"
           rel="stylesheet">
     <link rel="stylesheet" href="${commonCssUrl}?v=30">
-    <link rel="stylesheet" href="${authCssUrl}?v=11">
+    <link rel="stylesheet" href="${authCssUrl}?v=12">
     <script src="${headerJsUrl}?v=17" defer></script>
 </head>
 <body class="auth-page auth-page-join">
@@ -65,7 +65,7 @@
                     <p class="alert alert-error auth-alert"><c:out value="${error}" /></p>
                 </c:if>
 
-                <%-- 회원 정보와 기존 개발용 이메일 인증 결과를 서버로 전송 --%>
+                <%-- 회원 정보와 Gmail 이메일 인증 결과를 서버로 전송 --%>
                 <form id="join-form" class="form auth-join-form"
                       action="${pageContext.request.contextPath}/member/join"
                       data-context-path="${pageContext.request.contextPath}"
@@ -177,18 +177,22 @@
                                     type="button">인증</button>
                         </div>
 
-                        <p id="email-result" class="form-tip"></p>
-                        <p class="form-tip">개발용 인증코드는 인증 버튼을 누르면 화면에 표시됩니다.</p>
+                        <p id="email-result" class="form-tip" role="status" aria-live="polite"></p>
+                        <p class="form-tip">입력한 이메일로 3분 동안 사용할 인증번호를 발송합니다.</p>
 
                         <div id="email-code-area" class="email-code-area" hidden>
-                            <div class="input-with-button">
+                            <div class="email-code-controls">
                                 <input id="email-code" type="text"
-                                       inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+                                       inputmode="text" pattern="[A-Z0-9]{6}" maxlength="6"
                                        placeholder="인증코드 6자리" autocomplete="one-time-code">
+                                <span id="email-verification-timer"
+                                      class="email-verification-timer"
+                                      aria-label="인증번호 남은 시간">3:00</span>
                                 <button id="verify-email-code-btn" class="btn btn-outline"
                                         type="button">확인</button>
                             </div>
-                            <p id="email-code-result" class="form-tip"></p>
+                            <p id="email-code-result" class="form-tip"
+                               role="status" aria-live="polite"></p>
                         </div>
                     </div>
 
@@ -206,6 +210,6 @@
     </section>
 </main>
 
-<script src="${pageContext.request.contextPath}/js/member.js?v=5"></script>
+<script src="${pageContext.request.contextPath}/js/member.js?v=7"></script>
 </body>
 </html>

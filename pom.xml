@@ -41,6 +41,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
+		<!-- Gmail SMTP를 통한 회원가입 이메일 인증번호 발송 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
 		<!-- 거래 허브 종목 채팅용 WebSocket(STOMP) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
