@@ -1,3 +1,38 @@
+// 모든 fetch(POST/PUT/DELETE/PATCH) 요청에 CSRF 토큰 헤더를 자동으로 붙인다.
+// header.js는 모든 페이지에서 가장 먼저 로드되므로, 다른 JS 파일들은 fetch 호출부를
+// 각각 수정할 필요 없이 여기서 한 번만 window.fetch를 감싸서 해결한다.
+(() => {
+    const tokenMeta = document.querySelector('meta[name="_csrf"]');
+    const headerMeta = document.querySelector('meta[name="_csrf_header"]');
+    if (!tokenMeta || !headerMeta) {
+        return;
+    }
+
+    const csrfToken = tokenMeta.content;
+    const csrfHeaderName = headerMeta.content;
+    const unsafeMethods = new Set(["POST", "PUT", "DELETE", "PATCH"]);
+    const originalFetch = window.fetch.bind(window);
+
+    window.fetch = (input, init = {}) => {
+        const method = (init.method || "GET").toUpperCase();
+        const url = typeof input === "string" ? input : input.url;
+
+        // 다른 사이트로 나가는 요청에는 우리 서버의 CSRF 토큰을 실어 보낼 이유가 없다.
+        const isSameOrigin = !/^https?:\/\//i.test(url) || url.startsWith(window.location.origin);
+
+        if (!unsafeMethods.has(method) || !isSameOrigin) {
+            return originalFetch(input, init);
+        }
+
+        const headers = new Headers(init.headers);
+        if (!headers.has(csrfHeaderName)) {
+            headers.set(csrfHeaderName, csrfToken);
+        }
+
+        return originalFetch(input, { ...init, headers });
+    };
+})();
+
 const root = document.documentElement;
 
 const saveTheme = (theme) => {

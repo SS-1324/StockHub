@@ -46,7 +46,7 @@
                   data-user-profile="${board.memberId}"
                   role="button"
                   tabindex="0"
-                  aria-label="${board.nickname} 프로필 보기">
+                  aria-label="${fn:escapeXml(board.nickname)} 프로필 보기">
 
             <c:choose>
 
@@ -58,7 +58,7 @@
 
                         <img class="board-card-avatar"
                              src="${board.profile}"
-                             alt="${board.nickname}">
+                             alt="${fn:escapeXml(board.nickname)}">
                     </span>
                 </c:when>
 
@@ -66,7 +66,7 @@
                 <c:otherwise>
                     <img class="board-card-avatar"
                          src="${board.profile}"
-                         alt="${board.nickname}">
+                         alt="${fn:escapeXml(board.nickname)}">
                 </c:otherwise>
 
             </c:choose>
@@ -75,7 +75,7 @@
 
             <div class="board-card-header-text">
                 <span class="board-card-nickname">
-                    ${board.nickname}
+                    <c:out value="${board.nickname}" />
                 </span>
 
                 <span class="board-card-date">
@@ -88,7 +88,12 @@
         <c:if test="${not empty board.title}">
             <div class="board-card-title"><c:out value="${board.title}" /></div>
         </c:if>
-        <div class="board-card-snippet"><c:out value="${board.content}" /></div>
+        <%--
+            홈 카드와 같은 formattedPreviewContent를 사용해야 bold·italic·underline·color·size가 유지된다.
+            이 값은 BoardServiceImpl에서 sanitizeContent()를 먼저 통과한 안전한 HTML이며,
+            일반 content를 c:out으로 출력하면 태그가 문자열로 처리되어 모든 서식이 사라진다.
+        --%>
+        <div class="board-card-snippet"><c:out value="${board.formattedPreviewContent}" escapeXml="false" /></div>
 
         <%-- [카드단일이미지-4] 본문 아래에 이미지를 배치한다.
              한 장은 single 클래스를 사용하지만 CSS에서 여러 장과 같은 높이·원본 비율·왼쪽 정렬을 적용한다. --%>

@@ -15,8 +15,11 @@
 
 <%-- 커뮤니티 전용 CSS --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css?v=48">
+      href="${pageContext.request.contextPath}/css/board.css?v=53">
 
+<c:if test="${not empty error}">
+    <p class="alert alert-error"><c:out value="${error}" /></p>
+</c:if>
 
 <%-- =========================================================
      게시판 제목
@@ -41,7 +44,7 @@
         </c:if>
 
         <div class="search-box">
-            <input type="text" name="keyword" value="${keyword}" placeholder="제목/내용 검색">
+            <input type="text" name="keyword" value="${keyword}" placeholder="제목/내용 검색" maxlength="100">
             <button type="submit" class="search-icon-btn" aria-label="검색">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                      xmlns="http://www.w3.org/2000/svg">
@@ -121,7 +124,11 @@
            href="${communityUrl}${not empty category
                    ? '?category='.concat(category)
                    : ''}">
-            전체보기
+            <%-- 카테고리가 유지된 채 이동하므로, 실제로 전체 카테고리로 가는 것처럼 오해하지 않도록 문구를 구분한다. --%>
+            <c:choose>
+                <c:when test="${not empty category}">이 카테고리 전체보기</c:when>
+                <c:otherwise>전체보기</c:otherwise>
+            </c:choose>
         </a>
 
     </div>
@@ -159,7 +166,7 @@
         <%-- [커뮤니티사이드바-2] 최근 24시간 게시글의 좋아요·댓글·조회수를 합산한 참여도 순위 --%>
         <section class="board-widget" aria-labelledby="hot-board-title">
             <div class="board-widget-heading">
-                <h3 id="hot-board-title">HOT 글</h3>
+                <h3 id="hot-board-title">오늘 HOT 글</h3>
                 <span class="board-widget-label is-hot">24H</span>
             </div>
             <ol class="board-widget-list">
@@ -188,15 +195,15 @@
             </ol>
         </section>
 
-        <%-- [커뮤니티사이드바-3] 최근 24시간 게시글의 누적 조회수 기준 인기글 --%>
+        <%-- [커뮤니티사이드바-3] 최근 7일 게시글의 누적 조회수 기준 인기글 --%>
         <section class="board-widget" aria-labelledby="popular-board-title">
             <div class="board-widget-heading">
-                <h3 id="popular-board-title">인기글</h3>
-                <span class="board-widget-label">24시간</span>
+                <h3 id="popular-board-title">주간 인기글</h3>
+                <span class="board-widget-label">7일</span>
             </div>
             <ol class="board-widget-list">
                 <c:if test="${empty popularBoards}">
-                    <li class="board-widget-empty">최근 24시간 인기글이 없습니다.</li>
+                    <li class="board-widget-empty">최근 일주일동안 인기글이 없습니다.</li>
                 </c:if>
                 <c:forEach var="popularBoard" items="${popularBoards}" end="2" varStatus="status">
                     <li>
@@ -218,18 +225,18 @@
         </section>
 
         <%-- [커뮤니티사이드바-4] 실제 광고 연동 전 사용하는 교체 가능한 내부 프로모션 영역 --%>
-        <a class="board-ad-widget" href="${tradeHubUrl}" aria-label="주식 거래 허브 바로가기">
+        <a class="board-ad-widget" href="${tradeHubUrl}" aria-label="주식 종목 라운지 바로가기">
             <span class="board-ad-label">AD</span>
             <strong>차트를 보며<br>투자 이야기를 확인하세요</strong>
             <small>실시간 차트와 관심 종목을 한곳에서</small>
-            <span class="board-ad-action">거래 허브 보기 →</span>
+            <span class="board-ad-action">종목 라운지 보기 →</span>
         </a>
     </aside>
 </div>
 
 
 <%-- 게시판 전용 JavaScript --%>
-<script src="${pageContext.request.contextPath}/js/board.js?v=11"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=15"></script>
 
 <%-- 공통 푸터 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

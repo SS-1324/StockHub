@@ -15,12 +15,17 @@
         댓글마다 comment_like를 서브쿼리로 세어서 like_count를 채운다.
     -->
     <sql id="commentColumns">
-        c.comment_id, c.board_id, c.member_id, c.parent_comment_id, c.content,
+        c.comment_id, c.board_id, c.member_id, c.parent_comment_id, c.content, c.is_deleted AS deleted,
         COALESCE(lc.like_count, 0) AS like_count,
         c.create_at, DATE_FORMAT(c.create_at, '%Y-%m-%d %H:%i') AS create_at_str,
-        m.nickname,
+        COALESCE(m.nickname, '탈퇴한 회원') AS nickname,
         COALESCE(NULLIF(m.profile, ''), '/images/common_member.png') AS profile,
-        pm.nickname AS parent_nickname
+        <!-- parent_comment_id가 없는(=답글이 아닌) 일반 댓글까지 '탈퇴한 회원'으로 채우면 안 되므로,
+             부모가 실제로 있을 때만 그 작성자의 탈퇴 여부에 따라 값을 채운다. -->
+        CASE
+            WHEN c.parent_comment_id IS NOT NULL THEN COALESCE(pm.nickname, '탈퇴한 회원')
+            ELSE NULL
+        END AS parent_nickname
     </sql>
 
     <sql id="commentJoins">
@@ -80,12 +85,13 @@
         board_comment.parent_comment_id와 board_id FK 모두 ON DELETE CASCADE로 걸려있어서
         (comment_like도 마찬가지) 자신의 행 하나만 지우면 답글/좋아요는 DB가 알아서 정리해준다.
     -->
-    <delete id="deleteById">
-        DELETE FROM board_comment
+    <update id="softDeleteById">
+        UPDATE board_comment
+        SET is_deleted = TRUE
         WHERE board_id = #{boardId}
-          AND comment_id = #{commentId}
-          AND member_id = #{memberId}
-    </delete>
+        AND comment_id = #{commentId}
+        AND member_id = #{memberId}
+    </update>
 
     <update id="updateByIdAsAdmin">
         UPDATE board_comment

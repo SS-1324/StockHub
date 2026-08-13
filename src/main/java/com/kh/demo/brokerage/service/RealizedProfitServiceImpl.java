@@ -48,15 +48,32 @@ public class RealizedProfitServiceImpl implements RealizedProfitService {
     @Override
     public PeriodProfitDto getMyPeriodProfit(String memberId, long currentTotalAsset) {
         LocalDate today = LocalDate.now();
-        long week = computePeriodProfit(memberId, currentTotalAsset, today.minusWeeks(1));
-        long month = computePeriodProfit(memberId, currentTotalAsset, today.minusMonths(1));
-        long year = computePeriodProfit(memberId, currentTotalAsset, today.minusYears(1));
+        LocalDate weekStart = today.minusWeeks(1);
+        LocalDate monthStart = today.minusMonths(1);
+        LocalDate yearStart = today.minusYears(1);
+
+        long week = computePeriodProfit(memberId, currentTotalAsset, weekStart);
+        long month = computePeriodProfit(memberId, currentTotalAsset, monthStart);
+        long year = computePeriodProfit(memberId, currentTotalAsset, yearStart);
 
         // 총손익(전체) = 지금 총자산 - 총 투자원금(처음부터 지금까지 순입금액)
         long totalPrincipal = cashTransactionService.getMyNetDeposits(memberId, null);
         long all = currentTotalAsset - totalPrincipal;
 
-        return new PeriodProfitDto(week, month, year, all, totalPrincipal);
+        // 기간 수익률은 "그 시점 총자산"(그 기간을 시작할 때 이미 갖고 있던 돈) 대비 %로 계산한다.
+        // "전체"만 예외로 총투자원금을 분모로 쓴다 - 계좌 개설 이전엔 시작 자산이라는 개념 자체가 없기 때문.
+        BigDecimal weekRate = rateOf(week, assetSnapshotMapper.selectTotalAssetAsOf(memberId, weekStart));
+        BigDecimal monthRate = rateOf(month, assetSnapshotMapper.selectTotalAssetAsOf(memberId, monthStart));
+        BigDecimal yearRate = rateOf(year, assetSnapshotMapper.selectTotalAssetAsOf(memberId, yearStart));
+        BigDecimal allRate = rateOf(all, totalPrincipal);
+
+        return new PeriodProfitDto(week, month, year, all, totalPrincipal, weekRate, monthRate, yearRate, allRate);
+    }
+
+    private BigDecimal rateOf(long profit, long baseline) {
+        return baseline <= 0
+                ? BigDecimal.ZERO
+                : BigDecimal.valueOf(profit * 100).divide(BigDecimal.valueOf(baseline), 2, RoundingMode.HALF_UP);
     }
 
     private long computePeriodProfit(String memberId, long currentTotalAsset, LocalDate periodStart) {
@@ -65,6 +82,17 @@ public class RealizedProfitServiceImpl implements RealizedProfitService {
         // 스냅샷에 이미 포함된 입출금이 여기서 또 한 번 빠지는 이중 차감을 막을 수 있다
         long netDepositsInPeriod = cashTransactionService.getMyNetDepositsSinceBaseline(memberId, periodStart);
         return (currentTotalAsset - baselineAsset) - netDepositsInPeriod;
+    }
+
+    // 목표 진행률처럼, 1주/1달/1년이 아닌 임의의 기준일부터 손익을 계산해야 하는 곳에서 재사용
+    @Override
+    public long getProfitSince(String memberId, long currentTotalAsset, LocalDate since) {
+        return computePeriodProfit(memberId, currentTotalAsset, since);
+    }
+
+    @Override
+    public long getBaselineAsset(String memberId, LocalDate since) {
+        return assetSnapshotMapper.selectTotalAssetAsOf(memberId, since);
     }
 
     // ==================== 주식 (가중평균 단가 재현) ====================

@@ -1,6 +1,7 @@
 package com.kh.demo.brokerage.mapper;
 
 import com.kh.demo.brokerage.dto.HoldingDto;
+import com.kh.demo.brokerage.dto.MyStockHoldingAccountDto;
 import com.kh.demo.brokerage.dto.MyStockHoldingDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -18,6 +19,10 @@ public interface HoldingMapper {
 
     // 로그인 회원의 모든 계좌를 종목별로 합산한 내 주식 화면용 보유내역
     List<MyStockHoldingDto> selectPortfolioHoldings(String memberId);
+
+    // 위와 같은 대상이지만 종목으로 합치지 않고 증권사(계좌)별로 한 줄씩 - 종목이 여러 증권사에
+    // 나뉘어 있을 때 펼쳐 보여주는 용도(합산 결과에 덧붙여 쓴다)
+    List<MyStockHoldingAccountDto> selectPortfolioHoldingsByAccount(String memberId);
 
     // 신규 보유 등록 (해당 계좌로 해당 종목을 처음 매수했을 때)
     int insertHolding(HoldingDto holdingDto);

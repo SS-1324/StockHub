@@ -17,7 +17,7 @@
 <c:url var="commonCssUrl" value="/css/common.css" />
 <c:url var="headerJsUrl" value="/js/header.js" />
 <c:url var="memberProfileApiUrl" value="/member/profile/" />
-
+<%-- JSP 내부 forward 경로가 아니라 브라우저가 요청한 실제 주소를 사용 --%>
 <c:set var="forwardRequestUri"
        value="${requestScope['jakarta.servlet.forward.request_uri']}" />
 <c:set var="requestUri"
@@ -28,9 +28,10 @@
 <%-- 커뮤니티용 주소 --%>
 <c:url var="communityUrl" value="/community" scope="request" />
 <c:url var="communityFreeUrl" value="/community?category=free" />
-<c:url var="communityTipUrl" value="/community?category=tip" />
-<c:url var="communityProfitUrl" value="/community?category=profit" />
-<c:url var="communityReviewUrl" value="/community?category=review" />
+<%-- DB에 저장된 기존 key는 유지하고 사용자에게 보이는 이름만 새 카테고리명으로 연결한다. --%>
+<c:url var="communityDiscussionUrl" value="/community?category=tip" />
+<c:url var="communityInfoUrl" value="/community?category=profit" />
+<c:url var="communityReflectionUrl" value="/community?category=review" />
 
 <%--용어사전용 주소--%>
 <c:url var="dictionaryTradingUrl" value="/dictionary/category/trading" />
@@ -40,6 +41,7 @@
 <c:url var="dictionaryFundamentalUrl" value="/dictionary/category/fundamental" />
 <c:url var="dictionaryChartUrl" value="/dictionary/category/chart" />
 
+<%-- 하위 주소에서도 현재 선택한 주요 메뉴가 유지되도록 주소 앞부분을 비교 --%>
 <c:url var="hubBaseUrl" value="/hub/" />
 <c:set var="homeMenuActive" value="${requestUri eq homeUrl}" />
 <c:set var="communityMenuActive" value="${fn:startsWith(requestUri, communityUrl)}" />
@@ -66,6 +68,9 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%-- header.js가 모든 fetch 요청에 자동으로 CSRF 헤더를 붙일 때 여기서 토큰 값을 읽는다. --%>
+    <meta name="_csrf" content="${_csrf.token}">
+    <meta name="_csrf_header" content="${_csrf.headerName}">
     <title>StockHub</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -74,6 +79,7 @@
           rel="stylesheet">
 
     <link rel="stylesheet" href="${commonCssUrl}?v=38">
+    <%-- 현재 화면에서 요청한 전용 CSS를 head 안에서 불러옴 --%>
     <c:if test="${not empty requestScope.pageCssUrl}">
         <link rel="stylesheet" href="${requestScope.pageCssUrl}">
     </c:if>
@@ -87,6 +93,7 @@
             <img src="${logoUrl}?v=2" alt="StockHub">
         </a>
 
+        <%-- 데스크톱·모바일에서 함께 사용하는 주요 페이지 메뉴 --%>
         <nav id="main-navigation" class="main-navigation" aria-label="주요 메뉴">
             <a class="main-nav-link ${homeMenuActive ? 'is-active' : ''}"
                href="${homeUrl}">홈</a>
@@ -98,9 +105,9 @@
                 <div class="community-dropdown">
                     <a href="${communityUrl}">전체</a>
                     <a href="${communityFreeUrl}">자유</a>
-                    <a href="${communityTipUrl}">팁 공유</a>
-                    <a href="${communityProfitUrl}">수익인증</a>
-                    <a href="${communityReviewUrl}">반성</a>
+                    <a href="${communityDiscussionUrl}">종목토론</a>
+                    <a href="${communityInfoUrl}">정보공유</a>
+                    <a href="${communityReflectionUrl}">반성일지</a>
                 </div>
             </div>
 
@@ -132,8 +139,10 @@
                 <span class="theme-dark-icon" aria-hidden="true">🌙</span>
             </button>
 
+            <%-- 로그인 여부에 따라 로그인 버튼 또는 회원 메뉴를 표시 --%>
             <c:choose>
                 <c:when test="${not empty sessionScope.loginMember}">
+                    <%-- 공통 모델의 수익률 순위를 기존 랭킹 CSS와 같은 클래스 이름으로 변환 --%>
                     <c:set var="headerRankClass" value="" />
                     <c:choose>
                         <c:when test="${headerRankPosition eq 1}">
@@ -151,6 +160,7 @@
                                 type="button"
                                 aria-expanded="false"
                                 aria-controls="header-profile-dropdown">
+                            <%-- 랭커는 프로필 이미지 바깥에 금·은·동 원형 프레임을 표시 --%>
                             <span class="header-profile-rank-frame ${headerRankClass}">
                                 <c:choose>
                                     <c:when test="${not empty sessionScope.loginMember.profile}">
@@ -177,6 +187,7 @@
                              class="header-profile-dropdown"
                              hidden>
                             <c:choose>
+                                <%-- 관리자는 관리자 페이지 외 회원 전용 메뉴를 사용하지 않음 --%>
                                 <c:when test="${fn:toUpperCase(sessionScope.loginMember.memberRole) eq 'ADMIN'}">
                                     <a href="${adminUrl}">관리자 페이지</a>
                                 </c:when>
@@ -221,6 +232,7 @@
     </div>
 </header>
 
+<%-- [프로필모달-1] 커뮤니티와 랭킹이 함께 쓰며, 실제 데이터는 클릭할 때 API로 채운다. --%>
 <div id="member-profile-modal"
      class="member-profile-modal-overlay"
      data-profile-api="${memberProfileApiUrl}"
@@ -246,6 +258,7 @@
 
             <div class="member-profile-card">
                 <header class="member-profile-summary">
+                    <%-- [프로필랭커프레임-1] JS가 순위에 따라 금·은·동 클래스를 이 프레임에 붙인다. --%>
                     <span class="member-profile-avatar-frame" data-profile-avatar-frame>
                         <img class="member-profile-avatar"
                              data-profile-avatar
@@ -258,6 +271,7 @@
                     </div>
                     <div class="member-profile-actions">
                         <span class="member-profile-badge" data-profile-badge>USER</span>
+                        <%-- [팔로우토글-1] 본인이 아닌 로그인 회원의 프로필에서만 JS가 버튼을 표시한다. --%>
                         <button type="button"
                                 class="member-profile-follow-toggle"
                                 data-profile-follow-toggle
@@ -266,6 +280,8 @@
                     </div>
                 </header>
 
+                <%-- [프로필공개정보-4]
+                     작성글·팔로워·팔로잉은 항상 표시하고, 투자정보 두 행만 공개 설정에 따라 제어한다. --%>
                 <nav class="member-profile-stats" data-profile-public-stats
                      aria-label="회원 활동 및 투자 정보" hidden>
                     <a class="member-profile-stat member-profile-posts-link"
@@ -290,4 +306,5 @@
     </section>
 </div>
 
+<%-- 각 JSP의 본문이 들어가는 영역 --%>
 <main class="container">

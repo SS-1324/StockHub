@@ -2,7 +2,9 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
-<c:url var="dashboardCssUrl" value="/css/dashboard.css" />
+<c:url var="dashboardCssUrl" value="/css/dashboard.css">
+    <c:param name="v" value="6" />
+</c:url>
 <c:set var="pageCssUrl" value="${dashboardCssUrl}" scope="request" />
 
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
@@ -14,6 +16,35 @@
     </div>
 
     <section class="dashboard-holdings">
+        <c:if test="${not empty realizedProfits or not empty stockSummary.holdings}">
+            <div class="dashboard-history-summary">
+                <div class="dashboard-analytics-stat">
+                    <p class="dashboard-analytics-stat-label">총 매도금액</p>
+                    <p class="dashboard-analytics-stat-value"><fmt:formatNumber value="${totalSellAmount}" pattern="#,##0"/>원</p>
+                </div>
+                <div class="dashboard-analytics-stat">
+                    <p class="dashboard-analytics-stat-label">총 매수금액</p>
+                    <p class="dashboard-analytics-stat-value"><fmt:formatNumber value="${totalBuyAmount}" pattern="#,##0"/>원</p>
+                </div>
+                <div class="dashboard-analytics-stat">
+                    <p class="dashboard-analytics-stat-label">총 실현손익</p>
+                    <p class="dashboard-analytics-stat-value ${totalProfitAmount gt 0 ? 'value-positive' : (totalProfitAmount lt 0 ? 'value-negative' : '')}">
+                        <c:if test="${totalProfitAmount gt 0}">+</c:if><fmt:formatNumber value="${totalProfitAmount}" pattern="#,##0"/>원
+                    </p>
+                    <p class="dashboard-analytics-stat-sub">
+                        <c:if test="${totalProfitRate gt 0}">+</c:if><fmt:formatNumber value="${totalProfitRate}" pattern="#,##0.00"/>%
+                    </p>
+                </div>
+                <div class="dashboard-analytics-stat">
+                    <p class="dashboard-analytics-stat-label">보유 주식 평가금액</p>
+                    <p class="dashboard-analytics-stat-value"><fmt:formatNumber value="${currentHoldingsValue}" pattern="#,##0"/>원</p>
+                    <p class="dashboard-analytics-stat-sub">
+                        평균 <c:if test="${stockSummary.returnRate gt 0}">+</c:if><fmt:formatNumber value="${stockSummary.returnRate}" pattern="#,##0.00"/>%
+                    </p>
+                </div>
+            </div>
+        </c:if>
+
         <c:choose>
             <c:when test="${not empty realizedProfits}">
                 <div class="dashboard-table-wrap">

@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -86,12 +88,13 @@ public class BoardImageServiceImpl implements BoardImageService {
                 }
             }
             if (!toDelete.isEmpty()) {
-                String boardUploadDir = uploadDir + "/" + BOARD_UPLOAD_SUB_DIR;
-                for (BoardImageDto image : toDelete) {
-                    fileUploadUtil.delete(image.getImgPath(), boardUploadDir);
-                }
+                // DB에서 먼저 지우고, 실제 파일은 트랜잭션이 커밋된 뒤에 지운다 - 반대로 하면
+                // DB 삭제가 롤백됐을 때 row는 남았는데 파일만 사라진 상태(깨진 이미지)가 될 수 있다
                 boardImageMapper.deleteByIds(boardId, deleteImageIds);
                 deletedCount = toDelete.size();
+
+                String boardUploadDir = uploadDir + "/" + BOARD_UPLOAD_SUB_DIR;
+                registerFileCleanupAfterCommit(toDelete, boardUploadDir);
             }
         }
 
@@ -172,13 +175,41 @@ public class BoardImageServiceImpl implements BoardImageService {
     }
 
     @Override
+    @Transactional
     public void deleteByBoardId(Long boardId) {
-        String boardUploadDir = uploadDir + "/" + BOARD_UPLOAD_SUB_DIR;
         List<BoardImageDto> images = boardImageMapper.selectByBoardId(boardId);
-        for (BoardImageDto image : images) {
-            fileUploadUtil.delete(image.getImgPath(), boardUploadDir);
-        }
+
+        // DB에서 먼저 지우고, 실제 파일은 트랜잭션이 커밋된 뒤에 지운다 - 반대로 하면
+        // DB 삭제가 롤백됐을 때 row는 남았는데 파일만 사라진 상태(깨진 이미지)가 될 수 있다
         boardImageMapper.deleteByBoardId(boardId);
+
+        String boardUploadDir = uploadDir + "/" + BOARD_UPLOAD_SUB_DIR;
+        registerFileCleanupAfterCommit(images, boardUploadDir);
+    }
+
+    // 파일 삭제는 트랜잭션에 걸리지 않는 비가역 작업이라, 커밋 이후로 미뤄서 롤백 시에는
+    // 파일이 그대로 남아있도록 한다(고아 파일은 남아도 되지만, DB row 없이 파일만 사라지면 안 됨).
+    // 활성 트랜잭션이 없는 상태(예: 트랜잭션 밖에서 직접 호출)에서는 바로 삭제한다.
+    private void registerFileCleanupAfterCommit(List<BoardImageDto> images, String boardUploadDir) {
+        if (images.isEmpty()) {
+            return;
+        }
+
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            for (BoardImageDto image : images) {
+                fileUploadUtil.delete(image.getImgPath(), boardUploadDir);
+            }
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                for (BoardImageDto image : images) {
+                    fileUploadUtil.delete(image.getImgPath(), boardUploadDir);
+                }
+            }
+        });
     }
 
     // 확장자, Content-Type, 실제 파일 시그니처(매직바이트)까지 세 가지를 확인하는 이유: 확장자/Content-Type은

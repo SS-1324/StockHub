@@ -23,6 +23,7 @@ public class BoardCommentDto {
     private String content;
     private Long likeCount;
     private Boolean hidden; // 관리자가 숨긴 댓글인지 여부
+    private Boolean deleted; // 댓글 삭제시 부모따라 자식답글이 지워지는거 방지하기 위해 추가한 코드
     private LocalDateTime createAt;
 
     // jsp 화면표시용 포맷 문자열

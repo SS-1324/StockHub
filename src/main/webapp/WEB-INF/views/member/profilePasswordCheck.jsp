@@ -14,6 +14,7 @@
 <form class="form form-flex"
       action="${pageContext.request.contextPath}/member/mypage/password-check"
       method="post">
+    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
     <div class="form-row">
         <label for="current-password">현재 비밀번호</label>
         <input id="current-password" name="currentPassword"

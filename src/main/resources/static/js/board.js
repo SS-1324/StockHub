@@ -84,6 +84,9 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
     let rememberedFormats = {};
     let formatsBeforeBackspace = null;
     let formatsBeforeEnter = null;
+    let isComposing = false;
+    let compositionRevision = 0;
+    let editRevision = 0;
 
     function pickInlineFormats(formats){
         const picked = {};
@@ -113,8 +116,13 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
         /*
          * Quill의 키보드 처리가 선택 영역을 갱신한 다음 적용해야 하므로 다음 화면 프레임까지 기다린다.
          * source를 silent로 지정해 복원 자체가 새로운 text-change를 발생시키는 재귀 호출을 막는다.
+         * 예약 이후 새 입력이 생기거나 한글 조합이 시작되면 오래된 복원 작업을 취소한다.
+         * 늦게 실행된 작업이 IME 커서에 개입하면 글자의 입력 순서가 뒤섞일 수 있기 때문이다.
          */
-        requestAnimationFrame(function(){
+        const scheduledRevision = editRevision;
+        queueMicrotask(function(){
+            if (isComposing || scheduledRevision !== editRevision) return;
+
             const range = editor.getSelection();
             if (!range || range.length !== 0) return;
 
@@ -126,11 +134,37 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
     }
 
     /*
-     * Backspace가 실행되기 "전"에 커서 서식을 저장한다.
+     * 한글 IME는 한 글자를 조합하는 동안 insert/delete를 반복해서 발생시킨다.
+     * 이 기간에는 일반 Backspace·Enter 처리로 오인하지 않도록 서식 복원을 멈추고,
+     * compositionend 다음 프레임에 현재 커서의 서식만 다시 기억한다.
+     */
+    editor.root.addEventListener("compositionstart", function(){
+        isComposing = true;
+        compositionRevision += 1;
+        formatsBeforeBackspace = null;
+        formatsBeforeEnter = null;
+    });
+
+    editor.root.addEventListener("compositionend", function(){
+        const endingCompositionRevision = compositionRevision;
+        /* 조합 종료 상태는 즉시 반영해 뒤이어 누른 Space·Enter를 일반 키로 처리한다. */
+        isComposing = false;
+
+        requestAnimationFrame(function(){
+            /* 다음 한글 조합이 이미 시작됐다면 이전 compositionend의 예약 작업은 무시한다. */
+            if (isComposing || endingCompositionRevision !== compositionRevision) return;
+
+            rememberCurrentFormats();
+        });
+    });
+
+    /*
+     * Backspace가 실행되기 전에 커서 서식을 저장한다.
      * text-change 시점에는 Quill이 이미 앞 문자를 지우고 일반 서식으로 바꿨을 수 있으므로
      * 삭제 후의 getFormat()만 읽으면 사용자가 켜 둔 굵게·기울임 상태를 잃게 된다.
      */
     editor.root.addEventListener("keydown", function(event){
+        if (isComposing || event.isComposing || event.keyCode === 229) return;
         if (event.key !== "Backspace" && event.key !== "Enter") return;
 
         const range = editor.getSelection();
@@ -153,12 +187,17 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
     }, true);
 
     editor.on("selection-change", function(range){
-        if (range) rememberCurrentFormats();
+        if (range && !isComposing) rememberCurrentFormats();
     });
 
     editor.on("text-change", function(delta, oldDelta, source){
         /* API로 기존 글을 불러오는 경우가 아니라 사용자가 직접 편집한 경우에만 개입한다. */
         if (source !== "user") return;
+
+        editRevision += 1;
+
+        /* 한글 조합 과정의 삽입·삭제는 일반 편집 키 결과가 아니므로 건드리지 않는다. */
+        if (isComposing) return;
 
         /* Delta는 Quill이 이번 입력에서 추가·삭제한 내용만 담으므로 키 결과를 정확히 구분할 수 있다. */
         const containsDeletion = delta.ops.some(function(operation){
@@ -192,15 +231,12 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
 
         if (editor.getLength() > 1) {
             rememberCurrentFormats();
-            return;
         }
-
-        requestAnimationFrame(function(){
-            editor.setSelection(0, 0, "silent");
-            inlineFormatNames.forEach(function(name){
-                editor.format(name, rememberedFormats[name] || false, "silent");
-            });
-        });
+        /*
+         * 편집기가 비었더라도 setSelection(0, 0)으로 커서를 강제로 옮기지 않는다.
+         * 한글 조합 직후 Quill의 길이 갱신보다 이 예약 작업이 늦게 실행되면,
+         * 방금 입력한 글자 앞으로 커서가 되돌아가는 원인이 되기 때문이다.
+         */
     });
 
     /*
@@ -218,10 +254,6 @@ function preserveInlineFormatsAcrossEditingKeys(editor){
     }
 }
 
-if (typeof quill !== "undefined") {
-    preventInlineEditorImages(quill);
-    preserveInlineFormatsAcrossEditingKeys(quill);
-}
 
 /* [AJAX-1: 게시글 등록] 글쓰기 폼 제출 - 일반 폼 네비게이션 대신 fetch로 보내고, 성공하면 location.replace()로 상세 이동.
  * location.href가 아니라 replace()를 쓰는 이유: href는 히스토리에 새 항목을 쌓지만 replace는 현재 항목(글쓰기 폼)을
@@ -350,6 +382,40 @@ if (imageInput) {
     imageInput.addEventListener("change", handleImageSelect);
 }
 
+/* 대시보드 "포트폴리오 공유" 버튼에서 넘어온 경우: PNG를 sessionStorage에 잠깐 담아뒀다가
+   여기서 이어받아 이미지 첨부칸에 자동으로 넣어준다 (dashboard.js의 setupAnalyticsShare 참고) */
+function attachSharedPortfolioImage(){
+    if (!imageInput) {
+        return;
+    }
+    const raw = sessionStorage.getItem("stockhub:sharedPortfolioImage");
+    if (!raw) {
+        return;
+    }
+    sessionStorage.removeItem("stockhub:sharedPortfolioImage");
+
+    let payload;
+    try {
+        payload = JSON.parse(raw);
+    } catch (e) {
+        return;
+    }
+    if (!payload || !payload.dataUrl) {
+        return;
+    }
+
+    fetch(payload.dataUrl)
+        .then(function(res){ return res.blob(); })
+        .then(function(blob){
+            const file = new File([blob], payload.fileName || "portfolio.png", { type: "image/png" });
+            selectedImages.push({ id: nextImageId++, file: file });
+            syncInputFiles();
+            renderImagePreviews();
+        });
+}
+
+attachSharedPortfolioImage();
+
 /* 수정 화면 - 기존 이미지의 X 클릭 시 화면에서 숨기고, 삭제 대상 id를 hidden input으로 폼에 실어 보낸다 */
 if (existingImageList) {
     existingImageList.addEventListener("click", function(ev){
@@ -427,24 +493,22 @@ async function toggleCommentLike(commentId, button){
 }
 
 // [AJAX-3: 댓글·답글 등록] JSON으로 작성 요청을 보내고, 성공하면 서버의 최신 표시 결과를 받기 위해 새로고침한다.
+// 실패 사유(글자수 초과, 제어문자 포함 등)는 호출부의 .catch(err => alert(err.message))가 그대로
+// 보여줘야 하므로, 여기서 뭉뚱그린 메시지로 삼키지 않고 그대로 위로 던진다.
 async function submitComment(boardId, content, parentCommentId) {
-    try {
-        const response = await fetch(`/community/${boardId}/comment`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-Requested-With": "XMLHttpRequest"
-            },
-            body: JSON.stringify({content: content, parentCommentId: parentCommentId})
-        });
-        const result = await response.json();
-        if (!response.ok || !result.success) {
-            throw new Error(result.message || "댓글 등록에 실패했습니다.");
-        }
-        location.reload();
-    } catch (err) {
-        alert("에러가 발생했습니다.");
+    const response = await fetch(`/community/${boardId}/comment`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify({content: content, parentCommentId: parentCommentId})
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+        throw new Error(result.message || "댓글 등록에 실패했습니다.");
     }
+    location.reload();
 }
 
 /* [AJAX-4: 댓글 삭제] 별도 페이지 이동 없이 삭제 요청을 보내고, 성공하면 현재 상세 화면을 새로고침한다. */
@@ -737,13 +801,30 @@ function enhanceCardSnippets(container){
         const card = snippet.closest(".board-card");
         if (card && card.classList.contains("has-no-image")) {
             /* [카드본문-1]
-             * 이미지 없는 글은 빈 줄이 CSS의 6줄 제한을 차지하지 않게 정리한다.
-             * 따라서 실제 내용 기준으로 최대 6줄을 보여주고, 넘칠 때만 더보기를 만든다.
+             * 이미지 없는 글의 연속 빈 줄은 CSS의 6줄 제한을 불필요하게 차지하므로 <br>만 정리한다.
+             * 주의: snippet.textContent를 다시 대입하면 strong/em/span 같은 Quill 서식 태그가 전부 삭제된다.
+             * 따라서 DOM 노드를 유지한 채 앞·뒤·연속 <br>만 제거해 굵기·색상·크기 서식을 보존한다.
              */
-            snippet.textContent = snippet.textContent
-                .replace(/\r\n?/g, "\n")
-                .replace(/\n[\t ]*\n+/g, "\n")
-                .trim();
+            Array.from(snippet.childNodes).forEach(function(node){
+                if (node.nodeType === Node.TEXT_NODE && !node.textContent.trim()) {
+                    node.remove();
+                }
+            });
+
+            let previousWasBreak = true;
+            Array.from(snippet.childNodes).forEach(function(node){
+                const isBreak = node.nodeType === Node.ELEMENT_NODE && node.tagName === "BR";
+                if (isBreak && previousWasBreak) {
+                    node.remove();
+                    return;
+                }
+                previousWasBreak = isBreak;
+            });
+
+            const lastNode = snippet.lastChild;
+            if (lastNode && lastNode.nodeType === Node.ELEMENT_NODE && lastNode.tagName === "BR") {
+                lastNode.remove();
+            }
         }
 
         if (snippet.scrollHeight <= snippet.clientHeight + 1) {

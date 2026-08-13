@@ -1,5 +1,6 @@
 package com.kh.demo.hub.service;
 
+import com.kh.demo.common.util.HtmlTextUtil;
 import com.kh.demo.hub.dto.ChatMessageDto;
 import com.kh.demo.hub.mapper.StockChatMapper;
 import org.slf4j.Logger;
@@ -70,6 +71,9 @@ public class StockChatServiceImpl implements StockChatService {
         if (normalizedContent.length() > MAX_CONTENT_LENGTH) {
             throw new IllegalStateException("메시지는 " + MAX_CONTENT_LENGTH + "자 이내로 입력해주세요.");
         }
+        if (HtmlTextUtil.hasDisallowedControlCharacter(normalizedContent)) {
+            throw new IllegalStateException("사용할 수 없는 문자가 포함되어 있습니다.");
+        }
 
         RateState state = rateStateByMember.computeIfAbsent(memberId, id -> new RateState());
         synchronized (state) {
@@ -120,6 +124,13 @@ public class StockChatServiceImpl implements StockChatService {
         List<ChatMessageDto> recent = stockChatMapper.selectRecentChats(stockCode, limit);
         Collections.reverse(recent);
         return recent;
+    }
+
+    @Override
+    public List<ChatMessageDto> getOlderMessages(String stockCode, Long beforeChatId, int limit) {
+        List<ChatMessageDto> older = stockChatMapper.selectOlderChats(stockCode, beforeChatId, limit);
+        Collections.reverse(older);
+        return older;
     }
 
     // 매일 새벽 4시, 보관 기간(30일)이 지난 채팅을 정리

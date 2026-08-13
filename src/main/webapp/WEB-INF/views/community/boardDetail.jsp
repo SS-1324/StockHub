@@ -13,10 +13,10 @@
     v 값은 CSS 내용을 바꾼 뒤 브라우저가 예전 파일을 재사용하지 않고 새로 받게 하는 캐시 갱신 번호다.
 --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css?v=48">
+      href="${pageContext.request.contextPath}/css/board.css?v=53">
 
 <c:if test="${not empty error}">
-    <p class="alert alert-error">${error}</p>
+    <p class="alert alert-error"><c:out value="${error}" /></p>
 </c:if>
 
 <%--
@@ -25,6 +25,8 @@
     본인 소유이거나(loginMemberId가 비어있지 않고 일치), ADMIN 권한이 있는 경우에만 노출.
 --%>
 <c:set var="isAdmin" value="${not empty sessionScope.loginMember and fn:toUpperCase(sessionScope.loginMember.memberRole) eq 'ADMIN'}" />
+
+<a class="board-back-link" href="${communityUrl}">&larr; 목록으로</a>
 
 <%--
     게시글 본문과 댓글은 서로 별개의 글이 아니라 하나의 대화 흐름이다.
@@ -49,6 +51,7 @@
             <a class="board-post-menu-item" href="${communityUrl}/edit/${board.boardId}">수정</a>
             <form action="${communityUrl}/delete/${board.boardId}" method="post"
                   onsubmit="return confirm('게시글을 삭제하시겠습니까?');">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                 <button type="submit" class="board-post-menu-item is-danger">삭제</button>
             </form>
         </div>
@@ -85,7 +88,7 @@
           data-user-profile="${board.memberId}"
           role="button"
           tabindex="0"
-          aria-label="${board.nickname} 프로필 보기">
+          aria-label="${fn:escapeXml(board.nickname)} 프로필 보기">
 
     <c:choose>
 
@@ -97,7 +100,7 @@
 
                 <img class="board-header-avatar"
                      src="${board.profile}"
-                     alt="${board.nickname}">
+                     alt="${fn:escapeXml(board.nickname)}">
             </span>
         </c:when>
 
@@ -105,15 +108,18 @@
         <c:otherwise>
             <img class="board-header-avatar"
                  src="${board.profile}"
-                 alt="${board.nickname}">
+                 alt="${fn:escapeXml(board.nickname)}">
         </c:otherwise>
 
     </c:choose>
 
     </span>
 
-    <span>${board.nickname}</span>
-    <span>${board.createAtStr}</span>
+ <%-- 작성자 닉네임 제대로 보이도록  --%>
+     <div class="board-card-header-text">
+           <span class="board-card-nickname"><c:out value="${board.nickname}" /></span>
+           <span class="board-card-date">${board.createAtStr}</span>
+       </div>
 </div>
 
 <div class="board-content">${board.highlightedContent}</div>
@@ -202,20 +208,22 @@
                           data-user-profile="${c.memberId}"
                           role="button"
                           tabindex="0"
-                          aria-label="${c.nickname} 프로필 보기">
+                          aria-label="${fn:escapeXml(c.nickname)} 프로필 보기">
                     <c:choose>
                         <c:when test="${not empty c.profile}">
-                            <img class="comment-avatar" src="${c.profile}" alt="${c.nickname}">
+                            <img class="comment-avatar" src="${c.profile}" alt="${fn:escapeXml(c.nickname)}">
                         </c:when>
                         <c:otherwise>
-                            <span class="comment-avatar-placeholder">${fn:substring(c.nickname, 0, 1)}</span>
+                            <span class="comment-avatar-placeholder">${fn:escapeXml(fn:substring(c.nickname, 0, 1))}</span>
                         </c:otherwise>
                     </c:choose>
                     </span>
-                    <span class="comment-nickname">${c.nickname}</span>
+                    <span class="comment-nickname"><c:out value="${c.nickname}" /></span>
                 </div>
                 <%-- white-space: pre-wrap이 걸려있어서, 아래 태그 사이에 줄바꿈/들여쓰기를 남기면
                      그 공백까지 그대로 화면에 찍힌다(댓글 앞에 빈 칸이 생기던 원인). 한 줄로 붙여서 방지. --%>
+
+
                 <div class="comment-body"><c:if test="${not empty c.parentNickname}"><span class="comment-mention">@${c.parentNickname}</span></c:if>${c.highlightedContent}</div>
                 <c:if test="${isAdmin}">
                     <form class="comment-edit-form hidden"
@@ -228,22 +236,24 @@
                         </div>
                     </form>
                 </c:if>
-                <div class="comment-meta">
-                    <span>${c.createAtStr}</span>
-                    <button type="button" class="comment-like-btn ${c.liked ? 'active' : ''}"
-                            data-comment-id="${c.commentId}" data-active="${c.liked}">
-                        좋아요 <span class="like-count">${c.likeCount}</span>
-                    </button>
-                    <c:if test="${empty c.parentCommentId && not empty loginMemberId}">
-                        <button type="button" class="comment-reply-btn" data-comment-id="${c.commentId}">답글</button>
-                    </c:if>
-                    <c:if test="${isAdmin}">
-                        <button type="button" class="comment-edit-btn" data-comment-id="${c.commentId}">수정</button>
-                    </c:if>
-                    <c:if test="${(not empty loginMemberId and c.memberId == loginMemberId) or isAdmin}">
-                        <button type="button" class="comment-delete-btn" data-comment-id="${c.commentId}">삭제</button>
-                    </c:if>
-                </div>
+            <div class="comment-meta">
+                                <span>${c.createAtStr}</span>
+                                <c:if test="${not c.deleted}">
+                                    <button type="button" class="comment-like-btn ${c.liked ? 'active' : ''}"
+                                            data-comment-id="${c.commentId}" data-active="${c.liked}">
+                                        좋아요 <span class="like-count">${c.likeCount}</span>
+                                    </button>
+                                    <c:if test="${empty c.parentCommentId && not empty loginMemberId}">
+                                        <button type="button" class="comment-reply-btn" data-comment-id="${c.commentId}">답글</button>
+                                    </c:if>
+                                    <c:if test="${isAdmin}">
+                                        <button type="button" class="comment-edit-btn" data-comment-id="${c.commentId}">수정</button>
+                                    </c:if>
+                                    <c:if test="${(not empty loginMemberId and c.memberId == loginMemberId) or isAdmin}">
+                                        <button type="button" class="comment-delete-btn" data-comment-id="${c.commentId}">삭제</button>
+                                    </c:if>
+                                </c:if>
+                            </div>
                 <c:if test="${empty c.parentCommentId && not empty loginMemberId}">
                     <%--
                         대댓글도 일반 댓글과 같은 comment-input-wrap과 comment-submit-btn을 사용한다.
@@ -265,5 +275,5 @@
 
 </div>
 
-<script src="${pageContext.request.contextPath}/js/board.js?v=11"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=15"></script>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

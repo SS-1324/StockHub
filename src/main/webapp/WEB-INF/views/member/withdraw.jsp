@@ -23,6 +23,7 @@
     <form class="form form-flex withdraw-form"
           action="${pageContext.request.contextPath}/member/withdraw"
           method="post">
+        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 
         <%-- 현재 비밀번호 입력 영역 --%>
         <div class="form-row">

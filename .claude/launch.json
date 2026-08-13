@@ -3,9 +3,9 @@
   "configurations": [
     {
       "name": "stockhub",
-      "runtimeExecutable": "C:\\workspace\\StockHub\\mvnw.cmd",
-      "runtimeArgs": ["-q", "-o", "spring-boot:run"],
-      "port": 8080
+      "runtimeExecutable": "C:\\workspace\\StockHub\\.claude\\run-dev.cmd",
+      "runtimeArgs": [],
+      "port": 8081
     }
   ]
 }

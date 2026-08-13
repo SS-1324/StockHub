@@ -13,8 +13,12 @@ import java.util.Set;
 @Service
 public class GoalServiceImpl implements GoalService {
 
-    // 대시보드 원형 그래프는 최대 3개까지만 보여준다
-    private static final int MAX_ACTIVE_GOALS_SHOWN = 3;
+    // 활성 목표는 최대 3개까지만 "등록"할 수 있다 - 예전엔 표시만 3개로 자르고 등록은 무제한 허용해서,
+    // 4개 이상 쌓인 상태에서 화면에 안 보이던 목표가 하나 취소하면 뜬금없이 나타나는 것처럼 보였다.
+    // 등록 자체를 3개로 막으면 "안 보이던 목표"가 존재할 수 없으니 이 문제가 근본적으로 사라진다.
+    private static final int MAX_ACTIVE_GOALS = 3;
+
+    private static final int TITLE_MAX_LENGTH = 20;
 
     private static final Set<String> VALID_TYPES = Set.of("RETURN_RATE", "PROFIT_AMOUNT");
 
@@ -23,10 +27,7 @@ public class GoalServiceImpl implements GoalService {
 
     @Override
     public List<GoalDto> getMyActiveGoals(String memberId) {
-        List<GoalDto> goals = goalMapper.selectActiveGoalsByMember(memberId);
-        return goals.size() > MAX_ACTIVE_GOALS_SHOWN
-                ? goals.subList(0, MAX_ACTIVE_GOALS_SHOWN)
-                : goals;
+        return goalMapper.selectActiveGoalsByMember(memberId);
     }
 
     @Override
@@ -42,11 +43,17 @@ public class GoalServiceImpl implements GoalService {
         if (title == null || title.isBlank()) {
             throw new IllegalArgumentException("목표 이름을 입력해주세요.");
         }
+        if (title.trim().length() > TITLE_MAX_LENGTH) {
+            throw new IllegalArgumentException("목표 이름은 " + TITLE_MAX_LENGTH + "자 이내로 입력해주세요.");
+        }
         if (targetValue == null || targetValue.signum() <= 0) {
             throw new IllegalArgumentException("목표치는 0보다 커야 합니다.");
         }
         if (targetDate != null && targetDate.isBefore(LocalDate.now())) {
             throw new IllegalArgumentException("목표 기한은 오늘 이후여야 합니다.");
+        }
+        if (goalMapper.selectActiveGoalsByMember(memberId).size() >= MAX_ACTIVE_GOALS) {
+            throw new IllegalStateException("목표는 최대 " + MAX_ACTIVE_GOALS + "개까지 등록할 수 있습니다. 기존 목표를 취소한 뒤 다시 시도해주세요.");
         }
 
         GoalDto dto = new GoalDto();
