@@ -382,6 +382,40 @@ if (imageInput) {
     imageInput.addEventListener("change", handleImageSelect);
 }
 
+/* 대시보드 "포트폴리오 공유" 버튼에서 넘어온 경우: PNG를 sessionStorage에 잠깐 담아뒀다가
+   여기서 이어받아 이미지 첨부칸에 자동으로 넣어준다 (dashboard.js의 setupAnalyticsShare 참고) */
+function attachSharedPortfolioImage(){
+    if (!imageInput) {
+        return;
+    }
+    const raw = sessionStorage.getItem("stockhub:sharedPortfolioImage");
+    if (!raw) {
+        return;
+    }
+    sessionStorage.removeItem("stockhub:sharedPortfolioImage");
+
+    let payload;
+    try {
+        payload = JSON.parse(raw);
+    } catch (e) {
+        return;
+    }
+    if (!payload || !payload.dataUrl) {
+        return;
+    }
+
+    fetch(payload.dataUrl)
+        .then(function(res){ return res.blob(); })
+        .then(function(blob){
+            const file = new File([blob], payload.fileName || "portfolio.png", { type: "image/png" });
+            selectedImages.push({ id: nextImageId++, file: file });
+            syncInputFiles();
+            renderImagePreviews();
+        });
+}
+
+attachSharedPortfolioImage();
+
 /* 수정 화면 - 기존 이미지의 X 클릭 시 화면에서 숨기고, 삭제 대상 id를 hidden input으로 폼에 실어 보낸다 */
 if (existingImageList) {
     existingImageList.addEventListener("click", function(ev){
