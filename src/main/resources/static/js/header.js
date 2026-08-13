@@ -84,16 +84,15 @@ function updateSessionTimer() {
 
 // 세션 연장 버튼 클릭 시 호출
 async function extendSession(e) {
-    // 1. 버튼 클릭 시 발생할 수 있는 폼 제출/새로고침 기본 동작 방지
     if (e && e.preventDefault) {
         e.preventDefault();
     }
 
     try {
-        const contextPath = document.getElementById("member-profile-modal")?.dataset.contextPath || "";
+        // 안전한 절대 경로 생성 (contextPath 의존성 제거)
+        const requestUrl = new URL('/member/session/extend', window.location.origin).href;
 
-        // 2. 백엔드 Controller 주소(/member/session/extend)와 정확히 일치시킴
-        const response = await fetch(`${contextPath}/member/session/extend`, {
+        const response = await fetch(requestUrl, {
             method: "POST",
             headers: {
                 "X-Requested-With": "XMLHttpRequest",
@@ -101,39 +100,35 @@ async function extendSession(e) {
             }
         });
 
-        if (response.ok) {
-            const data = await response.json();
+        if (!response.ok) {
+            alert(`서버 응답 오류 (상태 코드: ${response.status})`);
+            return;
+        }
 
-            // 3. ApiResponse의 실제 데이터 필드(data.data)에서 만료 시각 추출
-            const newExpiresAt = data.data;
+        const data = await response.json();
+        const newExpiresAt = data.data;
 
-            if (data.success && newExpiresAt) {
-                const timerContainer = document.querySelector(".header-session-timer");
-                if (timerContainer) {
-                    timerContainer.setAttribute("data-session-expires-at", newExpiresAt);
-                }
+        if (data.success && newExpiresAt) {
+            const timerContainer = document.querySelector(".header-session-timer");
+            if (timerContainer) {
+                timerContainer.setAttribute("data-session-expires-at", newExpiresAt);
+            }
 
-                // 전역 변수(expiresAtMs)가 존재할 경우 함께 업데이트
-                if (typeof expiresAtMs !== 'undefined') {
-                    expiresAtMs = newExpiresAt;
-                }
+            if (typeof expiresAtMs !== 'undefined') {
+                expiresAtMs = newExpiresAt;
+            }
 
-                // 타이머 UI 즉시 갱신
-                if (typeof updateSessionTimer === 'function') {
-                    updateSessionTimer();
-                } else if (typeof updateTimer === 'function') {
-                    updateTimer();
-                }
-
-            } else {
-                alert(data.message || "세션 연장에 실패했습니다.");
+            if (typeof updateSessionTimer === 'function') {
+                updateSessionTimer();
+            } else if (typeof updateTimer === 'function') {
+                updateTimer();
             }
         } else {
-            alert("서버 통신에 실패했습니다.");
+            alert(data.message || "세션 연장에 실패했습니다.");
         }
     } catch (err) {
-        console.error("세션 연장 오류:", err);
-        alert("세션 연장 중 오류가 발생했습니다.");
+        console.error("세션 연장 상세 오류:", err);
+        alert("네트워크 연결 또는 요청 주소에 오류가 발생했습니다.");
     }
 }
 
