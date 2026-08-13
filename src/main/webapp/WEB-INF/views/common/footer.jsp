@@ -53,6 +53,7 @@
 
         <form id="inquiry-form" class="inquiry-form"
               action="${inquiryUrl}" method="post">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
             <div class="footer-modal-content">
                 <div class="inquiry-field">
                     <label for="inquiry-title">제목</label>

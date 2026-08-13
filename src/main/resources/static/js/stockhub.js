@@ -266,7 +266,7 @@ function setupChatPanel(initialStockCode) {
 
         const nickname = document.createElement('span');
         nickname.className = 'chat-message-nickname';
-        nickname.textContent = chatMessage.nickname || '알 수 없음';
+        nickname.textContent = chatMessage.nickname || '탈퇴한 회원';
 
         const time = document.createElement('span');
         time.className = 'chat-message-time';

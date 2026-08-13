@@ -15,8 +15,11 @@
 
 <%-- 커뮤니티 전용 CSS --%>
 <link rel="stylesheet"
-      href="${pageContext.request.contextPath}/css/board.css?v=51">
+      href="${pageContext.request.contextPath}/css/board.css?v=53">
 
+<c:if test="${not empty error}">
+    <p class="alert alert-error"><c:out value="${error}" /></p>
+</c:if>
 
 <%-- =========================================================
      게시판 제목
@@ -41,7 +44,7 @@
         </c:if>
 
         <div class="search-box">
-            <input type="text" name="keyword" value="${keyword}" placeholder="제목/내용 검색">
+            <input type="text" name="keyword" value="${keyword}" placeholder="제목/내용 검색" maxlength="100">
             <button type="submit" class="search-icon-btn" aria-label="검색">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                      xmlns="http://www.w3.org/2000/svg">
@@ -121,7 +124,11 @@
            href="${communityUrl}${not empty category
                    ? '?category='.concat(category)
                    : ''}">
-            전체보기
+            <%-- 카테고리가 유지된 채 이동하므로, 실제로 전체 카테고리로 가는 것처럼 오해하지 않도록 문구를 구분한다. --%>
+            <c:choose>
+                <c:when test="${not empty category}">이 카테고리 전체보기</c:when>
+                <c:otherwise>전체보기</c:otherwise>
+            </c:choose>
         </a>
 
     </div>
@@ -229,7 +236,7 @@
 
 
 <%-- 게시판 전용 JavaScript --%>
-<script src="${pageContext.request.contextPath}/js/board.js?v=14"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=15"></script>
 
 <%-- 공통 푸터 --%>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

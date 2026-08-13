@@ -7,16 +7,17 @@
 <!-- 글쓰기 화면과 동일한 Quill 에디터 -->
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
 <%-- Quill 기본 CSS보다 뒤에서 게시판용 편집기 모양을 적용한다. --%>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css?v=51">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/board.css?v=53">
 
 <h2 class="page-title board-form-title">게시글 수정</h2>
 
 <c:if test="${not empty error}">
-    <p class="alert alert-error">${error}</p>
+    <p class="alert alert-error"><c:out value="${error}" /></p>
 </c:if>
 
 <form id="board-edit-form" class="form form-flex" action="${communityUrl}/edit/${board.boardId}"
       method="post" enctype="multipart/form-data">
+    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 
     <div class="form-row">
         <label for="category">카테고리</label>
@@ -65,8 +66,9 @@
 
     <div class="form-row">
         <label class="file-label">
-            이미지 추가 (전체 최대 <c:out value="${maxImageCount}" />장)
-            <input type="file" id="image-input" name="images" accept="image/*" multiple data-max-count="${maxImageCount}">
+            이미지 추가 (전체 최대 <c:out value="${maxImageCount}" />장, JPG/PNG/GIF/WEBP만 가능)
+            <input type="file" id="image-input" name="images"
+                   accept="image/jpeg,image/png,image/gif,image/webp" multiple data-max-count="${maxImageCount}">
         </label>
         <div id="image-preview-list" class="image-preview-list"></div>
     </div>
@@ -111,5 +113,5 @@
         document.getElementById('content').value = quill.root.innerHTML
     });
 </script>
-<script src="${pageContext.request.contextPath}/js/board.js?v=14"></script>
+<script src="${pageContext.request.contextPath}/js/board.js?v=15"></script>
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

@@ -91,7 +91,8 @@ html[data-theme="dark"] dt {
     --header-blue-soft: #eff6ff;
     position: sticky;
     top: 0;
-    z-index: 1000;
+    /* 프로필 카드 모달(z-index 3000)을 포함해 페이지의 다른 모든 오버레이보다 항상 위에 그려지도록 함 */
+    z-index: 5000;
     border-bottom: 1px solid var(--header-line);
     background: var(--header-bg);
     box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
