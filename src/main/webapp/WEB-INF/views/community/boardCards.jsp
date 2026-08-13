@@ -46,7 +46,7 @@
                   data-user-profile="${board.memberId}"
                   role="button"
                   tabindex="0"
-                  aria-label="${board.nickname} 프로필 보기">
+                  aria-label="${fn:escapeXml(board.nickname)} 프로필 보기">
 
             <c:choose>
 
@@ -58,7 +58,7 @@
 
                         <img class="board-card-avatar"
                              src="${board.profile}"
-                             alt="${board.nickname}">
+                             alt="${fn:escapeXml(board.nickname)}">
                     </span>
                 </c:when>
 
@@ -66,7 +66,7 @@
                 <c:otherwise>
                     <img class="board-card-avatar"
                          src="${board.profile}"
-                         alt="${board.nickname}">
+                         alt="${fn:escapeXml(board.nickname)}">
                 </c:otherwise>
 
             </c:choose>
@@ -75,7 +75,7 @@
 
             <div class="board-card-header-text">
                 <span class="board-card-nickname">
-                    ${board.nickname}
+                    <c:out value="${board.nickname}" />
                 </span>
 
                 <span class="board-card-date">
