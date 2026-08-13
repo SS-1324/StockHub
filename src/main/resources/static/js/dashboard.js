@@ -152,7 +152,7 @@ const PORTFOLIO_DONUT_COLORS = [
 ];
 
 const LEGEND_TWO_COL_THRESHOLD = 6;
-const DONUT_MAX_SLICES = 12;
+const DONUT_MAX_SLICES = 10;
 
 // 캔버스에 실제 도형을 그려야(=CSS가 아니어야) PNG 다운로드(canvas.toDataURL)가 가능하다
 function drawPortfolioDonut() {
