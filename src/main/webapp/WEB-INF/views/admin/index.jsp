@@ -145,6 +145,7 @@
                                     <c:otherwise>
                                         <div class="admin-actions-inline admin-member-actions">
                                             <form action="${pageContext.request.contextPath}/admin/member/${member.memberId}/status" method="post">
+                                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                                                 <input type="hidden" name="memberStatus"
                                                        value="${member.memberStatus eq 'RESTRICTED' ? 'ACTIVE' : 'RESTRICTED'}">
                                                 <button type="submit" class="admin-btn admin-btn-muted">
@@ -153,6 +154,7 @@
                                             </form>
                                             <form class="admin-role-form"
                                                   action="${pageContext.request.contextPath}/admin/member/${member.memberId}/role" method="post">
+                                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                                                 <select name="memberRole" aria-label="회원 권한">
                                                     <option value="USER" ${member.memberRole eq 'USER' ? 'selected' : ''}>USER</option>
                                                     <option value="ADMIN" ${member.memberRole eq 'ADMIN' ? 'selected' : ''}>ADMIN</option>
@@ -205,11 +207,13 @@
                         <td><span class="admin-badge ${board.hidden ? 'is-danger' : 'is-success'}">${board.hidden ? '숨김' : '공개'}</span></td>
                         <td><div class="admin-actions-inline">
                             <form action="${pageContext.request.contextPath}/admin/board/${board.boardId}/visibility" method="post">
+                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                                 <input type="hidden" name="hidden" value="${not board.hidden}">
                                 <button type="submit" class="admin-btn admin-btn-muted">${board.hidden ? '복원' : '숨김'}</button>
                             </form>
                             <form action="${pageContext.request.contextPath}/admin/board/${board.boardId}/delete" method="post"
                                   data-confirm-message="게시글과 연결된 댓글·이미지도 함께 삭제됩니다. 계속할까요?">
+                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                                 <button type="submit" class="admin-btn admin-btn-danger">삭제</button>
                             </form>
                         </div></td>
@@ -241,11 +245,13 @@
                         <td><span class="admin-badge ${comment.hidden ? 'is-danger' : 'is-success'}">${comment.hidden ? '숨김' : '공개'}</span></td>
                         <td><div class="admin-actions-inline">
                             <form action="${pageContext.request.contextPath}/admin/comment/${comment.commentId}/visibility" method="post">
+                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                                 <input type="hidden" name="hidden" value="${not comment.hidden}">
                                 <button type="submit" class="admin-btn admin-btn-muted">${comment.hidden ? '복원' : '숨김'}</button>
                             </form>
                             <form action="${pageContext.request.contextPath}/admin/comment/${comment.commentId}/delete" method="post"
                                   data-confirm-message="이 댓글을 완전히 삭제할까요?">
+                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                                 <input type="hidden" name="boardId" value="${comment.boardId}">
                                 <button type="submit" class="admin-btn admin-btn-danger">삭제</button>
                             </form>
@@ -300,6 +306,7 @@
         </div>
 
         <form class="admin-create-form" action="${pageContext.request.contextPath}/admin/glossary/create" method="post">
+            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
             <label>용어<input name="term" maxlength="100" required></label>
             <label>분류<input name="category" maxlength="20" placeholder="예: trading" required></label>
             <label class="is-wide">설명<textarea name="definition" maxlength="5000" required></textarea></label>
@@ -319,10 +326,12 @@
                         <td><input form="${glossaryFormId}" name="category" maxlength="20" required value="<c:out value='${glossary.category}' />"></td>
                         <td><div class="admin-actions-inline">
                             <form id="${glossaryFormId}" action="${pageContext.request.contextPath}/admin/glossary/${glossary.termId}/update" method="post">
+                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                                 <button type="submit" class="admin-btn admin-btn-primary">수정</button>
                             </form>
                             <form action="${pageContext.request.contextPath}/admin/glossary/${glossary.termId}/delete" method="post"
                                   data-confirm-message="이 용어를 삭제할까요?">
+                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                                 <button type="submit" class="admin-btn admin-btn-danger">삭제</button>
                             </form>
                         </div></td>
@@ -389,6 +398,7 @@
                     <c:when test="${inquiry.status eq 'PENDING'}">
                         <form id="admin-reply-form-${inquiry.inquiryId}" class="admin-reply-form"
                               action="${pageContext.request.contextPath}/admin/inquiry/${inquiry.inquiryId}/reply" method="post">
+                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                             <label for="admin-answer-${inquiry.inquiryId}">답변</label>
                             <textarea id="admin-answer-${inquiry.inquiryId}" name="answer" maxlength="500" data-reply-input required></textarea>
                             <p class="admin-reply-count"><span data-reply-count>0</span>/500</p>
@@ -404,6 +414,7 @@
             <div class="admin-modal-actions">
                 <form action="${pageContext.request.contextPath}/admin/inquiry/${inquiry.inquiryId}/delete" method="post"
                       data-confirm-message="이 문의를 완전히 삭제할까요?">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                     <button class="admin-btn admin-btn-danger" type="submit">문의 삭제</button>
                 </form>
                 <c:if test="${inquiry.status eq 'PENDING'}">
@@ -411,6 +422,7 @@
                 </c:if>
                 <c:if test="${inquiry.status eq 'ANSWERED'}">
                     <form action="${pageContext.request.contextPath}/admin/inquiry/${inquiry.inquiryId}/complete" method="post">
+                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                         <button class="admin-btn admin-btn-primary" type="submit">처리 완료</button>
                     </form>
                 </c:if>

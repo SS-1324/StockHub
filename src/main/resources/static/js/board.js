@@ -459,24 +459,22 @@ async function toggleCommentLike(commentId, button){
 }
 
 // [AJAX-3: 댓글·답글 등록] JSON으로 작성 요청을 보내고, 성공하면 서버의 최신 표시 결과를 받기 위해 새로고침한다.
+// 실패 사유(글자수 초과, 제어문자 포함 등)는 호출부의 .catch(err => alert(err.message))가 그대로
+// 보여줘야 하므로, 여기서 뭉뚱그린 메시지로 삼키지 않고 그대로 위로 던진다.
 async function submitComment(boardId, content, parentCommentId) {
-    try {
-        const response = await fetch(`/community/${boardId}/comment`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-Requested-With": "XMLHttpRequest"
-            },
-            body: JSON.stringify({content: content, parentCommentId: parentCommentId})
-        });
-        const result = await response.json();
-        if (!response.ok || !result.success) {
-            throw new Error(result.message || "댓글 등록에 실패했습니다.");
-        }
-        location.reload();
-    } catch (err) {
-        alert("에러가 발생했습니다.");
+    const response = await fetch(`/community/${boardId}/comment`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify({content: content, parentCommentId: parentCommentId})
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+        throw new Error(result.message || "댓글 등록에 실패했습니다.");
     }
+    location.reload();
 }
 
 /* [AJAX-4: 댓글 삭제] 별도 페이지 이동 없이 삭제 요청을 보내고, 성공하면 현재 상세 화면을 새로고침한다. */

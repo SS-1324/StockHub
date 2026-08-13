@@ -1,5 +1,6 @@
     package com.kh.demo.community.service;
     
+    import com.kh.demo.common.util.HtmlTextUtil;
     import com.kh.demo.community.dto.BoardDto;
     import com.kh.demo.community.dto.BoardImageDto;
     import com.kh.demo.community.mapper.BoardBookmarkMapper;
@@ -49,6 +50,11 @@
         // board 테이블 컬럼 크기에 맞춘 길이 제한
         private static final int MAX_TITLE_LENGTH = 200;
         private static final int MAX_CONTENT_LENGTH = 3000;
+        // 빈 줄(<p><br></p>)은 눈에 보이는 글자 수가 거의 없어 MAX_CONTENT_LENGTH를 우회할 수 있으므로,
+        // 줄바꿈 자체의 개수(p/br 태그 수)도 별도로 제한한다.
+        private static final int MAX_CONTENT_LINES = 300;
+        // 검색어가 너무 길면 공백 기준으로 쪼갠 단어 수만큼 LIKE 조건이 늘어나므로 상한을 둔다
+        private static final int MAX_KEYWORD_LENGTH = 100;
         /*
          * HOT·인기글은 제목이 없을 때 본문 일부를 대신 표시한다.
          * 서버에서 최대 길이와 최소 단어 경계를 함께 관리해 JSP와 CSS가 임의로 문자열을 자르지 않게 한다.
@@ -160,11 +166,7 @@
             );
     
             validateTitleAndContent(boardDto);
-    
-            boardDto.setContent(
-                    sanitizeContent(boardDto.getContent())
-            );
-    
+
             boardMapper.insertBoard(boardDto);
     
             boardImageService.uploadImages(
@@ -185,17 +187,9 @@
         ) {
             int safePage = Math.max(page, 1);
             int offset = (safePage - 1) * size;
-    
-            List<String> keywords;
-    
-            if (keyword == null || keyword.isBlank()) {
-                keywords = List.of();
-            } else {
-                keywords = Arrays.asList(
-                        keyword.trim().split("\\s+")
-                );
-            }
-    
+
+            List<String> keywords = splitKeywords(keyword);
+
             List<BoardDto> boardList
                     = boardMapper.selectBoardList(
                     category,
@@ -233,20 +227,26 @@
                 String category,
                 String keyword
         ) {
-            List<String> keywords;
-    
-            if (keyword == null || keyword.isBlank()) {
-                keywords = List.of();
-            } else {
-                keywords = Arrays.asList(
-                        keyword.trim().split("\\s+")
-                );
-            }
-    
+            List<String> keywords = splitKeywords(keyword);
+
             return boardMapper.selectBoardCount(
                     category,
                     keywords
             );
+        }
+
+        // 검색어를 공백 기준으로 쪼개기 전에 길이를 잘라, 지나치게 긴 입력이 AND 조건을 과도하게 늘리는 것을 막는다
+        private List<String> splitKeywords(String keyword) {
+            if (keyword == null || keyword.isBlank()) {
+                return List.of();
+            }
+
+            String trimmed = keyword.trim();
+            if (trimmed.length() > MAX_KEYWORD_LENGTH) {
+                trimmed = trimmed.substring(0, MAX_KEYWORD_LENGTH);
+            }
+
+            return Arrays.asList(trimmed.split("\\s+"));
         }
     
         /* [커뮤니티위젯-1]
@@ -582,11 +582,7 @@
             );
     
             validateTitleAndContent(boardDto);
-    
-            boardDto.setContent(
-                    sanitizeContent(boardDto.getContent())
-            );
-    
+
             int updated = boardMapper.updateBoard(boardDto);
     
             if (updated == 0) {
@@ -648,11 +644,7 @@
             );
     
             validateTitleAndContent(boardDto);
-    
-            boardDto.setContent(
-                    sanitizeContent(boardDto.getContent())
-            );
-    
+
             int updated
                     = boardMapper.updateBoardAsAdmin(boardDto);
     
@@ -728,8 +720,7 @@
     
             if (!CATEGORY_LABELS.containsKey(category)) {
                 throw new IllegalArgumentException(
-                        "허용되지 않는 카테고리입니다: "
-                                + category
+                        "허용되지 않는 카테고리입니다."
                 );
             }
     
@@ -746,23 +737,44 @@
     
             if (boardDto.getTitle().length()
                     > MAX_TITLE_LENGTH) {
-    
+
                 throw new IllegalArgumentException(
                         "제목은 "
                                 + MAX_TITLE_LENGTH
                                 + "자를 넘을 수 없습니다."
                 );
             }
-    
-            String visibleContent = Jsoup.parseBodyFragment(
-                            sanitizeContent(boardDto.getContent())
-                    )
+
+            if (HtmlTextUtil.hasDisallowedControlCharacter(boardDto.getTitle())
+                    || HtmlTextUtil.hasDisallowedControlCharacter(boardDto.getContent())) {
+                throw new IllegalArgumentException(
+                        "사용할 수 없는 문자가 포함되어 있습니다."
+                );
+            }
+
+            // 검증용으로만 한 번 더 파싱하지 않도록, 정제한 결과를 여기서 바로 boardDto에 반영해
+            // write()/update()/updateAsAdmin()가 저장 직전에 또 sanitizeContent를 부르지 않게 한다.
+            boardDto.setContent(sanitizeContent(boardDto.getContent()));
+            Document contentDocument = Jsoup.parseBodyFragment(boardDto.getContent());
+
+            // 글자 수만 세면 빈 줄은 텍스트가 거의 없어 MAX_CONTENT_LENGTH를 통과하므로,
+            // 개행을 극단적으로 많이 넣어 화면을 무한정 늘리는 시도는 줄 수 자체로 따로 막는다.
+            int lineCount = contentDocument.select("p, br, li").size();
+            if (lineCount > MAX_CONTENT_LINES) {
+                throw new IllegalArgumentException(
+                        "줄바꿈은 최대 "
+                                + MAX_CONTENT_LINES
+                                + "번까지 사용할 수 있습니다."
+                );
+            }
+
+            String visibleContent = contentDocument
                     .text()
                     .replace('\u00A0', ' ')
                     .replace("\u200B", "")
                     .replace("\uFEFF", "")
                     .trim();
-    
+
             if (visibleContent.isBlank()) {
     
                 throw new IllegalArgumentException(

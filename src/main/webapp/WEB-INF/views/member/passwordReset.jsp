@@ -26,6 +26,8 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" content="${_csrf.token}">
+    <meta name="_csrf_header" content="${_csrf.headerName}">
     <title>비밀번호 찾기 | StockHub</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,7 +35,7 @@
           rel="stylesheet">
     <link rel="stylesheet" href="${commonCssUrl}?v=30">
     <link rel="stylesheet" href="${authCssUrl}?v=11">
-    <script src="${headerJsUrl}?v=17" defer></script>
+    <script src="${headerJsUrl}?v=18" defer></script>
 </head>
 <body class="auth-page auth-page-reset">
 <main class="auth-shell">
@@ -69,6 +71,7 @@
                       action="${pageContext.request.contextPath}/member/password-reset"
                       data-context-path="${pageContext.request.contextPath}"
                       method="post">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 
                     <div class="form-row">
                         <label for="reset-email-local">이메일</label>

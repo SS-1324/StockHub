@@ -4,12 +4,13 @@ const previewImage = document.getElementById("category-preview-image");
 
 if (previewImage) {
     categories.forEach(category => {
+        //마우스가 카테고리 안으로 들어가면 이미지 보임
         category.addEventListener("mouseenter", function () {
             previewImage.src = this.dataset.image;
             previewImage.alt = this.dataset.alt;
             previewImage.classList.add("show");
         });
-
+        //마우스가 카테고리 바깥으로 나오면 이미지 지움
         category.addEventListener("mouseleave", function () {
             previewImage.classList.remove("show");
         });
