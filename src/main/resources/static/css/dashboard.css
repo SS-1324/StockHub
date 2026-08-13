@@ -397,6 +397,9 @@
     grid-area: holdings;
     display: flex;
     flex-direction: column;
+    /* 그리드 아이템은 기본적으로 내용(휠+범례) 크기 밑으로 안 줄어들어 카드 밖으로 튀어나올 수
+       있다 - 0으로 풀어줘야 안의 flex-wrap이 실제로 동작해 카드 폭 안에 맞춰진다 */
+    min-width: 0;
 }
 
 .dashboard-analytics-trade-stats{
@@ -405,10 +408,12 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 14px;
     align-content: start;
+    min-width: 0;
 }
 
 .dashboard-analytics-trend-card{
     grid-area: trend;
+    min-width: 0;
 }
 
 .dashboard-analytics-card{
@@ -434,6 +439,14 @@
     gap: 20px;
     /* 왼쪽 카드가 오른쪽(추이+통계 2줄)만큼 세로로 늘어나므로, 휠+범례를 그 남는 높이 가운데로 띄운다 */
     min-height: 220px;
+    /* 카드가 좁아졌을 때 휠+범례 묶음이 카드 밖으로 튀어나오지 않고 안에서 줄바꿈되게 한다 */
+    width: 100%;
+    min-width: 0;
+}
+
+#portfolio-donut-canvas{
+    max-width: 100%;
+    height: auto;
 }
 
 #asset-trend-canvas{
@@ -526,6 +539,7 @@
     flex-direction: column;
     gap: 10px;
     width: 100%;
+    min-width: 0;
 }
 
 /* 보유 종목이 7개가 넘어가면 세로 한 줄로 계속 늘어져 카드가 흉해지므로, 6개|6개 식으로
@@ -545,6 +559,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    min-width: 0;
     font-size: 13px;
     color: #334155;
 }
@@ -558,6 +573,10 @@
 
 .dashboard-portfolio-legend-name{
     flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-weight: 700;
     color: #172033;
 }

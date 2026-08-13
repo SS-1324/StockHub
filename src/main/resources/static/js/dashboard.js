@@ -21,6 +21,14 @@ document.addEventListener("DOMContentLoaded", () => {
         drawPortfolioDonut();
         drawAssetTrendChart();
     }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+    // 창 크기가 바뀌면(사이드바 레이아웃이 1050px에서 접히는 것도 포함) 자산 추이 차트가
+    // 실제 폭에 맞춰 다시 그려지도록 한다. 리사이즈 중 매 프레임 다시 그리진 않게 디바운스한다.
+    let resizeRedrawTimer = null;
+    window.addEventListener("resize", () => {
+        clearTimeout(resizeRedrawTimer);
+        resizeRedrawTimer = setTimeout(drawAssetTrendChart, 150);
+    });
 });
 
 function isDarkTheme() {
@@ -144,6 +152,7 @@ const PORTFOLIO_DONUT_COLORS = [
 ];
 
 const LEGEND_TWO_COL_THRESHOLD = 6;
+const DONUT_MAX_SLICES = 12;
 
 // 캔버스에 실제 도형을 그려야(=CSS가 아니어야) PNG 다운로드(canvas.toDataURL)가 가능하다
 function drawPortfolioDonut() {
@@ -164,6 +173,15 @@ function drawPortfolioDonut() {
         return;
     }
 
+    // 휠+범례에 보여줄 종목은 최대 12개까지만 - 13개가 넘으면 상위 11개만 그대로 두고
+    // 나머지는 "기타"로 합쳐서 12번째 조각 하나로 보여준다(범례가 한없이 길어지는 걸 막는다).
+    let displayHoldings = holdings;
+    if (holdings.length > DONUT_MAX_SLICES) {
+        const top = holdings.slice(0, DONUT_MAX_SLICES - 1);
+        const restValue = holdings.slice(DONUT_MAX_SLICES - 1).reduce((sum, h) => sum + h.value, 0);
+        displayHoldings = [...top, { name: "기타", value: restValue }];
+    }
+
     const size = canvas.width;
     const ctx = prepareHiDpiCanvas(canvas, size, size);
     const cx = size / 2;
@@ -175,7 +193,7 @@ function drawPortfolioDonut() {
     const formatter = new Intl.NumberFormat("ko-KR");
     legend.innerHTML = "";
 
-    holdings.forEach((holding, i) => {
+    displayHoldings.forEach((holding, i) => {
         const color = PORTFOLIO_DONUT_COLORS[i % PORTFOLIO_DONUT_COLORS.length];
         const percent = holding.value / total;
         const endAngle = startAngle + percent * Math.PI * 2;
@@ -204,7 +222,7 @@ function drawPortfolioDonut() {
     });
 
     // 보유 종목이 많을 때(예: 12개) 세로로 계속 늘어지지 않도록 6개|6개 식 2열로 접는다
-    legend.classList.toggle("is-two-col", holdings.length > LEGEND_TWO_COL_THRESHOLD);
+    legend.classList.toggle("is-two-col", displayHoldings.length > LEGEND_TWO_COL_THRESHOLD);
 
     // 가운데를 뚫어 링(도넛) 모양으로 만들고, 종목 수/총액을 적는다 - 구멍 색은 카드 배경과 맞춘다
     const dark = isDarkTheme();
@@ -245,11 +263,16 @@ function drawAssetTrendChart() {
         return;
     }
 
-    const width = canvas.width;
-    const height = canvas.height;
+    // 캔버스 attribute(900)를 그대로 쓰면 실제로는 CSS가 눌러 줄인 폭(사이드바가 생기면서
+    // 더 좁아졌다)과 안 맞아 안의 글자까지 통째로 쪼그라들었다. 인라인 스타일을 비워 CSS의
+    // width:100%가 다시 적용되게 한 뒤 실제 렌더링 폭을 재서, 그 폭에 맞는 해상도로 새로 그린다.
+    canvas.style.width = "";
+    const width = Math.max(260, Math.round(canvas.getBoundingClientRect().width) || 900);
+    const height = 220;
     const ctx = prepareHiDpiCanvas(canvas, width, height);
 
-    const padding = { top: 16, right: 16, bottom: 28, left: 74 };
+    // 폭이 좁으면 y축 금액 라벨도 자리를 덜 차지하게 줄인다
+    const padding = { top: 16, right: 16, bottom: 28, left: width < 420 ? 56 : 74 };
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
 
