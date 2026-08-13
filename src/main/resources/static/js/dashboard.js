@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setupAnalyticsShare();
     setupAnalyticsDetailModal();
     setupTimelinePagination();
+    setupTimelineModal();
     setupBrokerageFilter();
 
     // 캔버스는 CSS가 아니라 직접 그린 픽셀이라, 테마 토글(header.js가 <html data-theme>를 바꿈)에
@@ -24,6 +25,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function isDarkTheme() {
     return document.documentElement.dataset.theme === "dark";
+}
+
+function addDays(date, days) {
+    const result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
 }
 
 function setupTogglePanel(toggleSelector, panelSelector) {
@@ -223,12 +230,17 @@ function drawAssetTrendChart() {
     if (!canvas || !canvas.dataset.trend) {
         return;
     }
-    const points = canvas.dataset.trend.split(",")
+    const allPoints = canvas.dataset.trend.split(",")
         .map((pair) => {
             const [date, value] = pair.split(":");
             return { date, value: Number(value) };
         })
         .filter((p) => p.date && !Number.isNaN(p.value));
+
+    // 최대 1년까지만 보여준다. 서버는 계좌 생성 이후 실제 이력 전체를 보내주므로, 시작한 지
+    // 3개월 된 사람은 이 필터를 거쳐도 자연스럽게 3개월치 그대로 남는다("사람에 맞는" 그래프).
+    const oneYearAgo = allPoints.length > 0 ? addDays(new Date(allPoints[allPoints.length - 1].date), -365) : null;
+    const points = oneYearAgo ? allPoints.filter((p) => new Date(p.date) >= oneYearAgo) : allPoints;
     if (points.length < 2) {
         return;
     }
@@ -326,87 +338,180 @@ function readHoldingsFromTable() {
         .filter((h) => h.value > 0);
 }
 
+// ==================== 모달 공통 처리 ====================
+// 포트폴리오 상세정보 모달, 최근 활동 더보기 모달 등 이 페이지에 뜨는 모든 모달이 공유하는
+// 열기/닫기 + 배경 스크롤 잠금. 열려있는 모달 개수를 세어, 하나라도 남아있으면 계속 잠가둔다
+// (동시에 두 개가 뜨진 않지만, 방어적으로 카운트 기반으로 짰다).
+let openModalCount = 0;
+
+function setBodyScrollLocked(locked) {
+    document.body.classList.toggle("dashboard-scroll-locked", locked);
+}
+
+function registerModal(modal) {
+    if (!modal) {
+        return null;
+    }
+    function close() {
+        if (modal.hidden) {
+            return;
+        }
+        modal.hidden = true;
+        openModalCount = Math.max(0, openModalCount - 1);
+        setBodyScrollLocked(openModalCount > 0);
+    }
+    function open() {
+        if (!modal.hidden) {
+            return;
+        }
+        modal.hidden = false;
+        openModalCount += 1;
+        setBodyScrollLocked(true);
+    }
+    modal.querySelectorAll("[data-modal-close]").forEach((el) => el.addEventListener("click", close));
+    return { open, close, modal };
+}
+
+// Esc는 열려있는 모달이면 뭐든 닫는다(모달이 하나여도, 나중에 여러 개가 생겨도 그대로 동작)
+document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") {
+        return;
+    }
+    document.querySelectorAll(".dashboard-modal:not([hidden])").forEach((modal) => {
+        modal.hidden = true;
+    });
+    openModalCount = 0;
+    setBodyScrollLocked(false);
+});
+
+// 사이드바 "최근 활동" 위젯의 더보기 버튼 - 전체 목록 + 페이지네이션이 들어있는 모달을 연다
+function setupTimelineModal() {
+    const btn = document.getElementById("dashboard-timeline-more");
+    const modalCtl = registerModal(document.getElementById("dashboard-timeline-modal"));
+    if (!btn || !modalCtl) {
+        return;
+    }
+    btn.addEventListener("click", () => modalCtl.open());
+}
+
 function setupAnalyticsDetailModal() {
     const modal = document.getElementById("dashboard-analytics-modal");
     const titleEl = document.getElementById("dashboard-modal-title");
     const bodyEl = document.getElementById("dashboard-modal-body");
     const buttons = document.querySelectorAll(".dashboard-analytics-stat-clickable");
-    if (!modal || !titleEl || !bodyEl || buttons.length === 0) {
+    const modalCtl = registerModal(modal);
+    if (!modalCtl || !titleEl || !bodyEl || buttons.length === 0) {
         return;
     }
 
-    function openModal(title, bodyHtml) {
-        titleEl.textContent = title;
-        bodyEl.innerHTML = bodyHtml;
-        modal.hidden = false;
-    }
-
-    function closeModal() {
-        modal.hidden = true;
-    }
+    const DETAIL_BUILDERS = {
+        winRate: () => buildWinRateDetailHtml(),
+        holdingDays: () => buildHoldingDaysDetailHtml(),
+        pinpoint: (btn) => buildPinpointDetailHtml(btn.dataset.highlight),
+        concentration: () => buildConcentrationDetailHtml(),
+        region: () => buildRegionDetailHtml(),
+    };
 
     buttons.forEach((btn) => {
         btn.addEventListener("click", () => {
-            const detail = btn.dataset.detail;
-            const title = btn.dataset.detailTitle || "상세정보";
-            if (detail === "trades") {
-                openModal(title, buildTradesDetailHtml(btn.dataset.highlight));
-            } else if (detail === "concentration") {
-                openModal(title, buildConcentrationDetailHtml());
-            } else if (detail === "region") {
-                openModal(title, buildRegionDetailHtml());
+            const builder = DETAIL_BUILDERS[btn.dataset.detail];
+            if (!builder) {
+                return;
             }
+            titleEl.textContent = btn.dataset.detailTitle || "상세정보";
+            bodyEl.innerHTML = builder(btn);
+            modalCtl.open();
         });
-    });
-
-    modal.querySelectorAll("[data-modal-close]").forEach((el) => el.addEventListener("click", closeModal));
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && !modal.hidden) {
-            closeModal();
-        }
     });
 }
 
-function buildTradesDetailHtml(highlight) {
+// 매매 승률 상세: "총 n건 중 이득/손해 몇 건"으로 요약 + 승/패를 한 막대 안에 비율대로 나눠 보여준다
+// (승/패 막대를 따로 두 줄로 그리면 각 줄의 남는 회색 여백이 뭘 뜻하는지 애매해서, 하나의 막대를
+//  승/패 비율대로 나눠 채우는 방식으로 바꿨다 - 나머지 회색은 "본전"인 경우만 남는다)
+function buildWinRateDetailHtml() {
     const trades = readRealizedProfits();
     if (trades.length === 0) {
         return `<p class="dashboard-modal-empty">아직 마감된(전량 매도한) 매매 내역이 없습니다.</p>`;
     }
 
-    // "최고의 매매"/"최악의 매매" 카드에서 열었다면 그 거래를 표에서 하이라이트한다
-    let highlightIndex = -1;
-    if (highlight === "best" || highlight === "worst") {
-        highlightIndex = trades.reduce((bestIdx, t, i) => {
-            if (bestIdx === -1) return i;
-            const better = highlight === "best"
-                ? t.profitAmount > trades[bestIdx].profitAmount
-                : t.profitAmount < trades[bestIdx].profitAmount;
-            return better ? i : bestIdx;
-        }, -1);
+    const total = trades.length;
+    const wins = trades.filter((t) => t.profitAmount > 0).length;
+    const losses = trades.filter((t) => t.profitAmount < 0).length;
+    const evens = total - wins - losses;
+    const winPct = (wins / total) * 100;
+    const lossPct = (losses / total) * 100;
+
+    const evenText = evens > 0 ? `, 본전 ${evens}건` : "";
+    return `<p class="dashboard-modal-summary">총 ${total}건의 매매 중 <strong>이득 ${wins}건</strong>, <strong>손해 ${losses}건</strong>${evenText}이에요. (승률 ${winPct.toFixed(1)}%)</p>
+        <div class="dashboard-modal-split-bar">
+            <span class="dashboard-modal-split-segment" style="width:${winPct.toFixed(1)}%;background:#e5484d;"></span>
+            <span class="dashboard-modal-split-segment" style="width:${lossPct.toFixed(1)}%;background:#0874f7;"></span>
+        </div>
+        <div class="dashboard-modal-split-legend">
+            <span><i style="background:#e5484d;"></i>이득 ${wins}건 (${winPct.toFixed(1)}%)</span>
+            <span><i style="background:#0874f7;"></i>손해 ${losses}건 (${lossPct.toFixed(1)}%)</span>
+        </div>`;
+}
+
+// 평균 보유기간 상세: 최장/최단 보유 종목, 평균, 중앙값 4칸
+function buildHoldingDaysDetailHtml() {
+    const trades = readRealizedProfits();
+    if (trades.length === 0) {
+        return `<p class="dashboard-modal-empty">아직 마감된(전량 매도한) 매매 내역이 없습니다.</p>`;
     }
 
-    const sorted = trades
-        .map((t, i) => ({ ...t, _originalIndex: i }))
-        .sort((a, b) => (a.sellAt < b.sellAt ? 1 : a.sellAt > b.sellAt ? -1 : 0));
+    const longest = trades.reduce((a, b) => (b.holdingDays > a.holdingDays ? b : a));
+    const shortest = trades.reduce((a, b) => (b.holdingDays < a.holdingDays ? b : a));
+    const days = trades.map((t) => t.holdingDays).sort((a, b) => a - b);
+    const avg = days.reduce((sum, d) => sum + d, 0) / days.length;
+    const mid = Math.floor(days.length / 2);
+    const median = days.length % 2 === 0 ? (days[mid - 1] + days[mid]) / 2 : days[mid];
 
-    const rows = sorted.map((t) => {
-        const sign = t.profitAmount > 0 ? "+" : "";
-        const profitClass = t.profitAmount > 0 ? "value-positive" : t.profitAmount < 0 ? "value-negative" : "";
-        const rowClass = t._originalIndex === highlightIndex ? " class=\"is-highlight\"" : "";
-        return `<tr${rowClass}>
-            <td>${escapeHtml(t.itemName)}</td>
-            <td>${escapeHtml(t.buyAt)}</td>
-            <td>${escapeHtml(t.sellAt)}</td>
-            <td>${t.holdingDays}일</td>
-            <td class="${profitClass}">${sign}${KRW_FORMATTER.format(t.profitAmount)}원</td>
-            <td class="${profitClass}">${sign}${Number(t.returnRate).toFixed(2)}%</td>
-        </tr>`;
-    }).join("");
+    function stat(label, value, sub, range) {
+        return `<div class="dashboard-modal-mini-stat">
+            <p class="dashboard-modal-mini-stat-label">${label}</p>
+            <p class="dashboard-modal-mini-stat-value">${value}</p>
+            ${sub ? `<p class="dashboard-modal-mini-stat-sub">${escapeHtml(sub)}</p>` : ""}
+            ${range ? `<p class="dashboard-modal-mini-stat-range">${escapeHtml(range)}</p>` : ""}
+        </div>`;
+    }
 
-    return `<table class="dashboard-modal-table">
-        <thead><tr><th>종목</th><th>매수</th><th>매도</th><th>보유기간</th><th>손익</th><th>수익률</th></tr></thead>
-        <tbody>${rows}</tbody>
-    </table>`;
+    return `<div class="dashboard-modal-stat-grid">
+        ${stat("최장 보유", `${longest.holdingDays}일`, longest.itemName, `${longest.buyAt} ~ ${longest.sellAt}`)}
+        ${stat("최단 보유", `${shortest.holdingDays}일`, shortest.itemName, `${shortest.buyAt} ~ ${shortest.sellAt}`)}
+        ${stat("평균", `${avg.toFixed(1)}일`)}
+        ${stat("중앙값", `${median}일`)}
+    </div>`;
+}
+
+// 최고·최악의 매매 상세: "언제 얼마에 사서 얼마에 팔았다"를 핀포인트로 보여준다
+function buildPinpointDetailHtml(highlight) {
+    const trades = readRealizedProfits();
+    if (trades.length === 0) {
+        return `<p class="dashboard-modal-empty">아직 마감된(전량 매도한) 매매 내역이 없습니다.</p>`;
+    }
+
+    const target = trades.reduce((best, t) => {
+        if (!best) return t;
+        const better = highlight === "worst" ? t.profitAmount < best.profitAmount : t.profitAmount > best.profitAmount;
+        return better ? t : best;
+    }, null);
+
+    const sign = target.profitAmount > 0 ? "+" : "";
+    const profitClass = target.profitAmount > 0 ? "value-positive" : target.profitAmount < 0 ? "value-negative" : "";
+
+    function row(label, value) {
+        return `<div class="dashboard-modal-pinpoint-row">
+            <span class="dashboard-modal-pinpoint-label">${label}</span>
+            <span class="dashboard-modal-pinpoint-value">${value}</span>
+        </div>`;
+    }
+
+    return `<p class="dashboard-modal-summary"><strong>${escapeHtml(target.itemName)}</strong></p>
+        ${row("매수", `${escapeHtml(target.buyAt)} · ${KRW_FORMATTER.format(target.buyPrice)}원 × ${target.quantity}`)}
+        ${row("매도", `${escapeHtml(target.sellAt)} · ${KRW_FORMATTER.format(target.sellPrice)}원 × ${target.quantity}`)}
+        ${row("보유기간", `${target.holdingDays}일`)}
+        ${row("손익", `<span class="${profitClass}">${sign}${KRW_FORMATTER.format(target.profitAmount)}원 (${sign}${Number(target.returnRate).toFixed(2)}%)</span>`)}`;
 }
 
 function buildConcentrationDetailHtml() {
@@ -598,9 +703,17 @@ function setupAnalyticsShare() {
 // 다시 페이지를 나눠야 하므로, 바깥(증권사 필터)에서 다시 부를 수 있게 핸들을 남겨둔다.
 let timelineFilterHandle = null;
 
+function todayIso() {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 function setupTimelinePagination() {
     const list = document.getElementById("dashboard-timeline-list");
     const pagination = document.getElementById("dashboard-timeline-pagination");
+    const todayList = document.getElementById("dashboard-timeline-today-list");
+    const todayEmpty = document.getElementById("dashboard-timeline-today-empty");
     if (!list || !pagination) {
         return;
     }
@@ -613,8 +726,28 @@ function setupTimelinePagination() {
         return allItems.filter((item) => brokerageFilter === "__ALL__" || item.dataset.brokerage === brokerageFilter);
     }
 
+    // 사이드바 위젯: 오늘 날짜인 항목만 추려 별도 목록에 복제해 보여준다(전체 목록/페이지네이션은
+    // 그대로 "더보기" 모달 쪽에 둔다). 증권사 필터가 바뀌면 이것도 같이 다시 그려야 하므로 render() 안에서 처리한다.
+    function renderTodayWidget(items) {
+        if (!todayList) {
+            return;
+        }
+        const today = todayIso();
+        const todays = items.filter((item) => item.dataset.date === today);
+        todayList.innerHTML = "";
+        todays.forEach((item) => {
+            const clone = item.cloneNode(true);
+            clone.hidden = false;
+            todayList.appendChild(clone);
+        });
+        if (todayEmpty) {
+            todayEmpty.hidden = todays.length > 0;
+        }
+    }
+
     function render() {
         const items = eligibleItems();
+        renderTodayWidget(items);
         const pageCount = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
         currentPage = Math.min(currentPage, pageCount);
 
