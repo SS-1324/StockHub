@@ -222,6 +222,8 @@
                 </div>
                 <%-- white-space: pre-wrap이 걸려있어서, 아래 태그 사이에 줄바꿈/들여쓰기를 남기면
                      그 공백까지 그대로 화면에 찍힌다(댓글 앞에 빈 칸이 생기던 원인). 한 줄로 붙여서 방지. --%>
+
+
                 <div class="comment-body"><c:if test="${not empty c.parentNickname}"><span class="comment-mention">@${c.parentNickname}</span></c:if>${c.highlightedContent}</div>
                 <c:if test="${isAdmin}">
                     <form class="comment-edit-form hidden"
@@ -234,22 +236,24 @@
                         </div>
                     </form>
                 </c:if>
-                <div class="comment-meta">
-                    <span>${c.createAtStr}</span>
-                    <button type="button" class="comment-like-btn ${c.liked ? 'active' : ''}"
-                            data-comment-id="${c.commentId}" data-active="${c.liked}">
-                        좋아요 <span class="like-count">${c.likeCount}</span>
-                    </button>
-                    <c:if test="${empty c.parentCommentId && not empty loginMemberId}">
-                        <button type="button" class="comment-reply-btn" data-comment-id="${c.commentId}">답글</button>
-                    </c:if>
-                    <c:if test="${isAdmin}">
-                        <button type="button" class="comment-edit-btn" data-comment-id="${c.commentId}">수정</button>
-                    </c:if>
-                    <c:if test="${(not empty loginMemberId and c.memberId == loginMemberId) or isAdmin}">
-                        <button type="button" class="comment-delete-btn" data-comment-id="${c.commentId}">삭제</button>
-                    </c:if>
-                </div>
+            <div class="comment-meta">
+                                <span>${c.createAtStr}</span>
+                                <c:if test="${not c.deleted}">
+                                    <button type="button" class="comment-like-btn ${c.liked ? 'active' : ''}"
+                                            data-comment-id="${c.commentId}" data-active="${c.liked}">
+                                        좋아요 <span class="like-count">${c.likeCount}</span>
+                                    </button>
+                                    <c:if test="${empty c.parentCommentId && not empty loginMemberId}">
+                                        <button type="button" class="comment-reply-btn" data-comment-id="${c.commentId}">답글</button>
+                                    </c:if>
+                                    <c:if test="${isAdmin}">
+                                        <button type="button" class="comment-edit-btn" data-comment-id="${c.commentId}">수정</button>
+                                    </c:if>
+                                    <c:if test="${(not empty loginMemberId and c.memberId == loginMemberId) or isAdmin}">
+                                        <button type="button" class="comment-delete-btn" data-comment-id="${c.commentId}">삭제</button>
+                                    </c:if>
+                                </c:if>
+                            </div>
                 <c:if test="${empty c.parentCommentId && not empty loginMemberId}">
                     <%--
                         대댓글도 일반 댓글과 같은 comment-input-wrap과 comment-submit-btn을 사용한다.

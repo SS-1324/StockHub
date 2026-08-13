@@ -59,10 +59,8 @@
         (() => {
             try {
                 const savedTheme = localStorage.getItem("stockhub-theme");
-
                 document.documentElement.dataset.theme =
                     savedTheme === "dark" ? "dark" : "light";
-
             } catch {
                 document.documentElement.dataset.theme = "light";
             }
@@ -180,14 +178,14 @@
                             </span>
 
                             <span class="header-profile-nickname">
-                                    <c:out value="${sessionScope.loginMember.nickname}"/>님
-                                </span>
+                                <c:out value="${sessionScope.loginMember.nickname}"/>님
+                            </span>
                             <span class="header-profile-arrow" aria-hidden="true">▾</span>
                         </button>
 
                         <div id="header-profile-dropdown"
                              class="header-profile-dropdown"
-                            hidden>
+                             hidden>
                             <c:choose>
                                 <%-- 관리자는 관리자 페이지 외 회원 전용 메뉴를 사용하지 않음 --%>
                                 <c:when test="${fn:toUpperCase(sessionScope.loginMember.memberRole) eq 'ADMIN'}">
@@ -200,12 +198,16 @@
                             </c:choose>
                             <a class="header-logout-link" href="${logoutUrl}">로그아웃</a>
                         </div>
-                        <%-- 세션 타이머 (ADMIN이 아닌 경우에만 표시) --%>
-                        <c:if test="${not empty sessionExpiresAt and fn:toUpperCase(sessionScope.loginMember.memberRole) ne 'ADMIN'}">
+                        <%-- 세션 타이머 (ADMIN이 아닌 로그인 유저에게 표시) --%>
+                        <c:if test="${not empty sessionScope.loginMember and fn:toUpperCase(sessionScope.loginMember.memberRole) ne 'ADMIN'}">
+                            <%-- 세션에 담긴 sessionExpiresAt을 사용하고, 혹시나 없는 예외 상황엔 현재시간+유지시간 계산 --%>
+                            <c:set var="headerSessionExpiresAt"
+                                   value="${not empty sessionScope.sessionExpiresAt ? sessionScope.sessionExpiresAt : (pageContext.session.lastAccessedTime + (pageContext.session.maxInactiveInterval * 1000))}" />
+
                             <div class="header-session-timer"
-                                 data-session-expires-at="${sessionExpiresAt}">
+                                 data-session-expires-at="${headerSessionExpiresAt}">
                                 <span id="header-session-remaining-time">--:--</span>
-                                <button class="session-extend-btn" onclick="extendSession()" title="세션 30분 연장" aria-label="세션 30분 연장">
+                                <button type="button" class="session-extend-btn" onclick="extendSession(event)" title="세션 30분 연장" aria-label="세션 30분 연장">
                                     <i class="fa-solid fa-arrows-rotate"></i>
                                 </button>
                             </div>

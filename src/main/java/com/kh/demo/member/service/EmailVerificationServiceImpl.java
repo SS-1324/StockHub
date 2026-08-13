@@ -114,6 +114,30 @@ public class EmailVerificationServiceImpl
         }
     }
 
+    // 외부에서 전달받은 이메일과 코드로 메일을 발송 (비밀번호 찾기 등에 사용)
+    @Override
+    public void sendEmail(String toEmail, String code) {
+        if (senderAddress.isBlank()) {
+            throw new IllegalStateException("메일 발송 계정이 설정되지 않았습니다.");
+        }
+
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(senderAddress);
+            message.setTo(toEmail);
+            message.setSubject("[StockHub] 비밀번호 재설정 인증번호 안내");
+            message.setText(
+                    "StockHub 비밀번호 재설정 이메일 인증번호입니다.\n\n"
+                            + "인증번호: " + code + "\n\n"
+                            + "본인이 요청하지 않았다면 이 메일을 무시해주세요."
+            );
+            mailSender.send(message);
+        } catch (MailException e) {
+            log.error("Gmail SMTP 메일 발송 실패", e);
+            throw new IllegalStateException("인증번호 메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요.", e);
+        }
+    }
+
     // 입력한 인증번호가 최신 번호와 일치하는지, 3분이 지났는지 확인
     @Override
     @Transactional

@@ -122,6 +122,9 @@ public class DashboardController {
         model.addAttribute("myBrokerageNames", myBrokerageNames);
         model.addAttribute("brokerageFilterDataJson", buildBrokerageFilterDataJson(myAccounts, stockSummary, productSummary));
         model.addAttribute("portfolioAnalytics", portfolioAnalyticsService.getMyPortfolioAnalytics(memberId, stockSummary));
+        // 포트폴리오 분석 카드(매매 승률/평균 보유기간/최고·최악의 매매)를 클릭했을 때 보여줄 "상세정보"용 -
+        // 이미 계산된 요약 수치 뒤에 깔린 실제 매매 내역 전체를 그대로 내려보낸다
+        model.addAttribute("realizedProfits", realizedProfitService.getMyRealizedProfits(memberId));
 
         return "member/dashboard";
     }
@@ -157,7 +160,7 @@ public class DashboardController {
         String memberId = SessionUtil.requireLoginMemberId(session);
         try {
             goalService.setGoal(memberId, goalType, title, targetValue, targetDate);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             ra.addFlashAttribute("goalError", e.getMessage());
         }
         return "redirect:/member/dashboard";

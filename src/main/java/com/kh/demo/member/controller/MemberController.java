@@ -172,13 +172,16 @@ public class MemberController {
         return "member/passwordReset";
     }
 
-    // 가입된 이메일에 비밀번호 찾기용 개발 코드 생성
+    // 가입된 이메일에 비밀번호 찾기 인증번호 발송 (실제 이메일 발송용)
     @PostMapping("/password-reset/email/send")
     @ResponseBody
-    public ApiResponse<String> createPasswordResetCode(@RequestParam String email) {
+    public ApiResponse<Void> createPasswordResetCode(@RequestParam String email) {
         try {
-            String code = passwordResetService.createDevelopmentCode(email);
-            return ApiResponse.success("개발용 인증코드가 생성되었습니다.", code);
+            // 기존 메서드 명칭인 createDevelopmentCode 사용
+            passwordResetService.createDevelopmentCode(email);
+
+            // 프론트엔드에는 code를 보내지 않음 (null)
+            return ApiResponse.success("비밀번호 재설정 인증번호가 이메일로 발송되었습니다.", null);
         } catch (IllegalStateException e) {
             return ApiResponse.fail(e.getMessage());
         }
@@ -247,9 +250,12 @@ public class MemberController {
             MemberDto member = memberService.login(memberId, memberPwd);
             // 로그인 회원 정보를 세션에 저장
             session.setAttribute(SessionConst.LOGIN_MEMBER, member);
-            // ADMIN 권한이면 세션 만료 시간을 무제한(-1)으로 설정
+            // ADMIN이 아닌 일반 회원일 경우 고정 만료 시각(현재시간 + 30분) 세션 저장
             if (isAdmin(member)) {
                 session.setMaxInactiveInterval(-1); // 세션 만료 없음
+            } else {
+                long expiresAt = System.currentTimeMillis() + (session.getMaxInactiveInterval() * 1000L);
+                session.setAttribute("sessionExpiresAt", expiresAt);
             }
             clearProfileEditVerification(session);
         } catch (IllegalStateException e) {
@@ -494,6 +500,24 @@ public class MemberController {
             return "redirect:/member/withdraw";
         }
     }
+
+    // JS에서 호출하는 세션 연장 API (URL: /member/session/extend)
+    @PostMapping("/session/extend")
+    @ResponseBody
+    public ApiResponse<Long> extendSession(HttpSession session) {
+        MemberDto loginMember = (MemberDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        if (loginMember == null) {
+            return ApiResponse.fail("로그인 상태가 아닙니다.");
+        }
+
+        // 세션 유효 시간(30분) 기준으로 새로운 만료 시각 계산
+        int maxInactiveInterval = session.getMaxInactiveInterval();
+        long newExpiresAt = System.currentTimeMillis() + (maxInactiveInterval * 1000L);
+
+        // 세션 고정 만료 시각 갱신
+        session.setAttribute("sessionExpiresAt", newExpiresAt);
+
+        return ApiResponse.success("세션이 연장되었습니다.", newExpiresAt);    }
 
     // 세션의 프로필 수정 비밀번호 확인 상태가 현재 로그인 회원에게 유효한지 확인
     private boolean isProfileEditVerified(HttpSession session, String memberId) {

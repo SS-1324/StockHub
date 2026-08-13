@@ -2,6 +2,7 @@
  * 세션 타이머: 남은 시간을 실시간으로 표시하고 자동 로그아웃
  */
 let timerInterval;  // 전역 변수로 선언 (연장할 때 필요)
+let expiresAtMs = 0; // 전역 변수로 선언하여 연장 함수에서도 접근 가능하게 함
 
 document.addEventListener('DOMContentLoaded', function() {
     const timerElement = document.querySelector('.header-session-timer');
@@ -18,12 +19,15 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    const expiresAtMs = parseInt(timerElement.dataset.sessionExpiresAt, 10);
+    // const 키워드를 제거하고 전역 변수 expiresAtMs에 값을 할당합니다.
+    expiresAtMs = parseInt(timerElement.dataset.sessionExpiresAt, 10);
+
     // 헤더 타이머 또는 홈 타이머의 시간 요소
     let remainingTimeElement = document.getElementById('header-session-remaining-time');
     if (!remainingTimeElement) {
         remainingTimeElement = document.getElementById('home-session-remaining-time');
     }
+
     function updateTimer() {
         const now = Date.now();
         const remainingMs = expiresAtMs - now;
@@ -33,9 +37,9 @@ document.addEventListener('DOMContentLoaded', function() {
             clearInterval(timerInterval);
             remainingTimeElement.textContent = '00:00';
 
-            // 2. 즉시 로그아웃 처리 및 로그인 화면 이동
+            // 2. [만료 시] alert 띄우고 로그아웃
             alert('세션이 만료되었습니다. 다시 로그인해주세요.');
-            window.location.href = '/member/logout'; // ⭐ /member/login 대신 완전히 로그아웃시키는 /member/logout 추천!
+            window.location.href = '/member/logout';
             return;
         }
 
@@ -76,16 +80,21 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
- * 새 함수: 세션 연장하기
+ * 세션 연장하기
  */
-function extendSession() {
-    const btn = event.currentTarget || event.target;
-    const icon = btn.querySelector('i');
+function extendSession(e) {
+    if (e && e.preventDefault) {
+        e.preventDefault();
+    }
 
-    btn.disabled = true;
-    if (icon) icon.classList.add('fa-spin'); // 연장 완료될 때까지 아이콘 회전 애니메이션
+    const evt = e || window.event;
+    const btn = evt ? (evt.currentTarget || evt.target) : document.querySelector('.session-extend-btn');
+    const icon = btn ? btn.querySelector('i') : null;
 
-    fetch('/api/session/extend', {
+    if (btn) btn.disabled = true;
+    if (icon) icon.classList.add('fa-spin');
+
+    fetch('/member/session/extend', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -98,19 +107,30 @@ function extendSession() {
             return response.json();
         })
         .then(data => {
-            if (data.success) {
-                alert('세션이 30분 연장되었습니다.');
-                location.reload();
+            // data.data(서버가 넘겨준 새 만료 시각)가 있는지 확인하고 동적 반영!
+            if (data.success && data.data) {
+                // 1. 서버에서 새로 받아온 만료 시각으로 전역 변수 즉시 갱신
+                expiresAtMs = data.data;
+
+                // 2. 화면 dataset 값도 함께 업데이트
+                const timerElement = document.querySelector('.header-session-timer');
+                if (timerElement) {
+                    timerElement.dataset.sessionExpiresAt = data.data;
+                }
+
+                // 3. 버튼 로딩 상태 해제 (새로고침 없이 바로 30:00으로 타이머 연장됨)
+                if (btn) btn.disabled = false;
+                if (icon) icon.classList.remove('fa-spin');
             } else {
-                alert('세션 연장에 실패했습니다.');
-                btn.disabled = false;
+                alert(data.message || '세션 연장에 실패했습니다.');
+                if (btn) btn.disabled = false;
                 if (icon) icon.classList.remove('fa-spin');
             }
         })
         .catch(error => {
             console.error('세션 연장 오류:', error);
             alert('연결 오류가 발생했습니다.');
-            btn.disabled = false;
+            if (btn) btn.disabled = false;
             if (icon) icon.classList.remove('fa-spin');
         });
 }

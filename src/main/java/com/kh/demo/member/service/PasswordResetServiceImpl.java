@@ -34,7 +34,6 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // 가입된 이메일인지 확인한 뒤 개발용 6자리 코드를 생성
     @Override
     @Transactional
     public String createDevelopmentCode(String email) {
@@ -47,11 +46,13 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             throw new IllegalStateException("가입된 회원의 이메일을 입력해주세요.");
         }
 
+        // 비밀번호 찾기 전용 6자리 코드 생성
         String code = String.format(
                 "%06d",
                 secureRandom.nextInt(1_000_000)
         );
 
+        // 비밀번호 재설정 전용 DB 테이블에 저장
         passwordResetTokenMapper.expireEmailVerificationCodes(memberId);
         if (passwordResetTokenMapper.insertEmailVerification(
                 memberId,
@@ -60,15 +61,9 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         ) != 1) {
             throw new IllegalStateException("인증 코드 저장에 실패했습니다.");
         }
-
-        System.out.println(
-                "[StockHub 개발용 비밀번호 찾기 인증] "
-                        + normalizedEmail
-                        + " / 인증코드: "
-                        + code
-        );
-
-        return code;
+        // 실제 Gmail로 발송
+        emailVerificationService.sendEmail(normalizedEmail, code);
+        return "인증번호가 메일로 발송되었습니다.";
     }
 
     // 유효한 이메일 인증 코드는 한 번만 사용하고 재설정 토큰을 발급
