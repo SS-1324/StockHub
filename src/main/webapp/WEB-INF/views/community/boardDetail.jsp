@@ -88,7 +88,7 @@
           data-user-profile="${board.memberId}"
           role="button"
           tabindex="0"
-          aria-label="${board.nickname} 프로필 보기">
+          aria-label="${fn:escapeXml(board.nickname)} 프로필 보기">
 
     <c:choose>
 
@@ -100,7 +100,7 @@
 
                 <img class="board-header-avatar"
                      src="${board.profile}"
-                     alt="${board.nickname}">
+                     alt="${fn:escapeXml(board.nickname)}">
             </span>
         </c:when>
 
@@ -108,7 +108,7 @@
         <c:otherwise>
             <img class="board-header-avatar"
                  src="${board.profile}"
-                 alt="${board.nickname}">
+                 alt="${fn:escapeXml(board.nickname)}">
         </c:otherwise>
 
     </c:choose>
@@ -117,7 +117,7 @@
 
  <%-- 작성자 닉네임 제대로 보이도록  --%>
      <div class="board-card-header-text">
-           <span class="board-card-nickname">${board.nickname}</span>
+           <span class="board-card-nickname"><c:out value="${board.nickname}" /></span>
            <span class="board-card-date">${board.createAtStr}</span>
        </div>
 </div>
@@ -208,17 +208,17 @@
                           data-user-profile="${c.memberId}"
                           role="button"
                           tabindex="0"
-                          aria-label="${c.nickname} 프로필 보기">
+                          aria-label="${fn:escapeXml(c.nickname)} 프로필 보기">
                     <c:choose>
                         <c:when test="${not empty c.profile}">
-                            <img class="comment-avatar" src="${c.profile}" alt="${c.nickname}">
+                            <img class="comment-avatar" src="${c.profile}" alt="${fn:escapeXml(c.nickname)}">
                         </c:when>
                         <c:otherwise>
-                            <span class="comment-avatar-placeholder">${fn:substring(c.nickname, 0, 1)}</span>
+                            <span class="comment-avatar-placeholder">${fn:escapeXml(fn:substring(c.nickname, 0, 1))}</span>
                         </c:otherwise>
                     </c:choose>
                     </span>
-                    <span class="comment-nickname">${c.nickname}</span>
+                    <span class="comment-nickname"><c:out value="${c.nickname}" /></span>
                 </div>
                 <%-- white-space: pre-wrap이 걸려있어서, 아래 태그 사이에 줄바꿈/들여쓰기를 남기면
                      그 공백까지 그대로 화면에 찍힌다(댓글 앞에 빈 칸이 생기던 원인). 한 줄로 붙여서 방지. --%>

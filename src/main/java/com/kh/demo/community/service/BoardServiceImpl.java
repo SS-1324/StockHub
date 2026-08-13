@@ -166,11 +166,7 @@
             );
     
             validateTitleAndContent(boardDto);
-    
-            boardDto.setContent(
-                    sanitizeContent(boardDto.getContent())
-            );
-    
+
             boardMapper.insertBoard(boardDto);
     
             boardImageService.uploadImages(
@@ -586,11 +582,7 @@
             );
     
             validateTitleAndContent(boardDto);
-    
-            boardDto.setContent(
-                    sanitizeContent(boardDto.getContent())
-            );
-    
+
             int updated = boardMapper.updateBoard(boardDto);
     
             if (updated == 0) {
@@ -652,11 +644,7 @@
             );
     
             validateTitleAndContent(boardDto);
-    
-            boardDto.setContent(
-                    sanitizeContent(boardDto.getContent())
-            );
-    
+
             int updated
                     = boardMapper.updateBoardAsAdmin(boardDto);
     
@@ -764,9 +752,10 @@
                 );
             }
 
-            Document contentDocument = Jsoup.parseBodyFragment(
-                    sanitizeContent(boardDto.getContent())
-            );
+            // 검증용으로만 한 번 더 파싱하지 않도록, 정제한 결과를 여기서 바로 boardDto에 반영해
+            // write()/update()/updateAsAdmin()가 저장 직전에 또 sanitizeContent를 부르지 않게 한다.
+            boardDto.setContent(sanitizeContent(boardDto.getContent()));
+            Document contentDocument = Jsoup.parseBodyFragment(boardDto.getContent());
 
             // 글자 수만 세면 빈 줄은 텍스트가 거의 없어 MAX_CONTENT_LENGTH를 통과하므로,
             // 개행을 극단적으로 많이 넣어 화면을 무한정 늘리는 시도는 줄 수 자체로 따로 막는다.
