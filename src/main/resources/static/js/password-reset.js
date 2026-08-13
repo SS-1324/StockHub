@@ -81,8 +81,8 @@ emailSendButton.addEventListener("click", async function () {
         verificationRequestEmail = fullEmail;
         verifiedEmail = null;
         resetTokenInput.value = "";
-        emailResult.textContent = `개발모드 인증코드: ${result.data}`;
-        emailResult.className = "form-tip form-tip-info";
+        emailResult.textContent = result.message || "인증번호가 이메일로 발송되었습니다.";
+        emailResult.className = "form-tip form-tip-ok";
         emailCodeArea.hidden = false;
         passwordArea.hidden = true;
         emailCodeInput.value = "";

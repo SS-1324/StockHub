@@ -8,7 +8,108 @@ const saveTheme = (theme) => {
     }
 };
 
+// 세션 타이머 관련 함수 (전역 함수로 등록)
+let sessionTimerInterval = null;
+
+function updateSessionTimer() {
+    const timerContainer = document.querySelector(".header-session-timer");
+    const timeDisplay = document.getElementById("header-session-remaining-time");
+
+    if (!timerContainer || !timeDisplay) {
+        return;
+    }
+
+    const expiresAtStr = timerContainer.getAttribute("data-session-expires-at");
+    if (!expiresAtStr) {
+        return;
+    }
+
+    // 서버에서 전달받은 만료 시각 (밀리초)
+    const expiresAt = parseInt(expiresAtStr, 10);
+    const now = new Date().getTime();
+    const remainingMs = expiresAt - now;
+
+    if (remainingMs <= 0) {
+        timeDisplay.textContent = "00:00";
+        if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+        alert("세션이 만료되었습니다. 다시 로그인해 주세요.");
+        window.location.reload();
+        return;
+    }
+
+    const totalSeconds = Math.floor(remainingMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    const formattedMinutes = String(minutes).padStart(2, "0");
+    const formattedSeconds = String(seconds).padStart(2, "0");
+
+    timeDisplay.textContent = `${formattedMinutes}:${formattedSeconds}`;
+}
+
+// 세션 연장 버튼 클릭 시 호출
+async function extendSession(e) {
+    // 1. 버튼 클릭 시 발생할 수 있는 폼 제출/새로고침 기본 동작 방지
+    if (e && e.preventDefault) {
+        e.preventDefault();
+    }
+
+    try {
+        const contextPath = document.getElementById("member-profile-modal")?.dataset.contextPath || "";
+
+        // 2. 백엔드 Controller 주소(/member/session/extend)와 정확히 일치시킴
+        const response = await fetch(`${contextPath}/member/session/extend`, {
+            method: "POST",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+
+            // 3. ApiResponse의 실제 데이터 필드(data.data)에서 만료 시각 추출
+            const newExpiresAt = data.data;
+
+            if (data.success && newExpiresAt) {
+                const timerContainer = document.querySelector(".header-session-timer");
+                if (timerContainer) {
+                    timerContainer.setAttribute("data-session-expires-at", newExpiresAt);
+                }
+
+                // 전역 변수(expiresAtMs)가 존재할 경우 함께 업데이트
+                if (typeof expiresAtMs !== 'undefined') {
+                    expiresAtMs = newExpiresAt;
+                }
+
+                // 타이머 UI 즉시 갱신
+                if (typeof updateSessionTimer === 'function') {
+                    updateSessionTimer();
+                } else if (typeof updateTimer === 'function') {
+                    updateTimer();
+                }
+
+            } else {
+                alert(data.message || "세션 연장에 실패했습니다.");
+            }
+        } else {
+            alert("서버 통신에 실패했습니다.");
+        }
+    } catch (err) {
+        console.error("세션 연장 오류:", err);
+        alert("세션 연장 중 오류가 발생했습니다.");
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+    // 세션 타이머 초기화 및 1초마다 갱신
+    const timerContainer = document.querySelector(".header-session-timer");
+    if (timerContainer) {
+        updateSessionTimer();
+        sessionTimerInterval = setInterval(updateSessionTimer, 1000);
+    }
+
     const themeToggle = document.getElementById("theme-toggle");
     const mobileMenuToggle = document.getElementById("mobile-menu-toggle");
     const mainNavigation = document.getElementById("main-navigation");
@@ -42,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
         saveTheme(nextTheme);
 
         requestAnimationFrame(() => {
-            requestAnimationFrame(()=>{
+            requestAnimationFrame(() => {
                 root.classList.remove("theme-changing");
             });
         });
@@ -116,7 +217,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /* =========================================================
    공통 회원 프로필 모달
-   커뮤니티·랭킹의 [data-user-profile] 요소가 모두 이 로직을 공유한다.
    ========================================================= */
 document.addEventListener("DOMContentLoaded", () => {
     const modalOverlay = document.getElementById("member-profile-modal");
@@ -139,11 +239,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let lastFocusedElement = null;
     let currentTrigger = null;
 
-    /* [프로필위치-1]
-     * 커뮤니티는 사진 전용 트리거, 랭킹은 사진·이름 트리거처럼 화면별 클릭 범위가 다르다.
-     * 어느 트리거에서 열어도 내부의 실제 이미지(또는 기본 프로필 원)를 우선 찾아
-     * 팝업이 넓은 행 끝이 아니라 사진 바로 오른쪽에 놓이도록 위치 기준을 통일한다.
-     */
     const resolveProfileAnchor = () => {
         if (!currentTrigger) return null;
 
@@ -168,23 +263,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const triggerRect = anchor.getBoundingClientRect();
         const availableWidth = window.innerWidth - triggerRect.right - gap - margin;
         const isRankingProfile = Boolean(currentTrigger.closest?.(".ranking-row"));
-        /*
-         * [랭킹프로필클릭-2] 랭킹 팝업은 360px까지만 사용한다.
-         * 프로필 오른쪽의 수익률·수익금 숫자를 가리지 않으면서도 팝업 안의
-         * 작성글·팔로우·투자 수치는 모두 읽을 수 있는 폭이다.
-         */
         const preferredMaxWidth = isRankingProfile ? 360 : 430;
         modal.style.maxWidth = Math.max(280, Math.min(preferredMaxWidth, availableWidth)) + "px";
-        modal.style.maxWidth = Math.max(280, Math.min(430, availableWidth)) + "px";
 
-        /*
-         * [프로필위치-3] viewport 고정 좌표가 아니라 문서 좌표를 사용한다.
-         * 팝업은 클릭한 프로필 오른쪽에 한 번만 놓이고 스크롤을 따라오지 않는다.
-         */
         const left = window.scrollX + triggerRect.right + gap;
         let top = window.scrollY + triggerRect.top;
 
-        /* 커뮤니티 첫 행에서 열어도 카테고리·검색 도구 영역 위로 올라가지 않게 한다. */
         const boardToolbar = document.querySelector(".board-toolbar");
         if (boardToolbar) {
             const toolbarRect = boardToolbar.getBoundingClientRect();
@@ -211,7 +295,6 @@ document.addEventListener("DOMContentLoaded", () => {
             avatar.src = defaultProfile;
         };
 
-        /* [프로필랭커프레임-2] 현재 랭킹 기준의 1~3위에 맞춰 팝업 사진에도 금·은·동 프레임을 적용한다. */
         avatarFrame.classList.remove("rank-first", "rank-second", "rank-third");
         if (profile.badge === "RANKER" && profile.rankPosition >= 1 && profile.rankPosition <= 3) {
             avatarFrame.classList.add([
@@ -222,10 +305,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         modalOverlay.querySelector("[data-profile-nickname]").textContent = profile.nickname;
         modalOverlay.querySelector("[data-profile-member-id]").textContent = "@" + profile.memberId;
-        /* [프로필간소화-2] 본인·타인 여부와 관계없이 같은 제목과 같은 정보 구조를 사용한다. */
         modalOverlay.querySelector("[data-profile-heading]").textContent = "회원 정보";
 
-        /* [팔로우토글-5] 서버 상태를 기준으로 버튼 문구·색상·접근성 상태를 함께 갱신한다. */
         followToggle.hidden = !profile.canFollow;
         followToggle.disabled = false;
         followToggle.textContent = profile.followingTarget ? "팔로잉" : "팔로우";
@@ -233,10 +314,6 @@ document.addEventListener("DOMContentLoaded", () => {
         followToggle.classList.toggle("is-following", profile.followingTarget);
 
         const badge = modalOverlay.querySelector("[data-profile-badge]");
-        /* [프로필권한배지-2]
-         * 서버가 ADMIN을 반환하면 관리자 배지를 최우선으로 표시한다.
-         * 그 외에는 기존처럼 랭킹 기준과 순위를 함께 보여준다.
-         */
         const rankLabel = profile.rankType === "profit" ? "수익금 RANKER" : "수익률 RANKER";
         badge.textContent = profile.badge === "ADMIN"
             ? "ADMIN"
@@ -246,10 +323,6 @@ document.addEventListener("DOMContentLoaded", () => {
         badge.classList.toggle("is-ranker", profile.badge === "RANKER");
         badge.classList.toggle("is-admin", profile.badge === "ADMIN");
 
-        /* [프로필공개정보-5]
-         * 활동 수치는 항상 표시하고 투자정보 비공개 회원은 수익률·수익금 행만 접는다.
-         * 별도 안내 영역이 없어져 숨긴 행의 높이만큼 팝업도 자연스럽게 짧아진다.
-         */
         publicStats.hidden = false;
         investmentStats.forEach((stat) => {
             stat.hidden = !profile.detailsPublic;
@@ -259,7 +332,6 @@ document.addEventListener("DOMContentLoaded", () => {
         modalOverlay.querySelector("[data-profile-follower-count]").textContent = profile.followerCount;
         modalOverlay.querySelector("[data-profile-following-count]").textContent = profile.followingCount;
 
-        /* [프로필비공개표시-3] 비공개 회원에게 0원·0%를 만들지 않고 투자 지표 렌더링만 생략한다. */
         if (!profile.detailsPublic) {
             return;
         }
@@ -272,10 +344,6 @@ document.addEventListener("DOMContentLoaded", () => {
             returnRate.toLocaleString("ko-KR", { maximumFractionDigits: 2 }) + "%";
         profitElement.textContent = profit.toLocaleString("ko-KR") + "원";
 
-        /* [프로필손익색상-1]
-         * 국내 증권 화면 관례에 맞춰 상승(양수)은 빨강, 하락(음수)은 파랑으로 표시한다.
-         * 0은 방향성이 없으므로 두 클래스를 모두 제거해 기본 글자색을 사용한다.
-         */
         [
             [returnRateElement, returnRate],
             [profitElement, profit]
@@ -299,11 +367,6 @@ document.addEventListener("DOMContentLoaded", () => {
         closeButton.focus();
 
         try {
-            /*
-             * [프로필순위-5 / 프로필AJAX-1]
-             * 랭킹 행에 기록한 data-profile-rank-type을 쿼리스트링으로 보낸다.
-             * 커뮤니티 등 기준 속성이 없는 화면은 기존 동작과 같은 returnRate를 사용한다.
-             */
             const rankType = trigger?.dataset.profileRankType || "returnRate";
             const query = new URLSearchParams({ rankType });
             const response = await fetch(
@@ -342,10 +405,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         followToggle.disabled = true;
         try {
-            /*
-             * [팔로우토글-6] 페이지 이동 없이 POST 요청으로 관계를 반전한다.
-             * 서버가 반환한 최신 프로필 전체를 다시 그려 팔로워 숫자도 같은 상태로 맞춘다.
-             */
             const memberId = encodeURIComponent(currentProfile.memberId);
             const query = new URLSearchParams({ rankType: currentProfile.rankType || "returnRate" });
             const response = await fetch(
@@ -367,7 +426,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    /* 캡처 단계에서 처리해 커뮤니티 카드 이동 및 랭킹 아코디언 클릭과 충돌하지 않게 한다. */
     document.addEventListener("click", (event) => {
         const trigger = event.target.closest?.("[data-user-profile]");
         if (!trigger || !trigger.dataset.userProfile) return;

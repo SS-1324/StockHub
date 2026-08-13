@@ -6,6 +6,9 @@ public interface EmailVerificationService {
     // 3분 동안 사용할 이메일 인증번호를 생성하고 실제 메일로 발송
     void sendVerificationCode(String email);
 
+    // 지정한 인증번호를 실제 메일로 발송(비밀번호 찾기에서 사용)
+    void sendEmail(String toEmail, String code);
+
     // 이메일과 인증번호의 확인 결과를 반환
     EmailVerificationResult verifyCode(String email, String code);
 
