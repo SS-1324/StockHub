@@ -164,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
             menuIcon.textContent = "☰";
         }
     };
-
+    //다크/라이트 모드 버튼 기능
     themeToggle?.addEventListener("click", () => {
         root.classList.add("theme-changing");
 
