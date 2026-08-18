@@ -82,10 +82,10 @@ public class PasswordResetServiceImpl implements PasswordResetService {
                 passwordResetTokenMapper.selectMemberIdByEmail(normalizedEmail);
         if (memberId == null
                 || passwordResetTokenMapper.verifyEmailCode(
-                        memberId,
-                        normalizedEmail,
-                        normalizedCode
-                ) != 1) {
+                memberId,
+                normalizedEmail,
+                normalizedCode
+        ) != 1) {
             throw new IllegalStateException("인증 코드를 다시 확인해주세요.");
         }
 
