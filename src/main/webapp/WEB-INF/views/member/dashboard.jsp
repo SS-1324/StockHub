@@ -125,36 +125,13 @@
                 <script id="dashboard-realized-profits" type="application/json">[<c:forEach var="r" items="${realizedProfits}" varStatus="st">{"itemName":"${fn:escapeXml(r.itemName)}","buyAt":"${r.buyAtText}","sellAt":"${r.sellAtText}","quantity":${r.quantity},"buyPrice":${r.buyPrice},"sellPrice":${r.sellPrice},"profitAmount":${r.profitAmount},"returnRate":${r.returnRate},"holdingDays":${r.holdingDays}}<c:if test="${!st.last}">,</c:if></c:forEach>]</script>
 
                 <div class="dashboard-analytics-grid" id="dashboard-analytics-capture">
-                    <%-- 왼쪽 절반은 전부 "보유 종목 구성" 휠 - 위아래로 늘어난 공간에 집중도/국내해외
-                         비중까지 같이 붙여서, 보유 종목과 직접 관련된 정보를 한 카드에 몰아둔다 --%>
+                    <%-- 왼쪽 절반은 "보유 종목 구성" 휠 - 종목이 몇 개든 오른쪽(추이+통계) 높이에
+                         맞춰지도록, 범례만 이 카드 안에서 스크롤된다(dashboard.css 참고) --%>
                     <div class="dashboard-analytics-card dashboard-analytics-holdings-card">
                         <h3>보유 종목 구성</h3>
                         <div class="dashboard-analytics-donut-wrap">
                             <canvas id="portfolio-donut-canvas" width="220" height="220"></canvas>
                             <ul class="dashboard-portfolio-legend" id="stock-portfolio-legend"></ul>
-                        </div>
-                        <div class="dashboard-analytics-substats">
-                            <button type="button" class="dashboard-analytics-stat dashboard-analytics-stat-clickable" data-detail="concentration" data-detail-title="보유 종목 집중도 상세">
-                                <p class="dashboard-analytics-stat-label">집중도</p>
-                                <p class="dashboard-analytics-stat-value"><fmt:formatNumber value="${portfolioAnalytics.concentrationRate}" pattern="#,##0.0"/>%</p>
-                                <p class="dashboard-analytics-stat-sub"><c:out value="${portfolioAnalytics.topHoldingName}"/></p>
-                            </button>
-                            <button type="button" class="dashboard-analytics-stat dashboard-analytics-stat-clickable" data-detail="region" data-detail-title="국내 · 해외 비중 상세">
-                                <p class="dashboard-analytics-stat-label">국내 · 해외 비중</p>
-                                <c:set var="regionTotal" value="${portfolioAnalytics.domesticStockValue + portfolioAnalytics.foreignStockValue}" />
-                                <c:choose>
-                                    <c:when test="${regionTotal > 0}">
-                                        <c:set var="domesticPct" value="${portfolioAnalytics.domesticStockValue * 100.0 / regionTotal}" />
-                                        <div class="dashboard-region-bar">
-                                            <div class="dashboard-region-bar-domestic" style="width: ${domesticPct}%;"></div>
-                                        </div>
-                                        <p class="dashboard-analytics-stat-sub">
-                                            국내 <fmt:formatNumber value="${domesticPct}" pattern="#,##0.0"/>% · 해외 <fmt:formatNumber value="${100 - domesticPct}" pattern="#,##0.0"/>%
-                                        </p>
-                                    </c:when>
-                                    <c:otherwise><p class="dashboard-analytics-stat-value">-</p></c:otherwise>
-                                </c:choose>
-                            </button>
                         </div>
                     </div>
 
@@ -207,6 +184,32 @@
                                         <c:if test="${portfolioAnalytics.worstTrade.profitAmount gt 0}">+</c:if><fmt:formatNumber value="${portfolioAnalytics.worstTrade.profitAmount}" pattern="#,##0"/>원
                                     </p>
                                     <p class="dashboard-analytics-stat-sub"><c:out value="${portfolioAnalytics.worstTrade.itemName}"/></p>
+                                </c:when>
+                                <c:otherwise><p class="dashboard-analytics-stat-value">-</p></c:otherwise>
+                            </c:choose>
+                        </button>
+                    </div>
+
+                    <%-- 집중도/국내해외 비중 - 보유종목 카드 안에 끼워두면 종목이 많을 때 카드
+                         높이가 눌려서 같이 찌그러졌다. 아래 한 줄로 따로 빼서 폭을 넉넉히 준다 --%>
+                    <div class="dashboard-analytics-substats-row">
+                        <button type="button" class="dashboard-analytics-stat dashboard-analytics-stat-clickable" data-detail="concentration" data-detail-title="보유 종목 집중도 상세">
+                            <p class="dashboard-analytics-stat-label">집중도</p>
+                            <p class="dashboard-analytics-stat-value"><fmt:formatNumber value="${portfolioAnalytics.concentrationRate}" pattern="#,##0.0"/>%</p>
+                            <p class="dashboard-analytics-stat-sub"><c:out value="${portfolioAnalytics.topHoldingName}"/></p>
+                        </button>
+                        <button type="button" class="dashboard-analytics-stat dashboard-analytics-stat-clickable" data-detail="region" data-detail-title="국내 · 해외 비중 상세">
+                            <p class="dashboard-analytics-stat-label">국내 · 해외 비중</p>
+                            <c:set var="regionTotal" value="${portfolioAnalytics.domesticStockValue + portfolioAnalytics.foreignStockValue}" />
+                            <c:choose>
+                                <c:when test="${regionTotal > 0}">
+                                    <c:set var="domesticPct" value="${portfolioAnalytics.domesticStockValue * 100.0 / regionTotal}" />
+                                    <div class="dashboard-region-bar">
+                                        <div class="dashboard-region-bar-domestic" style="width: ${domesticPct}%;"></div>
+                                    </div>
+                                    <p class="dashboard-analytics-stat-sub">
+                                        국내 <fmt:formatNumber value="${domesticPct}" pattern="#,##0.0"/>% · 해외 <fmt:formatNumber value="${100 - domesticPct}" pattern="#,##0.0"/>%
+                                    </p>
                                 </c:when>
                                 <c:otherwise><p class="dashboard-analytics-stat-value">-</p></c:otherwise>
                             </c:choose>

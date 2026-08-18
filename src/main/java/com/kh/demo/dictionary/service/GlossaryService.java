@@ -6,9 +6,6 @@ import java.util.List;
 
 public interface GlossaryService {
 
-    // 여러 용어명을 한 번에 조회
-    List<GlossaryDto> selectGlossaryByTerms(List<String> terms);
-
     // 메인 화면 등에 표시할 용어를 무작위로 조회
     List<GlossaryDto> selectRandomGlossaryTerms(int limit);
 

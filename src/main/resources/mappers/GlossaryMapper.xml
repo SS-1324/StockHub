@@ -27,36 +27,12 @@
         ORDER BY category ASC, term ASC
     </select>
 
-    <!-- 메인 화면 등에 표시할 지정 용어를 요청받은 순서대로 조회 -->
-    <select id="selectGlossaryByTerms" resultMap="glossaryResultMap">
-        SELECT term_id, term, definition, category
-        FROM glossary
-        WHERE term IN
-        <foreach collection="terms" item="term" open="(" separator="," close=")">
-            #{term}
-        </foreach>
-        ORDER BY FIELD(
-            term,
-            <foreach collection="terms" item="term" separator=",">
-                #{term}
-            </foreach>
-        )
-    </select>
-
     <!-- 메인 화면 등에 표시할 용어를 요청할 때마다 무작위로 조회 -->
     <select id="selectRandomGlossaryTerms" resultMap="glossaryResultMap">
         SELECT term_id, term, definition, category
         FROM glossary
         ORDER BY RAND()
         LIMIT #{limit}
-    </select>
-
-    <!-- 용어 번호로 상세 조회 -->
-    <select id="selectGlossaryById" resultMap="glossaryResultMap">
-        SELECT term_id, term, definition, category
-        FROM glossary
-        <!-- 자바 필드명과 DB명이 같은 내용 찾기-->
-        WHERE term_id = #{termId}
     </select>
 
     <!-- 검색 -->
@@ -107,7 +83,6 @@
         )
         ORDER BY term ASC
     </select>
-
     <select id = "AutoCompleteTerms"
             resultType="string">
         SELECT term

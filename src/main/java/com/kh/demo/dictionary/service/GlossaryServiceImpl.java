@@ -16,16 +16,6 @@ public class GlossaryServiceImpl implements GlossaryService {
 
     private final GlossaryMapper glossaryMapper;
 
-    // 메인 화면 등에 표시할 여러 용어를 요청한 순서대로 조회
-    @Override
-    public List<GlossaryDto> selectGlossaryByTerms(List<String> terms) {
-        if (terms == null || terms.isEmpty()) {
-            return List.of();
-        }
-
-        return glossaryMapper.selectGlossaryByTerms(terms);
-    }
-
     // 요청할 때마다 DB에서 무작위 용어를 지정한 개수만큼 조회
     @Override
     public List<GlossaryDto> selectRandomGlossaryTerms(int limit) {

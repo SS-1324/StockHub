@@ -152,7 +152,6 @@ const PORTFOLIO_DONUT_COLORS = [
 ];
 
 const LEGEND_TWO_COL_THRESHOLD = 6;
-const DONUT_MAX_SLICES = 12;
 
 // 캔버스에 실제 도형을 그려야(=CSS가 아니어야) PNG 다운로드(canvas.toDataURL)가 가능하다
 function drawPortfolioDonut() {
@@ -173,14 +172,10 @@ function drawPortfolioDonut() {
         return;
     }
 
-    // 휠+범례에 보여줄 종목은 최대 12개까지만 - 13개가 넘으면 상위 11개만 그대로 두고
-    // 나머지는 "기타"로 합쳐서 12번째 조각 하나로 보여준다(범례가 한없이 길어지는 걸 막는다).
-    let displayHoldings = holdings;
-    if (holdings.length > DONUT_MAX_SLICES) {
-        const top = holdings.slice(0, DONUT_MAX_SLICES - 1);
-        const restValue = holdings.slice(DONUT_MAX_SLICES - 1).reduce((sum, h) => sum + h.value, 0);
-        displayHoldings = [...top, { name: "기타", value: restValue }];
-    }
+    // 보유 종목은 개수 제한 없이 전부 보여준다 - 대신 범례 영역 자체가 오른쪽(추이+통계) 높이에
+    // 맞춰 고정된 최대 높이를 갖고, 그 안에서 넘치는 만큼만 스크롤된다(CSS 쪽 처리).
+    // 그래야 종목이 몇 개든 왼쪽 카드와 오른쪽 카드 높이가 항상 맞는다.
+    const displayHoldings = holdings;
 
     const size = canvas.width;
     const ctx = prepareHiDpiCanvas(canvas, size, size);
