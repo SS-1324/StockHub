@@ -98,10 +98,14 @@ emailSendButton.addEventListener("click", async function () {
     }
 });
 
-// 인증 코드에는 숫자 6자리까지만 입력
+// 인증 코드에는 대문자 영문과 숫자 6자리까지만 입력
 emailCodeInput.addEventListener("input", function () {
     emailCodeInput.value =
-        emailCodeInput.value.replace(/[^0-9]/g, "").slice(0, 6);
+        emailCodeInput.value
+            .replace(/[^A-Za-z0-9]/g, "")
+            .toUpperCase()
+            .slice(0, 6);
+
     emailCodeResult.textContent = "";
     emailCodeResult.className = "form-tip";
 });
@@ -111,7 +115,7 @@ emailVerifyButton.addEventListener("click", async function () {
     const fullEmail = getFullEmail();
     const code = emailCodeInput.value.trim();
 
-    if (verificationRequestEmail !== fullEmail || !/^[0-9]{6}$/.test(code)) {
+    if (verificationRequestEmail !== fullEmail || !/^[A-Z0-9]{6}$/.test(code)) {
         showResult(emailCodeResult, "코드를 다시 확인해주세요.", false);
         return;
     }

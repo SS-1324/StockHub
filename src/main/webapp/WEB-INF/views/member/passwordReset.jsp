@@ -107,9 +107,12 @@
 
                         <div id="reset-code-area" class="email-code-area" hidden>
                             <div class="input-with-button">
-                                <input id="reset-email-code" type="text"
-                                       inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
-                                       placeholder="인증코드 6자리" autocomplete="one-time-code">
+                            <input id="reset-email-code" type="text"
+                                   inputmode="text" pattern="[A-Z0-9]{6}" maxlength="6"
+                                   placeholder="인증코드 6자리"
+                                   autocomplete="one-time-code"
+                                   autocapitalize="characters"
+                                   spellcheck="false">
                                 <button id="verify-reset-code-btn" class="btn btn-outline"
                                         type="button">확인</button>
                             </div>
@@ -154,6 +157,6 @@
     </section>
 </main>
 
-<script src="${pageContext.request.contextPath}/js/password-reset.js?v=2"></script>
+<script src="${pageContext.request.contextPath}/js/password-reset.js?v=3"></script>
 </body>
 </html>
